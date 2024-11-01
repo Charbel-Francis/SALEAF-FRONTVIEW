@@ -33,10 +33,14 @@ const SignIn = () => {
     password: "",
   });
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
   const login = async () => {
+    setLoading(true);
     if (onLogin) {
       const results = await onLogin(form.email, form.password);
-      console.log(results);
+      if (results) {
+        setLoading(false);
+      }
     }
   };
   return (
@@ -81,6 +85,7 @@ const SignIn = () => {
             onPress={() => {
               login();
             }}
+            loading={loading}
             title="Sign In"
           />
           <View className="mt-4 mr-5">

@@ -25,11 +25,12 @@ const SignUp = () => {
     password: "",
     isStudent: false,
   });
-
+  const [loading, setLoading] = useState(false);
   const toggleSwitch = () =>
     setForm((prevForm) => ({ ...prevForm, isStudent: !prevForm.isStudent }));
 
   const Signup = async () => {
+    setLoading(true);
     if (onRegister) {
       const results = await onRegister(
         form.firstname,
@@ -37,7 +38,9 @@ const SignUp = () => {
         form.email,
         form.password
       );
-      console.log(results);
+      if (results) {
+        setLoading(false);
+      }
     }
   };
   return (
@@ -65,12 +68,14 @@ const SignUp = () => {
         <DualInputField
           label1="First Name"
           label2="Last Name"
+          placeholder1="Enter First Name"
+          placeholder2="Enter Last Name"
           icon1={<UserIcon />}
           icon2={<UserIcon />}
-          onChangeFirstName={(value) => {
+          onChange1={(value) => {
             setForm({ ...form, firstname: value });
           }}
-          onChangeLastName={(value) => {
+          onChange2={(value) => {
             setForm({ ...form, lastname: value });
           }}
         />
@@ -102,6 +107,7 @@ const SignUp = () => {
             onPress={() => {
               Signup();
             }}
+            loading={loading}
             title="Create Account"
           />
           <View className="mt-4 mr-5">

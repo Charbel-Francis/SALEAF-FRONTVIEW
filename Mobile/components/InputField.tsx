@@ -1,5 +1,5 @@
 import { DualInputFieldProps, InputFieldProps } from "@/types/types";
-import React from "react";
+import React, { useState } from "react";
 import {
   Image,
   KeyboardAvoidingView,
@@ -65,8 +65,10 @@ export const DualInputField = ({
   inputStyle,
   iconStyle,
   className,
-  onChangeFirstName,
-  onChangeLastName,
+  placeholder1,
+  placeholder2,
+  onChange1,
+  onChange2,
   ...props
 }: DualInputFieldProps) => {
   return (
@@ -94,9 +96,9 @@ export const DualInputField = ({
                     React.cloneElement(icon1)
                   ))}
                 <TextInput
-                  placeholder="First Name"
+                  placeholder={placeholder1}
                   className={`rounded-full p-4 font-sans text-[15px] flex-1 ${inputStyle} text-left`}
-                  onChangeText={onChangeLastName}
+                  onChangeText={onChange1}
                   {...props}
                 />
               </View>
@@ -119,9 +121,9 @@ export const DualInputField = ({
                     React.cloneElement(icon2)
                   ))}
                 <TextInput
-                  placeholder="Last Name"
+                  placeholder={placeholder2}
                   className={`rounded-full p-4 font-sans text-[15px] flex-1 ${inputStyle} text-left`}
-                  onChangeText={onChangeLastName}
+                  onChangeText={onChange2}
                   {...props}
                 />
               </View>
@@ -142,8 +144,19 @@ export const DonateInputField = ({
   inputStyle,
   iconStyle,
   className,
+  onChangeText,
   ...props
-}: InputFieldProps) => {
+}: InputFieldProps & { onChange?: (value: string) => void }) => {
+  const [value, setValue] = useState("");
+
+  const handleChange = (text: string) => {
+    const numericText = text.replace(/[^0-9]/g, "");
+    setValue(numericText);
+    if (onChangeText) {
+      onChangeText(numericText);
+    }
+  };
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -171,6 +184,8 @@ export const DonateInputField = ({
             <TextInput
               className={`rounded-full p-4 font-sans text-[15px] flex-1 ${inputStyle} text-left`}
               keyboardType="numeric"
+              value={value}
+              onChangeText={handleChange}
               {...props}
             />
           </View>

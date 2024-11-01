@@ -1,11 +1,9 @@
-import axios from "axios";
 import { createContext, useContext, useEffect, useState } from "react";
 import * as SecureStore from "expo-secure-store";
 import { AuthProps } from "@/utils/interface";
+import axiosInstance from "@/utils/config";
 
 const Token_key = "my-jwt";
-export const API_URL =
-  "https://saleafapi-cwc6hzgabad9fee0.southafricanorth-01.azurewebsites.net";
 const AuthContext = createContext<AuthProps>({});
 
 export const useAuth = () => {
@@ -26,7 +24,9 @@ export const AuthProvider = ({ children }: any) => {
       const token = await SecureStore.getItemAsync(Token_key);
       console.log("stored:", token);
       if (token) {
-        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        axiosInstance.defaults.headers.common[
+          "Authorization"
+        ] = `Bearer ${token}`;
         setAuthState({
           token: token,
           authenticated: true,
@@ -43,7 +43,8 @@ export const AuthProvider = ({ children }: any) => {
     password: string
   ) => {
     try {
-      const results = await axios.post(`${API_URL}/api/Account/register`, {
+      console.log(firstName, lastName, email, password);
+      const results = await axiosInstance.post(`/api/Account/register`, {
         firstName,
         lastName,
         email,
@@ -54,7 +55,7 @@ export const AuthProvider = ({ children }: any) => {
         token: results.data.token,
         authenticated: true,
       });
-      axios.defaults.headers.common[
+      axiosInstance.defaults.headers.common[
         "Authorization"
       ] = `Bearer ${results.data.token}`;
       await SecureStore.setItemAsync(Token_key, results.data.token);
@@ -66,7 +67,7 @@ export const AuthProvider = ({ children }: any) => {
 
   const login = async (email: string, password: string) => {
     try {
-      const results = await axios.post(`${API_URL}/api/Account/login`, {
+      const results = await axiosInstance.post(`/api/Account/login`, {
         email,
         password,
       });
@@ -75,7 +76,7 @@ export const AuthProvider = ({ children }: any) => {
         token: results.data.token,
         authenticated: true,
       });
-      axios.defaults.headers.common[
+      axiosInstance.defaults.headers.common[
         "Authorization"
       ] = `Bearer ${results.data.token}`;
 
@@ -88,12 +89,13 @@ export const AuthProvider = ({ children }: any) => {
 
   const logout = async () => {
     await SecureStore.deleteItemAsync(Token_key);
-    axios.defaults.headers.common["Authorization"] = "";
+    axiosInstance.defaults.headers.common["Authorization"] = "";
     setAuthState({
       token: null,
       authenticated: false,
     });
   };
+
   const value = {
     onRegister: register,
     onLogin: login,

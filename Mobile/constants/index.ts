@@ -89,3 +89,14 @@ export const onboarding = [
 export const data = {
   onboarding,
 };
+export const pretextDonationAmount = [
+  { label: "R10", value: "10" },
+  { label: "R100", value: "100" },
+  { label: "R1000", value: "1000" },
+  { label: "R10000", value: "10000" },
+];
+export const donationType =[
+  {label:"Online Payments", value:"3"},
+  {label:"Bank Transfer (Manual Payment)", value:"4"},
+
+]

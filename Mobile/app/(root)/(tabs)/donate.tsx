@@ -1,59 +1,32 @@
-import { useAuth } from "@/context/JWTContext";
-import React from "react";
-import { View, ActivityIndicator } from "react-native";
-import { WebView } from "react-native-webview";
-
-const Chat = () => {
-  const { authState } = useAuth();
-  const injectedJS = `
-   document.addEventListener('DOMContentLoaded', function() {
-      window.localStorage.setItem('serviceToken', '${authState?.token}');
-      window.localStorage.setItem('mobileView', 'true');
-    });
-    true;
-  `;
+import React, { useEffect, useState } from "react";
+import DonationAmountComponent from "@/app/components/Donation/donationAmount";
+import { SafeAreaView, Text, View } from "react-native";
+import { ProgressBar } from "react-native-paper";
+import DonatorDetails from "@/app/components/Donation/donatorDetails";
+import DonationTypeComponent from "@/app/components/Donation/chooseDonationType";
+import DonateOnline from "@/app/components/Donation/donationOnline";
+import StepProgress from "@/app/pages/Stepper";
+import ProofOfPaymentRecieved from "@/app/components/Donation/paymentStatus/ProofofPaymentRecieved";
+const Donate = () => {
+  const [donationAmount, setDonationAmount] = useState<number>();
+  const [steps, setSteps] = useState<number>(0);
 
   return (
-    <WebView
-      source={{
-        uri: "http://localhost:3000/react/donate/donate",
-      }}
-      originWhitelist={["*"]}
-      style={{ overflow: "scroll" }}
-      scalesPageToFit={false}
-      mixedContentMode={"compatibility"}
-      thirdPartyCookiesEnabled={true}
-      domStorageEnabled={true}
-      setBuiltInZoomControls={false}
-      startInLoadingState={true}
-      renderLoading={() => (
-        <View
-          style={{
-            height: "100%",
-            width: "100%",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <ActivityIndicator size="large" color="#FF0000" />
-        </View>
+    <SafeAreaView className="flex-1 bg-white">
+      {steps === 0 ? (
+        <DonationAmountComponent
+          setSelectedAmount={setDonationAmount}
+          setSteps={setSteps}
+        />
+      ) : (
+        <StepProgress
+          setSteps={setSteps}
+          steps={steps}
+          donationAmount={donationAmount}
+        />
       )}
-      allowUniversalAccessFromFileURLs={true}
-      bounces={false}
-      automaticallyAdjustContentInsets={false}
-      injectedJavaScriptBeforeContentLoaded={injectedJS}
-      javaScriptEnabled={true}
-      hideKeyboardAccessoryView={true}
-      allowsLinkPreview={false}
-      cacheEnabled={false} // Ensures that no cache is used, forcing a fresh load
-      onLoadStart={() => {
-        console.log(authState?.token);
-      }}
-      onLoadEnd={() => {
-        console.log("WebView finished loading");
-      }}
-    />
+    </SafeAreaView>
   );
 };
 
-export default Chat;
+export default Donate;

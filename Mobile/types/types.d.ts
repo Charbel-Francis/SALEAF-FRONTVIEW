@@ -19,10 +19,12 @@ declare interface DualInputFieldProps extends TextInputProps{
     labelStyle?:string;
     containerStyle?:string;
     inputStyle?:string;
+    placeholder1?:string;
+    placeholder2?:string;
     iconStyle?:string;
     className?:string;
-    onChangeFirstName?: (text: string) => void;
-  onChangeLastName?: (text: string) => void;
+    onChange1?: (text: string) => void;
+  onChange2?: (text: string) => void;
 }
 
 declare interface ButtonProps extends TouchableOpacityProps {
@@ -30,6 +32,7 @@ declare interface ButtonProps extends TouchableOpacityProps {
     bgVariant?: "primary" | "secondary" | "danger" | "outline" | "success";
     textVariant?: "primary" | "default" | "secondary" | "danger" | "success";
     IconLeft?: React.ComponentType<any>;
+    className?: string;
     IconRight?: React.ComponentType<any>;
     onPress: () => void;
   }
