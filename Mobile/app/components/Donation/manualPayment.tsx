@@ -145,21 +145,19 @@ const ManualPayment = ({
 
         <View style={styles.buttonContainer}>
           <CustomButton
-            className="w-40"
             onPress={pickDocument}
             title="Select File"
             loading={fileLoading}
+            className="bg-mainColor"
           />
           {selectedFile ? (
             <CustomButton
-              className="w-40"
               onPress={continuePayment}
               title="Continue"
               loading={uploading}
             />
           ) : (
             <CustomButton
-              className="w-40"
               onPress={uploadLater}
               title="Upload Later"
             />
@@ -226,12 +224,13 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   selectedFileText: {
-    fontSize: 16,
+    fontSize: 14,
     color: "#333",
     fontStyle: "italic",
     marginRight: 10,
   },
   buttonContainer: {
+    display: "flex",
     flexDirection: "row",
     justifyContent: "space-around",
     width: "100%",

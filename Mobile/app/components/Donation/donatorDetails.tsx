@@ -38,7 +38,7 @@ const DonatorDetails = () => {
     <View>
       <View className="pt-10 w-full">
         <View className="absolute bottom-5 left-0 right-0 flex items-center">
-          <Text className="text-black font-sans text-lg">
+          <Text className="text-black  text-lg">
             We need a few details from you
           </Text>
         </View>

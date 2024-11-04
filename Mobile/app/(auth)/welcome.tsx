@@ -15,7 +15,7 @@ const Onboarding = () => {
         }}
         className="w-full flex justify-end items-end p-5"
       >
-        <Text className="text-black text-md font-sans">Skip</Text>
+        <Text className="text-black text-md ">Skip</Text>
       </TouchableOpacity>
       <Swiper
         ref={swiperRef}

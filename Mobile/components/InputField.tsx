@@ -15,36 +15,34 @@ export const InputField = ({
   label,
   icon,
   secureTextEntry = false,
-  labelStyle,
-  containerStyle,
-  inputStyle,
-  iconStyle,
-  className,
+  labelStyle = "",
+  containerStyle = "",
+  inputStyle = "",
+  iconStyle = "",
+  className = "",
   ...props
 }: InputFieldProps) => {
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View className="my-2 w-full">
-          <Text className={`text-lg font-sans mb-3 ${labelStyle}`}>
+        <View className={`my-2 w-full ${className}`}>
+          <Text className={`text-base md:text-lg mb-1 md:mb-3 ${labelStyle}`}>
             {label}
           </Text>
           <View
-            className={`flex flex-row justify-start items-center relative bg-neutral-100 rounded-full border border-neutral-100 focus:border-primary-500  ${containerStyle}`}
+            className={`flex flex-row items-center bg-neutral-100 rounded-lg border border-neutral-300 p-2 md:p-3 ${containerStyle}`}
           >
             {icon &&
               (typeof icon === "string" ? (
                 <Image
                   source={{ uri: icon }}
-                  className={`w-6 h-6 ml-4 ${iconStyle}`}
+                  className={`w-5 h-5 md:w-6 md:h-6 ml-3 ${iconStyle}`}
                 />
               ) : (
-                React.cloneElement(icon)
+                React.cloneElement(icon, { style: { width: 24, height: 24 } })
               ))}
             <TextInput
-              className={`rounded-full p-4 font-sans text-[15px] flex-1 ${inputStyle} text-left`}
+              className={`flex-1 text-sm md:text-base ${inputStyle}`}
               secureTextEntry={secureTextEntry}
               {...props}
             />
@@ -60,69 +58,62 @@ export const DualInputField = ({
   label2,
   icon1,
   icon2,
-  labelStyle,
-  containerStyle,
-  inputStyle,
-  iconStyle,
-  className,
-  placeholder1,
-  placeholder2,
+  labelStyle = "",
+  containerStyle = "",
+  inputStyle = "",
+  iconStyle = "",
+  placeholder1 = "",
+  placeholder2 = "",
   onChange1,
   onChange2,
   ...props
 }: DualInputFieldProps) => {
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View className={`my-2 w-full ${containerStyle}`}>
-          <View className="flex flex-row justify-between items-start">
+          <View className="flex flex-row justify-between space-x-2">
             {/* First Input Field */}
-            <View className="flex-1 mr-2">
-              <Text className={`text-lg font-sans mb-3 ${labelStyle}`}>
+            <View className="flex-1">
+              <Text className={`text-base md:text-lg mb-1 ${labelStyle}`}>
                 {label1}
               </Text>
-              <View
-                className={`flex flex-row justify-start items-center relative bg-neutral-100 rounded-full border border-neutral-100 focus:border-mainColor`}
-              >
+              <View className="flex flex-row items-center bg-neutral-100 rounded-lg border border-neutral-300 p-2">
                 {icon1 &&
                   (typeof icon1 === "string" ? (
                     <Image
                       source={{ uri: icon1 }}
-                      className={`w-6 h-6 ml-4 ${iconStyle}`}
+                      className={`w-5 h-5 ml-3 ${iconStyle}`}
                     />
                   ) : (
-                    React.cloneElement(icon1)
+                    React.cloneElement(icon1, { style: { width: 24, height: 24 } })
                   ))}
                 <TextInput
                   placeholder={placeholder1}
-                  className={`rounded-full p-4 font-sans text-[15px] flex-1 ${inputStyle} text-left`}
+                  className={`flex-1 text-sm md:text-base ${inputStyle}`}
                   onChangeText={onChange1}
                   {...props}
                 />
               </View>
             </View>
             {/* Second Input Field */}
-            <View className="flex-1 ml-2">
-              <Text className={`text-lg font-sans mb-3 ${labelStyle}`}>
+            <View className="flex-1">
+              <Text className={`text-base md:text-lg mb-1 ${labelStyle}`}>
                 {label2}
               </Text>
-              <View
-                className={`flex flex-row justify-start items-center relative bg-neutral-100 rounded-full border border-neutral-100 focus:border-mainColor`}
-              >
+              <View className="flex flex-row items-center bg-neutral-100 rounded-lg border border-neutral-300 p-2">
                 {icon2 &&
                   (typeof icon2 === "string" ? (
                     <Image
                       source={{ uri: icon2 }}
-                      className={`w-6 h-6 ml-4 ${iconStyle}`}
+                      className={`w-5 h-5 ml-3 ${iconStyle}`}
                     />
                   ) : (
-                    React.cloneElement(icon2)
+                    React.cloneElement(icon2, { style: { width: 24, height: 24 } })
                   ))}
                 <TextInput
                   placeholder={placeholder2}
-                  className={`rounded-full p-4 font-sans text-[15px] flex-1 ${inputStyle} text-left`}
+                  className={`flex-1 text-sm md:text-base ${inputStyle}`}
                   onChangeText={onChange2}
                   {...props}
                 />
@@ -135,18 +126,19 @@ export const DualInputField = ({
   );
 };
 
+
 export const DonateInputField = ({
   label,
   icon,
   secureTextEntry = false,
-  labelStyle,
-  containerStyle,
-  inputStyle,
-  iconStyle,
-  className,
+  labelStyle = "",
+  containerStyle = "",
+  inputStyle = "",
+  iconStyle = "",
+  className = "",
   onChangeText,
   ...props
-}: InputFieldProps & { onChange?: (value: string) => void }) => {
+}: InputFieldProps & { onChangeText?: (value: string) => void }) => {
   const [value, setValue] = useState("");
 
   const handleChange = (text: string) => {
@@ -158,31 +150,26 @@ export const DonateInputField = ({
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View className="my-2 w-full text-center">
-          <Text
-            className={`text-lg font-sans mb-3 justify-center ${labelStyle}`}
-            style={{ textAlign: "center" }} // This centers the label text
-          >
+        <View className={`my-2 w-full ${className}`}>
+          <Text className={`text-center text-base md:text-lg mb-1 ${labelStyle}`}>
             {label}
           </Text>
           <View
-            className={`flex flex-row justify-start items-center relative bg-neutral-100 rounded-full border border-neutral-100 focus:border-primary-500  ${containerStyle}`}
+            className={`flex flex-row items-center bg-neutral-100 rounded-lg border border-neutral-300 p-2 md:p-3 ${containerStyle}`}
           >
             {icon &&
               (typeof icon === "string" ? (
                 <Image
                   source={{ uri: icon }}
-                  className={`w-6 h-6 ml-4 ${iconStyle}`}
+                  className={`w-5 h-5 md:w-6 md:h-6 ml-3 ${iconStyle}`}
                 />
               ) : (
-                React.cloneElement(icon)
+                React.cloneElement(icon, { style: { width: 24, height: 24 } })
               ))}
             <TextInput
-              className={`rounded-full p-4 font-sans text-[15px] flex-1 ${inputStyle} text-left`}
+              className={`flex-1 text-sm md:text-base ${inputStyle}`}
               keyboardType="numeric"
               value={value}
               onChangeText={handleChange}

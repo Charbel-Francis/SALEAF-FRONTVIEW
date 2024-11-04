@@ -4,20 +4,23 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { NativeWindStyleSheet } from "nativewind";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import "react-native-reanimated";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "react-native";
+import AuthContainer from "./components/Modals/AuthContainer";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 NativeWindStyleSheet.setOutput({
   default: "native",
 });
+
 export default function RootLayout() {
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
+  const [isSignInVisible, setSignInVisible] = useState(false); // State for sign-in modal
 
   useEffect(() => {
     if (loaded) {
@@ -32,43 +35,37 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <StatusBar hidden={true} />
-      <RootLayoutNav></RootLayoutNav>
+      <AuthContainer
+        isSignInVisible={isSignInVisible}
+        setSignInVisible={setSignInVisible}
+      />
+      <RootLayoutNav setSignInVisible={setSignInVisible} />
     </AuthProvider>
   );
 }
 
-function RootLayoutNav() {
+
+
+
+function RootLayoutNav({ setSignInVisible }: { setSignInVisible: React.Dispatch<React.SetStateAction<boolean>> }) {
   const { authState } = useAuth();
   const router = useRouter();
   const segments = useSegments();
 
   useEffect(() => {
     const inAuthGroup = segments[0] === "(auth)";
-    const inRootGroup = segments[0] === "(root)";
-    const isHomePage = segments[2] === "home";
     const protectedPages = ["events", "donate", "profile", "students"];
 
     if (!authState?.authenticated) {
-      if (inAuthGroup) {
-        return;
-      }
-      if (!isHomePage && segments[2] && protectedPages.includes(segments[2])) {
-        router.replace("/(auth)/sign-in");
+      if (!inAuthGroup && segments[2] && protectedPages.includes(segments[2])) {
+        setSignInVisible(true); // Show modal instead of navigating
       }
     } else {
       if (inAuthGroup) {
         router.replace("/(tabs)/home");
       }
     }
-    if (
-      inRootGroup &&
-      !isHomePage &&
-      segments[2] &&
-      !protectedPages.includes(segments[2])
-    ) {
-      router.replace("/(tabs)/home");
-    }
-  }, [authState?.authenticated, segments]);
+  }, [authState?.authenticated, segments, setSignInVisible]);
 
   return (
     <Stack>
@@ -79,3 +76,5 @@ function RootLayoutNav() {
     </Stack>
   );
 }
+
+

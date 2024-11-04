@@ -63,7 +63,7 @@ const DonationAmountComponent = ({
         </View>
       </View>
       <View className="py-2 px-4">
-        <StyledText className="text-lg font-sans mb-3 text-center">
+        <StyledText className="text-lg  mb-3 text-center">
           Select Donation Amount
         </StyledText>
         <ButtonMultiselect

@@ -9,7 +9,7 @@
     "platforms": ["ios", "android"],
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/images/splash.png",
+      "image": "./assets/logo/SaleafClear.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },

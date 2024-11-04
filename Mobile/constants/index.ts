@@ -96,7 +96,7 @@ export const pretextDonationAmount = [
   { label: "R10000", value: "10000" },
 ];
 export const donationType =[
-  {label:"Online Payments", value:"3"},
+  {label:"Online Payments (Yoco Payment)", value:"3"},
   {label:"Bank Transfer (Manual Payment)", value:"4"},
 
 ]
