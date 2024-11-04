@@ -7,6 +7,7 @@ import { NativeWindStyleSheet } from "nativewind";
 import { useEffect } from "react";
 import "react-native-reanimated";
 import { Stack, useRouter, useSegments } from "expo-router";
+import { StatusBar } from "react-native";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -30,6 +31,7 @@ export default function RootLayout() {
 
   return (
     <AuthProvider>
+      <StatusBar hidden={true} />
       <RootLayoutNav></RootLayoutNav>
     </AuthProvider>
   );

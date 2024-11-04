@@ -89,8 +89,8 @@ export default function Layout() {
         name="home"
         options={{
           title: "Home",
-          headerShown: true,
-          headerRight: () => <LogoutButton onPress={handleLogout} />,
+          headerShown: false,
+
           tabBarIcon: ({ focused }) => (
             <TabIcon source={icons.home} focused={focused} />
           ),
