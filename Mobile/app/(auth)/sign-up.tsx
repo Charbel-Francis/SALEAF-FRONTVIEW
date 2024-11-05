@@ -187,6 +187,7 @@ const SignUpModal = ({ visible, onClose, openSignIn }: SignUpModalProps) => {
                     onPress={Signup}
                     loading={loading}
                     title="Create Account"
+                    className="bg-mainColor"
                   />
                   <View className="mt-3">
                     <Text className="text-base text-blue-500 text-right">

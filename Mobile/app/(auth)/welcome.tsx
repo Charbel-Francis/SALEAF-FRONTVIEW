@@ -17,23 +17,7 @@ const Onboarding = () => {
       >
         <Text className="text-black text-md ">Skip</Text>
       </TouchableOpacity>
-      <Swiper
-        ref={swiperRef}
-        loop={false}
-        dot={
-          <View className="w-[32px] h-[4px] mx-1 bg-green-300 rounded-full" />
-        }
-        activeDot={
-          <View className="w-[32px] h-[4px] mx-1 bg-green-950 rounded-full" />
-        }
-        onIndexChanged={(index) => setActiveIndex(index)}
-      >
-        {onboarding.map((item, index) => (
-          <View key={index}>
-            <Text key={index}>{item.title}</Text>
-          </View>
-        ))}
-      </Swiper>
+
     </SafeAreaView>
   );
 };

@@ -1,5 +1,5 @@
  export interface AuthProps {
-    authState?: { token: string | null; authenticated: boolean | null };
+    authState?: { token: string | null; authenticated: boolean | null; anonomous: boolean | null };
     onRegister?: (
       firstName: string,
       lastName: string,
@@ -8,4 +8,5 @@
     ) => Promise<any>;
     onLogin?: (email: string, password: string) => Promise<any>;
     onLogout?: () => Promise<any>;
+    onAnonomusLogin ?: () => Promise<any>;
   }

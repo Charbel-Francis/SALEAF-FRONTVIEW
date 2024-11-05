@@ -36,8 +36,6 @@ const SignInModal = ({ visible, onClose, openSignUp }: SignInModalProps) => {
   });
   const [loading, setLoading] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
-
-  // Listen for keyboard events
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener("keyboardDidShow", () => {
       setKeyboardVisible(true);
@@ -59,7 +57,7 @@ const SignInModal = ({ visible, onClose, openSignUp }: SignInModalProps) => {
       if (results) {
         setLoading(false);
         Alert.prompt("No file selected", "Please select a file to upload.");
-        onClose(); // Close the modal after successful login
+        onClose();
       }
     }
   };
@@ -76,7 +74,6 @@ const SignInModal = ({ visible, onClose, openSignUp }: SignInModalProps) => {
           <SafeAreaView className="flex-1 justify-end">
             <TouchableWithoutFeedback>
               <View className="bg-white rounded-t-2xl">
-                {/* Close Icon in Top-Right Corner */}
                 <TouchableOpacity
                   onPress={onClose}
                   style={{
@@ -130,6 +127,7 @@ const SignInModal = ({ visible, onClose, openSignUp }: SignInModalProps) => {
                     onPress={login}
                     loading={loading}
                     title="Sign In"
+                    className="bg-mainColor"
                   />
                   <View className="mt-3">
                     <Text className="text-base text-blue-500 text-right">

@@ -56,7 +56,8 @@ function RootLayoutNav({ setSignInVisible }: { setSignInVisible: React.Dispatch<
     const inAuthGroup = segments[0] === "(auth)";
     const protectedPages = ["events", "donate", "profile", "students"];
 
-    if (!authState?.authenticated) {
+    if (!authState?.authenticated || !authState?.anonomous) {
+      console.log(authState?.anonomous)
       if (!inAuthGroup && segments[2] && protectedPages.includes(segments[2])) {
         setSignInVisible(true); // Show modal instead of navigating
       }

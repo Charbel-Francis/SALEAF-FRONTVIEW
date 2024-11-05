@@ -13,10 +13,13 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }: any) => {
   const [authState, setAuthState] = useState<{
     token: string | null;
+    anonomous: boolean | null
     authenticated: boolean | null;
   }>({
     token: null,
+    anonomous: null,
     authenticated: null,
+
   });
 
   useEffect(() => {
@@ -30,6 +33,7 @@ export const AuthProvider = ({ children }: any) => {
         setAuthState({
           token: token,
           authenticated: true,
+          anonomous: false,
         });
       }
     };
@@ -54,6 +58,7 @@ export const AuthProvider = ({ children }: any) => {
       setAuthState({
         token: results.data.token,
         authenticated: true,
+        anonomous: false,
       });
       axiosInstance.defaults.headers.common[
         "Authorization"
@@ -75,6 +80,7 @@ export const AuthProvider = ({ children }: any) => {
       setAuthState({
         token: results.data.token,
         authenticated: true,
+        anonomous: false,
       });
       axiosInstance.defaults.headers.common[
         "Authorization"
@@ -93,13 +99,23 @@ export const AuthProvider = ({ children }: any) => {
     setAuthState({
       token: null,
       authenticated: false,
+      anonomous: false,
     });
   };
+  const anonomusLogin = async () => {
+    setAuthState({
+      token: null,
+      authenticated: false,
+      anonomous: true,
+    });
+    console.log("anonomus login");
+  }
 
   const value = {
     onRegister: register,
     onLogin: login,
     onLogout: logout,
+    onAnonomusLogin: anonomusLogin,
     authState,
   };
 
