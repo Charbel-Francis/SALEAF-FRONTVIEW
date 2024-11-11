@@ -56,7 +56,7 @@ const SignInModal = ({ visible, onClose, openSignUp }: SignInModalProps) => {
       const results = await onLogin(form.email, form.password);
       if (results) {
         setLoading(false);
-        Alert.prompt("No file selected", "Please select a file to upload.");
+        
         onClose();
       }
     }
@@ -87,59 +87,62 @@ const SignInModal = ({ visible, onClose, openSignUp }: SignInModalProps) => {
                 </TouchableOpacity>
 
                 {/* Header with SVG and Logo */}
-                <View className="relative w-full h-[250px] flex-row overflow-hidden rounded-t-2xl">
+                <View className="relative w-full h-[80%] flex-row overflow-hidden rounded-t-2xl">
                   <View className="flex-1">
                     <SVGTopLogin />
                   </View>
                   <View className="justify-start items-end pr-4 pt-3 top-10 left-10">
                     <Image source={images.clearLogo} style={{ width: 150, height: 100 }} />
                   </View>
-                  <View className="absolute bottom-[80] left-0 right-0 flex items-center">
-                    <Text className="text-2xl text-black font-bold">Hello</Text>
-                    <Text className="text-black">Sign in to your account</Text>
-                  </View>
-                </View>
 
-                {/* Input Fields */}
-                <View className="px-4 py-2 bottom-[75]">
-                  <InputField
-                    label="Email"
-                    placeholder="Enter Email"
-                    textContentType="emailAddress"
-                    value={form.email}
-                    icon={<EmailIcon />}
-                    onChangeText={(value) => setForm({ ...form, email: value })}
-                  />
-                  <InputField
-                    label="Password"
-                    placeholder="Enter Password"
-                    textContentType="password"
-                    secureTextEntry={true}
-                    icon={<LockIcon />}
-                    value={form.password}
-                    onChangeText={(value) => setForm({ ...form, password: value })}
-                  />
-                </View>
-
-                {/* Submit Button and Sign-Up Link */}
-                <View className="px-4 pb-4 bottom-[60]">
-                  <CustomButton
-                    onPress={login}
-                    loading={loading}
-                    title="Sign In"
-                    className="bg-mainColor"
-                  />
-                  <View className="mt-3">
-                    <Text className="text-base text-blue-500 text-right">
-                      Don't have an account?{" "}
-                      <TouchableOpacity onPress={openSignUp}>
-                        <Text style={{ color: "blue", textDecorationLine: "underline" }}>
-                          Sign Up
+                  <View className="flex-col absolute top-[10vh] left-0 right-0 flex h-[80%] items-center">
+                    <View className="absolute items-center flex-1">
+                      <Text className="text-5xl text-black font-bold">Hello</Text>
+                      <Text className="text-black text-xl">Sign in to your account</Text>
+                    </View>
+                    <View className="px-4 w-full justify-center flex-1">
+                      <InputField
+                        label="Email"
+                        placeholder="Enter Email"
+                        textContentType="emailAddress"
+                        value={form.email}
+                        icon={<Ionicons name="mail" size={20} color="grey" />}
+                        className="h-10"
+                        onChangeText={(value) => setForm({ ...form, email: value })}
+                      />
+                      <InputField
+                        label="Password"
+                        placeholder="Enter Password"
+                        textContentType="password"
+                        secureTextEntry={true}
+                        className="h-10"
+                        icon={<Ionicons name="lock-closed" size={20} color="grey" />}
+                        value={form.password}
+                        onChangeText={(value) => setForm({ ...form, password: value })}
+                      />
+                    </View>
+                    <View className="px-4 pb-4 w-full">
+                      <CustomButton
+                        onPress={login}
+                        loading={loading}
+                        title="Sign In"
+                        className="bg-mainColor h-[50px]"
+                      />
+                      <View className="mt-10">
+                        <Text className="text-base text-blue-500 text-right">
+                          Don't have an account?{" "}
+                          <TouchableOpacity onPress={openSignUp}>
+                            <Text style={{ color: "blue", textDecorationLine: "underline" }}>
+                              Sign Up
+                            </Text>
+                          </TouchableOpacity>
                         </Text>
-                      </TouchableOpacity>
-                    </Text>
+                      </View>
+                    </View>
                   </View>
                 </View>
+
+
               </View>
             </TouchableWithoutFeedback>
           </SafeAreaView>

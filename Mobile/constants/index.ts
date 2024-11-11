@@ -27,8 +27,16 @@ import clearLogo from "@/assets/logo/SaleafClear.png"
 import student from "@/assets/icons/student.png";
 import calendar from "@/assets/icons/calendar.png";
 import donate from "@/assets/icons/donate.png";
+import event from "@/assets/images/event.png";
+import graduated from "@/assets/images/graduated.png";
+import golf from "@/assets/images/images.jpeg";
+import students from "@/assets/images/student.jpg";
 export const images = {
-  clearLogo
+  clearLogo,
+  event,
+  graduated,
+  golf,
+  students
 };
 
 export const icons = {

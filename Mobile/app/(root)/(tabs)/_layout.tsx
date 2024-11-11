@@ -19,12 +19,14 @@ const TabIcon = ({
   focused: boolean;
 }) => (
   <View
-    className={`flex flex-row justify-center items-center rounded-full ${focused ? "bg-mainColor" : ""
-      }`}
+    className={`flex flex-row justify-center items-center rounded-full ${
+      focused ? "bg-mainColor" : ""
+    }`}
   >
     <View
-      className={`rounded-full w-12 h-12 items-center justify-center ${focused ? "bg-mainColor" : ""
-        }`}
+      className={`rounded-full w-12 h-12 items-center justify-center ${
+        focused ? "bg-mainColor" : ""
+      }`}
     >
       <Image
         source={source}
@@ -89,7 +91,6 @@ export default function Layout() {
         options={{
           title: "Home",
           headerShown: false,
-
           tabBarIcon: ({ focused }) => (
             <TabIcon source={icons.home} focused={focused} />
           ),

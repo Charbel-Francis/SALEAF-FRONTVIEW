@@ -1,7 +1,5 @@
 import React from "react";
-import { ActivityIndicator, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { WebView } from "react-native-webview";
+import { Text, View } from "react-native";
 
 const Events = () => {
   const injectedJS = `
@@ -13,38 +11,9 @@ const Events = () => {
 `;
 
   return (
-    <WebView
-      source={{
-        uri: "http://localhost:3000/react/components-overview/buttons",
-      }}
-      originWhitelist={["*"]}
-      style={{ overflow: "scroll" }}
-      scalesPageToFit={false}
-      scrollEnabled={true}
-      mixedContentMode={"compatibility"}
-      thirdPartyCookiesEnabled={true}
-      domStorageEnabled={true}
-      startInLoadingState={true}
-      renderLoading={() => (
-        <View
-          style={{
-            height: "100%",
-            width: "100%",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <ActivityIndicator size="large" color="#FF0000" />
-        </View>
-      )}
-      allowUniversalAccessFromFileURLs={true}
-      bounces={false}
-      automaticallyAdjustContentInsets={false}
-      injectedJavaScript={injectedJS}
-      javaScriptEnabled={true}
-      hideKeyboardAccessoryView={true}
-      allowsLinkPreview={false}
-    />
+    <View>
+      <Text>Events</Text>
+    </View>
   );
 };
 

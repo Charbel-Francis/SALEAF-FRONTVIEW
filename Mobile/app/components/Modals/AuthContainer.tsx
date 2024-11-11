@@ -14,9 +14,9 @@ const AuthContainer = ({ isSignInVisible, setSignInVisible }: { isSignInVisible:
     const closeModal = () => {
         setSignUpVisible(false);
         setSignInVisible(false);
-        if (onAnonomusLogin) {
-            onAnonomusLogin();
-        }
+        // if (onAnonomusLogin) {
+        //     onAnonomusLogin();
+        // }
     }
     useEffect(() => {
         if (!authState?.authenticated) {

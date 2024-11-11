@@ -44,10 +44,11 @@ export default function RootLayout() {
   );
 }
 
-
-
-
-function RootLayoutNav({ setSignInVisible }: { setSignInVisible: React.Dispatch<React.SetStateAction<boolean>> }) {
+function RootLayoutNav({
+  setSignInVisible,
+}: {
+  setSignInVisible: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
   const { authState } = useAuth();
   const router = useRouter();
   const segments = useSegments();
@@ -56,14 +57,14 @@ function RootLayoutNav({ setSignInVisible }: { setSignInVisible: React.Dispatch<
     const inAuthGroup = segments[0] === "(auth)";
     const protectedPages = ["events", "donate", "profile", "students"];
 
-    if (!authState?.authenticated || !authState?.anonomous) {
-      console.log(authState?.anonomous)
+    if (!authState?.authenticated && !authState?.anonomous) {
+      console.log(authState?.anonomous);
       if (!inAuthGroup && segments[2] && protectedPages.includes(segments[2])) {
         setSignInVisible(true); // Show modal instead of navigating
       }
     } else {
       if (inAuthGroup) {
-        router.replace("/(tabs)/home");
+        router.replace("/(tabs)/home"); // Redirect to home if authenticated
       }
     }
   }, [authState?.authenticated, segments, setSignInVisible]);
@@ -77,5 +78,3 @@ function RootLayoutNav({ setSignInVisible }: { setSignInVisible: React.Dispatch<
     </Stack>
   );
 }
-
-

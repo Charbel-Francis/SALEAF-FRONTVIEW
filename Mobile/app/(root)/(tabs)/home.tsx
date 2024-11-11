@@ -1,36 +1,22 @@
-import CustomButton from "@/components/CustomButton";
-import { images } from "@/constants";
-import React from "react";
-import { Image, SafeAreaView, Text, View } from "react-native";
-import { Card, Searchbar } from "react-native-paper";
-import { LinearGradient } from "expo-linear-gradient";
+import Apply_Funding_Card from "@/components/home/Apply_Funding_Card";
+import Event_Card from "@/components/home/Events_Card";
+import Login_Card from "@/components/home/Login_Card";
+import Navigation_Cards from "@/components/home/Navigations_Card";
+import Student_Profile_Card from "@/components/home/Student_Profile_Card";
+import { SafeAreaView, ScrollView, View } from "react-native";
 const Home = () => {
   return (
     <View>
-      <LinearGradient
-        colors={["#15783D", "#15783D", "black"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-        style={{ borderRadius: 40, margin: 10 }}
-      >
-        <Card
-          style={{
-            backgroundColor: "transparent",
-            borderRadius: 40,
-          }}
-        >
-          <Card.Content>
-            <Image
-              source={images.clearLogo}
-              style={{ width: 100, height: 50 }}
-            />
-            <View style={{ alignItems: "center" }}>
-              <Text style={{ color: "white" }}>Home</Text>
-              <CustomButton title="Logout" onPress={() => {}} />
-            </View>
-          </Card.Content>
-        </Card>
-      </LinearGradient>
+      <Login_Card />
+
+      <View>
+        <ScrollView className="flex-grow-1 h-[66vh]">
+          <Apply_Funding_Card />
+          <Navigation_Cards />
+          <Event_Card />
+          <Student_Profile_Card />
+        </ScrollView>
+      </View>
     </View>
   );
 };

@@ -148,7 +148,7 @@ const ManualPayment = ({
             onPress={pickDocument}
             title="Select File"
             loading={fileLoading}
-            className="bg-mainColor"
+            className="bg-mainColor w-[45%]"
           />
           {selectedFile ? (
             <CustomButton
@@ -160,6 +160,7 @@ const ManualPayment = ({
             <CustomButton
               onPress={uploadLater}
               title="Upload Later"
+              className="bg-mainColor w-[45%]"
             />
           )}
         </View>
@@ -232,7 +233,7 @@ const styles = StyleSheet.create({
   buttonContainer: {
     display: "flex",
     flexDirection: "row",
-    justifyContent: "space-around",
+    justifyContent: "space-between",
     width: "100%",
   },
 });

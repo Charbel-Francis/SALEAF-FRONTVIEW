@@ -36,13 +36,13 @@ export const InputField = ({
               (typeof icon === "string" ? (
                 <Image
                   source={{ uri: icon }}
-                  className={`w-5 h-5 md:w-6 md:h-6 ml-3 ${iconStyle}`}
+                  className={`${iconStyle}`}
                 />
               ) : (
                 React.cloneElement(icon, { style: { width: 24, height: 24 } })
               ))}
             <TextInput
-              className={`flex-1 text-sm md:text-base ${inputStyle}`}
+              className={`flex-1 text-sm md:text-base pl-3 ${inputStyle}`}
               secureTextEntry={secureTextEntry}
               {...props}
             />
@@ -78,19 +78,19 @@ export const DualInputField = ({
               <Text className={`text-base md:text-lg mb-1 ${labelStyle}`}>
                 {label1}
               </Text>
-              <View className="flex flex-row items-center bg-neutral-100 rounded-lg border border-neutral-300 p-2">
+              <View className="flex flex-row items-center bg-neutral-100 rounded-lg border border-neutral-300 p-2 md:p-3">
                 {icon1 &&
                   (typeof icon1 === "string" ? (
                     <Image
                       source={{ uri: icon1 }}
-                      className={`w-5 h-5 ml-3 ${iconStyle}`}
+                      className={``}
                     />
                   ) : (
                     React.cloneElement(icon1, { style: { width: 24, height: 24 } })
                   ))}
                 <TextInput
                   placeholder={placeholder1}
-                  className={`flex-1 text-sm md:text-base ${inputStyle}`}
+                  className={`flex-1 text-sm md:text-base pl-3 ${inputStyle}`}
                   onChangeText={onChange1}
                   {...props}
                 />
@@ -101,7 +101,7 @@ export const DualInputField = ({
               <Text className={`text-base md:text-lg mb-1 ${labelStyle}`}>
                 {label2}
               </Text>
-              <View className="flex flex-row items-center bg-neutral-100 rounded-lg border border-neutral-300 p-2">
+              <View className="flex flex-row items-center bg-neutral-100 rounded-lg border border-neutral-300 p-2 md:p-3">
                 {icon2 &&
                   (typeof icon2 === "string" ? (
                     <Image
@@ -113,7 +113,7 @@ export const DualInputField = ({
                   ))}
                 <TextInput
                   placeholder={placeholder2}
-                  className={`flex-1 text-sm md:text-base ${inputStyle}`}
+                  className={`flex-1 text-sm md:text-base pl-3 ${inputStyle}`}
                   onChangeText={onChange2}
                   {...props}
                 />
@@ -157,7 +157,7 @@ export const DonateInputField = ({
             {label}
           </Text>
           <View
-            className={`flex flex-row items-center bg-neutral-100 rounded-lg border border-neutral-300 p-2 md:p-3 ${containerStyle}`}
+            className={`flex flex-row items-center bg-neutral-100 rounded-lg border border-neutral-300  p-2 md:p-3 ${containerStyle}`}
           >
             {icon &&
               (typeof icon === "string" ? (
@@ -169,7 +169,7 @@ export const DonateInputField = ({
                 React.cloneElement(icon, { style: { width: 24, height: 24 } })
               ))}
             <TextInput
-              className={`flex-1 text-sm md:text-base ${inputStyle}`}
+              className={`flex-1 text-sm md:text-base pl-3 ${inputStyle}`}
               keyboardType="numeric"
               value={value}
               onChangeText={handleChange}

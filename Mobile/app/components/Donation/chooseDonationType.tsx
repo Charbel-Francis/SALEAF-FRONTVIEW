@@ -99,6 +99,7 @@ const DonationTypeComponent = ({
               onPress={() => {
                 handleContinue();
               }}
+              className="bg-mainColor"
               title="Continue"
             />
           </View>

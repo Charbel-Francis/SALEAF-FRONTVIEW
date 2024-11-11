@@ -9,6 +9,7 @@ import ButtonMultiselect, {
   ButtonLayout,
 } from "react-native-button-multiselect";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Ionicons from "react-native-vector-icons/Ionicons";
 const StyledText = styled(Text);
 
 const DonationAmountComponent = ({
@@ -82,7 +83,9 @@ const DonationAmountComponent = ({
         <DonateInputField
           label="Other Amount"
           placeholder="Enter Amount"
+          className="h-10"
           value={inputDonatedAmount}
+          icon={<Ionicons name="cash" size={20} color="grey" />}
           onChangeText={handleInputChange}
         />
       </View>
@@ -95,6 +98,7 @@ const DonationAmountComponent = ({
               onPress={() => {
                 handleContinue();
               }}
+              className="bg-mainColor h-10"
               title="Continue"
             />
           </View>

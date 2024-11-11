@@ -146,8 +146,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   activeStep: {
-    borderColor: "pink",
-    backgroundColor: "pink",
+    borderColor: "#14783D",
+    backgroundColor: "#14783D",
   },
   stepText: {
     color: "#E7E7E7",
@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
   activeLine: {
-    backgroundColor: "pink",
+    backgroundColor: "#14783D",
   },
   contentContainer: { flex: 1, width: "100%" },
   buttonContainer: {
