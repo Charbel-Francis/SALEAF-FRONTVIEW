@@ -1,45 +1,87 @@
 import CustomButton from "@/components/CustomButton";
 import { images } from "@/constants";
 import React from "react";
-import { Image, Text, TouchableOpacity, View } from "react-native";
+import { Image, Text, TouchableOpacity, View, StyleSheet } from "react-native";
 import { Card } from "react-native-paper";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 
 const Navigation_Cards = () => {
-  return (
-    <View className="flex-row items-center justify-evenly">
-      <TouchableOpacity onPress={() => {}}>
-        <Card
-          style={{
-            backgroundColor: "white",
-            borderRadius: 10,
-            margin: 5,
-          }}
-        >
-          <Card.Content>
-            <View className="flex-col items-center w-[8vh] h-[6vh]">
-              <Image source={images.event} className="h-10 w-10" />
-              <Text className="p-1 text-base font-bold">Events</Text>
-            </View>
-          </Card.Content>
-        </Card>
-      </TouchableOpacity>
+  const styles = StyleSheet.create({
+    container: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-evenly",
+      paddingVertical: hp("1%"),
+    },
+    card: {
+      backgroundColor: "white",
+      borderRadius: wp("2.5%"),
+      margin: wp("1.25%"),
+      elevation: 3,
+      shadowColor: "#000",
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+    },
+    cardContent: {
+      flexDirection: "column",
+      alignItems: "center",
+      width: wp("20%"), // Adjusted from 8vh
+      height: hp("12%"), // Adjusted from 6vh
+      justifyContent: "center",
+      padding: wp("2%"),
+    },
+    image: {
+      width: wp("12%"),
+      height: wp("12%"),
+      resizeMode: "contain",
+    },
+    text: {
+      paddingTop: hp("1%"),
+      fontSize: wp("3.5%"),
+      fontWeight: "700",
+      textAlign: "center",
+    },
+    touchable: {
+      minWidth: wp("20%"),
+    },
+  });
 
-      <TouchableOpacity onPress={() => {}}>
-        <Card
-          style={{
-            backgroundColor: "white",
-            borderRadius: 10,
-            margin: 10,
-          }}
+  const cards = [
+    {
+      icon: images.event,
+      title: "Events",
+    },
+    {
+      icon: images.graduated,
+      title: "Students",
+    },
+  ];
+
+  return (
+    <View style={styles.container}>
+      {cards.map((card, index) => (
+        <TouchableOpacity
+          key={index}
+          onPress={() => {}}
+          style={styles.touchable}
         >
-          <Card.Content>
-            <View className="flex-col items-center w-[8vh] h-[6vh]">
-              <Image source={images.graduated} className="h-10 w-10" />
-              <Text className="p-1 text-base font-bold">Students</Text>
-            </View>
-          </Card.Content>
-        </Card>
-      </TouchableOpacity>
+          <Card style={styles.card}>
+            <Card.Content>
+              <View style={styles.cardContent}>
+                <Image source={card.icon} style={styles.image} />
+                <Text style={styles.text}>{card.title}</Text>
+              </View>
+            </Card.Content>
+          </Card>
+        </TouchableOpacity>
+      ))}
     </View>
   );
 };

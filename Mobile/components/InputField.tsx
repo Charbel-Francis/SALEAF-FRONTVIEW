@@ -23,7 +23,9 @@ export const InputField = ({
   ...props
 }: InputFieldProps) => {
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View className={`my-2 w-full ${className}`}>
           <Text className={`text-base md:text-lg mb-1 md:mb-3 ${labelStyle}`}>
@@ -34,10 +36,7 @@ export const InputField = ({
           >
             {icon &&
               (typeof icon === "string" ? (
-                <Image
-                  source={{ uri: icon }}
-                  className={`${iconStyle}`}
-                />
+                <Image source={{ uri: icon }} className={`${iconStyle}`} />
               ) : (
                 React.cloneElement(icon, { style: { width: 24, height: 24 } })
               ))}
@@ -58,6 +57,8 @@ export const DualInputField = ({
   label2,
   icon1,
   icon2,
+  value1,
+  value2,
   labelStyle = "",
   containerStyle = "",
   inputStyle = "",
@@ -69,7 +70,9 @@ export const DualInputField = ({
   ...props
 }: DualInputFieldProps) => {
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View className={`my-2 w-full ${containerStyle}`}>
           <View className="flex flex-row justify-between space-x-2">
@@ -81,17 +84,17 @@ export const DualInputField = ({
               <View className="flex flex-row items-center bg-neutral-100 rounded-lg border border-neutral-300 p-2 md:p-3">
                 {icon1 &&
                   (typeof icon1 === "string" ? (
-                    <Image
-                      source={{ uri: icon1 }}
-                      className={``}
-                    />
+                    <Image source={{ uri: icon1 }} className={``} />
                   ) : (
-                    React.cloneElement(icon1, { style: { width: 24, height: 24 } })
+                    React.cloneElement(icon1, {
+                      style: { width: 24, height: 24 },
+                    })
                   ))}
                 <TextInput
                   placeholder={placeholder1}
                   className={`flex-1 text-sm md:text-base pl-3 ${inputStyle}`}
                   onChangeText={onChange1}
+                  value={value1}
                   {...props}
                 />
               </View>
@@ -109,12 +112,15 @@ export const DualInputField = ({
                       className={`w-5 h-5 ml-3 ${iconStyle}`}
                     />
                   ) : (
-                    React.cloneElement(icon2, { style: { width: 24, height: 24 } })
+                    React.cloneElement(icon2, {
+                      style: { width: 24, height: 24 },
+                    })
                   ))}
                 <TextInput
                   placeholder={placeholder2}
                   className={`flex-1 text-sm md:text-base pl-3 ${inputStyle}`}
                   onChangeText={onChange2}
+                  value={value2}
                   {...props}
                 />
               </View>
@@ -125,7 +131,6 @@ export const DualInputField = ({
     </KeyboardAvoidingView>
   );
 };
-
 
 export const DonateInputField = ({
   label,
@@ -150,10 +155,14 @@ export const DonateInputField = ({
   };
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View className={`my-2 w-full ${className}`}>
-          <Text className={`text-center text-base md:text-lg mb-1 ${labelStyle}`}>
+          <Text
+            className={`text-center text-base md:text-lg mb-1 ${labelStyle}`}
+          >
             {label}
           </Text>
           <View

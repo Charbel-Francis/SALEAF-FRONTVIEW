@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { AppState, SafeAreaView } from "react-native";
-import DonationAmountComponent from "@/app/components/Donation/donationAmount";
+import DonationAmountComponent from "@/components/Donation/donationAmount";
 import StepProgress from "@/app/pages/Stepper";
+import PaymentCancelComponent from "@/components/Donation/paymentStatus/paymentCancel";
+import PaymentFailureComponent from "@/components/Donation/paymentStatus/paymentFailure";
+import PaymentPendingComponent from "@/components/Donation/paymentStatus/paymentPending";
+import PaymentSuccessComponent from "@/components/Donation/paymentStatus/paymentSucess";
 
 const Donate = () => {
   const [donationAmount, setDonationAmount] = useState<number>();
@@ -24,12 +28,15 @@ const Donate = () => {
   };
 
   useEffect(() => {
-    const handleAppStateChange = (nextAppState:string) => {
-      if (nextAppState === 'active') {
+    const handleAppStateChange = (nextAppState: string) => {
+      if (nextAppState === "active") {
         setLastActiveTime(Date.now());
       }
     };
-    const appStateListener = AppState.addEventListener("change", handleAppStateChange);
+    const appStateListener = AppState.addEventListener(
+      "change",
+      handleAppStateChange
+    );
 
     return () => {
       appStateListener.remove();

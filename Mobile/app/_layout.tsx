@@ -8,9 +8,7 @@ import { useEffect, useState } from "react";
 import "react-native-reanimated";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "react-native";
-import AuthContainer from "./components/Modals/AuthContainer";
-
-// Prevent the splash screen from auto-hiding before asset loading is complete.
+import AuthContainer from "./pages/AuthContainer";
 SplashScreen.preventAutoHideAsync();
 NativeWindStyleSheet.setOutput({
   default: "native",
@@ -20,7 +18,7 @@ export default function RootLayout() {
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
-  const [isSignInVisible, setSignInVisible] = useState(false); // State for sign-in modal
+  const [isSignInVisible, setSignInVisible] = useState(false);
 
   useEffect(() => {
     if (loaded) {
@@ -74,6 +72,10 @@ function RootLayoutNav({
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="(root)" options={{ headerShown: false }} />
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="pages/Application_Form"
+        options={{ headerShown: false }}
+      />
       <Stack.Screen name="+not-found" />
     </Stack>
   );

@@ -14,6 +14,8 @@ declare interface InputFieldProps extends TextInputProps{
 declare interface DualInputFieldProps extends TextInputProps{
     label1:string;
     label2:string;
+    value1?:string;
+    value2?:string
     icon1?:string|React.ReactElement;
     icon2?:string|React.ReactElement;
     labelStyle?:string;
