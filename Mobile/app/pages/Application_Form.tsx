@@ -1,7 +1,16 @@
 import React, { useState, useRef, useEffect } from "react";
-import { View, Animated, StyleSheet, Keyboard, Platform } from "react-native";
+import {
+  View,
+  Animated,
+  StyleSheet,
+  Keyboard,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  KeyboardAvoidingView,
+} from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { MD3Colors } from "react-native-paper";
+import { Text } from "react-native-paper";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -22,6 +31,7 @@ import Study_Form from "@/components/Application Form/Study_Form";
 import CustomButton from "@/components/CustomButton";
 import { AppUser, initialAppUser } from "@/constants";
 import axiosInstance from "@/utils/config";
+import { useRouter } from "expo-router";
 
 const Application_Form = () => {
   const [stepper, setStepper] = useState(0);
@@ -31,69 +41,150 @@ const Application_Form = () => {
   const [application, setApplication] = useState<AppUser>(initialAppUser);
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const buttonPosition = useRef(new Animated.Value(0)).current;
+  const router = useRouter();
 
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: "transparent",
+      backgroundColor: "#f5f5f5",
+    },
+    safeArea: {
+      flex: 1,
     },
     contentContainer: {
       flex: 1,
-      justifyContent: "space-between",
+      backgroundColor: "#fff",
+    },
+    header: {
+      paddingVertical: hp("3%"),
       paddingHorizontal: wp("4%"),
-      paddingVertical: hp("4%"),
+      backgroundColor: "rgba(21, 120, 61, 0.9)",
+    },
+    headerText: {
+      fontSize: wp("5%"),
+      color: "#fff",
+      fontWeight: "bold",
+      textAlign: "center",
+    },
+    subHeaderText: {
+      fontSize: wp("3.5%"),
+      color: "#fff",
+      textAlign: "center",
+      marginTop: hp("1%"),
+      opacity: 0.9,
     },
     progressContainer: {
-      justifyContent: "center",
-      alignItems: "center",
-      marginVertical: hp("2%"),
-      paddingTop: hp("2%"),
+      backgroundColor: "#fff",
+      paddingVertical: hp("2%"),
+      paddingHorizontal: wp("4%"),
+      borderBottomWidth: 1,
+      borderBottomColor: "#e0e0e0",
     },
     progressBar: {
-      position: "relative",
-      width: wp("80%"),
-      marginTop: hp("2%"),
+      width: wp("90%"),
+      alignSelf: "center",
+      marginTop: hp("1%"),
     },
     progressBackground: {
       height: hp("1%"),
-      width: "100%",
       backgroundColor: "#e0e0e0",
-      borderRadius: wp("1%"),
+      borderRadius: wp("2%"),
       overflow: "hidden",
     },
     progressFill: {
       height: "100%",
-      backgroundColor: "green",
+      backgroundColor: "rgba(21, 120, 61, 1)",
+      borderRadius: wp("2%"),
     },
     progressText: {
-      position: "absolute",
-      top: -hp("2.5%"),
-      left: "50%",
-      transform: [{ translateX: -wp("6%") }],
-      fontSize: wp("4%"),
-      fontWeight: "bold",
-      color: "green",
+      textAlign: "center",
+      marginTop: hp("1%"),
+      fontSize: wp("3.5%"),
+      color: "rgba(21, 120, 61, 1)",
+      fontWeight: "600",
+    },
+    stepIndicator: {
+      flexDirection: "row",
+      justifyContent: "center",
+      marginTop: hp("1%"),
+    },
+    stepText: {
+      fontSize: wp("3.5%"),
+      color: "#666",
+    },
+    formScrollView: {
+      flex: 1,
+      backgroundColor: "#f5f5f5",
     },
     formContainer: {
-      flex: 2,
-      backgroundColor: "transparent",
+      flex: 1,
+      backgroundColor: "#fff",
+      margin: wp("4%"),
       borderRadius: wp("4%"),
+      shadowColor: "#000",
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.1,
+      shadowRadius: 3.84,
+      elevation: 5,
+      padding: wp("4%"),
+    },
+    sectionTitle: {
+      fontSize: wp("4.5%"),
+      fontWeight: "600",
+      color: "rgba(21, 120, 61, 1)",
+      marginBottom: hp("2%"),
     },
     buttonContainer: {
       flexDirection: "row",
-      paddingHorizontal: wp("4%"),
+      justifyContent: "space-between",
       paddingVertical: hp("2%"),
-      backgroundColor: "transparent",
-      borderRadius: wp("4%"),
-
-      width: "55%",
-      height: "11%",
-      color: "transparent",
+      backgroundColor: "#fff",
+      borderTopWidth: 1,
+      width: "50%",
+      borderTopColor: "#e0e0e0",
     },
     button: {
       flex: 1,
       marginHorizontal: wp("2%"),
       borderRadius: wp("2%"),
+      height: hp("6%"),
+      justifyContent: "center",
+      alignItems: "center",
+      shadowColor: "#000",
+      shadowOffset: {
+        width: 0,
+        height: 1,
+      },
+      shadowOpacity: 0.2,
+      shadowRadius: 1.41,
+      elevation: 2,
+    },
+    backButton: {
+      backgroundColor: "#fff",
+      borderWidth: 1,
+      borderColor: "rgba(21, 120, 61, 1)",
+    },
+    nextButton: {
+      backgroundColor: "rgba(21, 120, 61, 1)",
+    },
+    buttonText: {
+      fontSize: wp("4%"),
+      fontWeight: "600",
+    },
+    backButtonText: {
+      color: "rgba(21, 120, 61, 1)",
+    },
+    nextButtonText: {
+      color: "#fff",
+    },
+    errorText: {
+      color: "#ff3333",
+      fontSize: wp("3.5%"),
+      marginTop: hp("1%"),
+      textAlign: "center",
     },
   });
 
@@ -174,7 +265,6 @@ const Application_Form = () => {
         }
       );
       console.log("Application submitted successfully:", response.data);
-      // Handle success (e.g., show success message, navigate away)
     } catch (error: any) {
       if (error.response) {
         console.error("Server Error:", error.response.data);
@@ -186,6 +276,39 @@ const Application_Form = () => {
         console.error("Error:", error.message);
         // Handle other errors
       }
+    }
+  };
+
+  const getSectionTitle = () => {
+    switch (stepper) {
+      case 0:
+        return "Personal Details";
+      case 1:
+        return "Study Information";
+      case 2:
+        return "Academic History";
+      case 3:
+        return "Additional Information";
+      case 4:
+        return "Family Background";
+      case 5:
+        return "Dependants";
+      case 6:
+        return "Fixed Assets";
+      case 7:
+        return "Vehicle Assets";
+      case 8:
+        return "Life Assurance";
+      case 9:
+        return "Listed Shares";
+      case 10:
+        return "Additional Assets";
+      case 11:
+        return "Liabilities";
+      case 12:
+        return "Declaration";
+      default:
+        return "";
     }
   };
 
@@ -285,18 +408,18 @@ const Application_Form = () => {
   };
 
   return (
-    <LinearGradient
-      colors={[
-        "rgba(21, 120, 61, 0.3)",
-        "rgba(21, 120, 61, 0.3)",
-        "rgba(21, 120, 61, 0.4)",
-        "rgba(21, 120, 61, 0.5)",
-        "rgba(21, 120, 61, 0.8)",
-        "rgba(21, 120, 61, 0.4)",
-      ]}
-      style={styles.container}
-    >
-      <View style={styles.contentContainer}>
+    <SafeAreaView style={styles.safeArea}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.container}
+      >
+        <View style={styles.header}>
+          <Text style={styles.headerText}>Bursary Application Form</Text>
+          <Text style={styles.subHeaderText}>
+            Complete all sections to submit your application
+          </Text>
+        </View>
+
         <View style={styles.progressContainer}>
           <View style={styles.progressBar}>
             <Animated.View style={styles.progressBackground}>
@@ -312,13 +435,25 @@ const Application_Form = () => {
                 ]}
               />
             </Animated.View>
-            <Animated.Text style={styles.progressText}>
-              {progressText}
-            </Animated.Text>
+          </View>
+          <Text style={styles.progressText}>{progressText}</Text>
+          <View style={styles.stepIndicator}>
+            <Text style={styles.stepText}>
+              Step {stepper + 1} of {totalSteps + 1}
+            </Text>
           </View>
         </View>
 
-        <View style={styles.formContainer}>{renderStepContent()}</View>
+        <ScrollView
+          style={styles.formScrollView}
+          contentContainerStyle={{ flexGrow: 1 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.formContainer}>
+            <Text style={styles.sectionTitle}>{getSectionTitle()}</Text>
+            {renderStepContent()}
+          </View>
+        </ScrollView>
 
         <Animated.View
           style={[
@@ -330,16 +465,16 @@ const Application_Form = () => {
         >
           {stepper === 0 ? (
             <CustomButton
-              onPress={() => {}}
-              style={[styles.button, { marginRight: wp("2%") }]}
-              className="bg-red text-white py-3 rounded-md"
+              onPress={() => router.back()}
+              style={[styles.button, styles.backButton]}
+              textStyle={[styles.buttonText, styles.backButtonText]}
               title="Cancel"
             />
           ) : (
             <CustomButton
               onPress={NavigateToPreviousApplication}
-              style={[styles.button, { marginRight: wp("2%") }]}
-              className="bg-red text-white py-3 rounded-md"
+              style={[styles.button, styles.backButton]}
+              textStyle={[styles.buttonText, styles.backButtonText]}
               title="Back"
             />
           )}
@@ -347,22 +482,147 @@ const Application_Form = () => {
           {stepper === 12 ? (
             <CustomButton
               onPress={FinishApplication}
-              style={[styles.button, { marginLeft: wp("2%") }]}
-              className="bg-mainColor text-white py-3 rounded-md"
+              style={[styles.button, styles.nextButton]}
+              textStyle={[styles.buttonText, styles.nextButtonText]}
               title="Submit Application"
             />
           ) : (
             <CustomButton
               onPress={NavigateToNextApplication}
-              style={[styles.button, { marginLeft: wp("2%") }]}
-              className="bg-mainColor text-white py-3 rounded-md"
+              style={[styles.button, styles.nextButton]}
+              textStyle={[styles.buttonText, styles.nextButtonText]}
               title="Continue"
             />
           )}
         </Animated.View>
-      </View>
-    </LinearGradient>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
+
+const formSectionStyles = StyleSheet.create({
+  sectionContainer: {
+    marginBottom: hp("3%"),
+  },
+  inputContainer: {
+    marginBottom: hp("2%"),
+  },
+  label: {
+    fontSize: wp("3.8%"),
+    color: "#333",
+    marginBottom: hp("1%"),
+    fontWeight: "500",
+  },
+  input: {
+    backgroundColor: "#f9f9f9",
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+    borderRadius: wp("2%"),
+    padding: wp("3%"),
+    fontSize: wp("3.8%"),
+  },
+  errorInput: {
+    borderColor: "#ff3333",
+  },
+  errorText: {
+    color: "#ff3333",
+    fontSize: wp("3.2%"),
+    marginTop: hp("0.5%"),
+  },
+  helperText: {
+    fontSize: wp("3.2%"),
+    color: "#666",
+    marginTop: hp("0.5%"),
+  },
+  required: {
+    color: "#ff3333",
+    marginLeft: wp("1%"),
+  },
+  radioGroup: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginTop: hp("1%"),
+  },
+  radioButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginRight: wp("4%"),
+    marginBottom: hp("1%"),
+  },
+  radioLabel: {
+    fontSize: wp("3.8%"),
+    color: "#333",
+    marginLeft: wp("2%"),
+  },
+  datePicker: {
+    backgroundColor: "#f9f9f9",
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+    borderRadius: wp("2%"),
+    padding: wp("3%"),
+  },
+  dropdown: {
+    backgroundColor: "#f9f9f9",
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+    borderRadius: wp("2%"),
+    padding: wp("3%"),
+  },
+  dropdownItem: {
+    padding: wp("3%"),
+    borderBottomWidth: 1,
+    borderBottomColor: "#e0e0e0",
+  },
+  dropdownItemText: {
+    fontSize: wp("3.8%"),
+    color: "#333",
+  },
+  fileInput: {
+    backgroundColor: "#f9f9f9",
+    borderWidth: 1,
+    borderStyle: "dashed",
+    borderColor: "#e0e0e0",
+    borderRadius: wp("2%"),
+    padding: wp("3%"),
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  fileInputText: {
+    fontSize: wp("3.8%"),
+    color: "rgba(21, 120, 61, 1)",
+    textAlign: "center",
+  },
+  uploadedFile: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f0f9f4",
+    padding: wp("2%"),
+    borderRadius: wp("1%"),
+    marginTop: hp("1%"),
+  },
+  uploadedFileName: {
+    flex: 1,
+    fontSize: wp("3.5%"),
+    color: "#333",
+  },
+  removeFileButton: {
+    padding: wp("2%"),
+  },
+  removeFileText: {
+    color: "#ff3333",
+    fontSize: wp("3.5%"),
+  },
+  helpText: {
+    fontSize: wp("3.2%"),
+    color: "#666",
+    marginTop: hp("0.5%"),
+    fontStyle: "italic",
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "#e0e0e0",
+    marginVertical: hp("2%"),
+  },
+});
 
 export default Application_Form;

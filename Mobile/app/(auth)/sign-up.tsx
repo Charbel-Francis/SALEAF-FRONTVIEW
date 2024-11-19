@@ -29,7 +29,7 @@ interface SignUpModalProps {
   openSignIn: () => void;
 }
 
-const SignUpModal = ({ visible, onClose, openSignIn }: SignUpModalProps) => {
+const SignUpModal = () => {
   const { onRegister } = useAuth();
   const [form, setForm] = useState({
     firstName: "",
@@ -166,160 +166,75 @@ const SignUpModal = ({ visible, onClose, openSignIn }: SignUpModalProps) => {
       );
       if (results) {
         setLoading(false);
-        onClose();
       }
     }
   };
 
   return (
-    <Modal
-      animationType="slide"
-      transparent={true}
-      visible={visible}
-      onRequestClose={onClose}
-    >
-      <TouchableWithoutFeedback onPress={onClose}>
-        <View style={styles.overlay}>
-          <SafeAreaView style={{ flex: 1, justifyContent: "flex-end" }}>
-            <KeyboardAvoidingView
-              behavior={Platform.OS === "ios" ? "padding" : "height"}
-              style={{ flex: 1, justifyContent: "flex-end" }}
-            >
-              <TouchableWithoutFeedback>
-                <View style={styles.modalContainer}>
-                  <TouchableOpacity
-                    onPress={onClose}
-                    style={styles.closeButton}
-                  >
-                    <Ionicons name="close" size={wp("6%")} color="black" />
-                  </TouchableOpacity>
+    <View style={styles.contentContainer}>
+      <View style={styles.titleContainer}>
+        <Text style={styles.title}>Welcome</Text>
+        <Text style={styles.subtitle}>Create your account</Text>
+      </View>
 
-                  <View style={styles.headerContainer}>
-                    <View style={styles.svgContainer}>
-                      <SVGTopLogin />
-                    </View>
-                  </View>
-
-                  <View style={styles.logoContainer}>
-                    <Image source={images.clearLogo} style={styles.logo} />
-                  </View>
-
-                  <View style={styles.contentContainer}>
-                    <View style={styles.titleContainer}>
-                      <Text style={styles.title}>Welcome</Text>
-                      <Text style={styles.subtitle}>Create your account</Text>
-                    </View>
-
-                    <View style={styles.inputContainer}>
-                      <View style={styles.dualInputContainer}>
-                        <DualInputField
-                          label1="First Name"
-                          label2="Last Name"
-                          placeholder1="First Name"
-                          placeholder2="Last Name"
-                          value1={form.firstName}
-                          value2={form.lastName}
-                          onChange1={(value) =>
-                            setForm({ ...form, firstName: value })
-                          }
-                          onChange2={(value) =>
-                            setForm({ ...form, lastName: value })
-                          }
-                          icon1={
-                            <Ionicons
-                              name="person"
-                              size={wp("5%")}
-                              color="grey"
-                            />
-                          }
-                          icon2={
-                            <Ionicons
-                              name="person"
-                              size={wp("5%")}
-                              color="grey"
-                            />
-                          }
-                        />
-                      </View>
-
-                      <InputField
-                        label="Email"
-                        placeholder="Enter Email"
-                        textContentType="emailAddress"
-                        value={form.email}
-                        icon={
-                          <Ionicons name="mail" size={wp("5%")} color="grey" />
-                        }
-                        style={styles.input}
-                        onChangeText={(value) =>
-                          setForm({ ...form, email: value })
-                        }
-                      />
-
-                      <InputField
-                        label="Password"
-                        placeholder="Enter Password"
-                        textContentType="password"
-                        secureTextEntry={true}
-                        icon={
-                          <Ionicons
-                            name="lock-closed"
-                            size={wp("5%")}
-                            color="grey"
-                          />
-                        }
-                        style={styles.input}
-                        value={form.password}
-                        onChangeText={(value) =>
-                          setForm({ ...form, password: value })
-                        }
-                      />
-
-                      <InputField
-                        label="Confirm Password"
-                        placeholder="Confirm Password"
-                        textContentType="password"
-                        secureTextEntry={true}
-                        icon={
-                          <Ionicons
-                            name="lock-closed"
-                            size={wp("5%")}
-                            color="grey"
-                          />
-                        }
-                        style={styles.input}
-                        value={form.confirmPassword}
-                        onChangeText={(value) =>
-                          setForm({ ...form, confirmPassword: value })
-                        }
-                      />
-                    </View>
-
-                    <View style={styles.buttonContainer}>
-                      <CustomButton
-                        onPress={register}
-                        loading={loading}
-                        title="Sign Up"
-                        style={styles.signUpButton}
-                      />
-
-                      <View style={styles.signInContainer}>
-                        <Text style={styles.signInText}>
-                          Already have an account?
-                        </Text>
-                        <TouchableOpacity onPress={openSignIn}>
-                          <Text style={styles.signInLink}>Sign In</Text>
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-                  </View>
-                </View>
-              </TouchableWithoutFeedback>
-            </KeyboardAvoidingView>
-          </SafeAreaView>
+      <View style={styles.inputContainer}>
+        <View>
+          <DualInputField
+            label1="First Name"
+            label2="Last Name"
+            placeholder1="First Name"
+            placeholder2="Last Name"
+            value1={form.firstName}
+            value2={form.lastName}
+            onChange1={(value) => setForm({ ...form, firstName: value })}
+            onChange2={(value) => setForm({ ...form, lastName: value })}
+            icon1={<Ionicons name="person" size={wp("5%")} color="grey" />}
+            icon2={<Ionicons name="person" size={wp("5%")} color="grey" />}
+          />
         </View>
-      </TouchableWithoutFeedback>
-    </Modal>
+
+        <InputField
+          label="Email"
+          placeholder="Enter Email"
+          textContentType="emailAddress"
+          value={form.email}
+          icon={<Ionicons name="mail" size={wp("5%")} color="grey" />}
+          style={styles.input}
+          onChangeText={(value) => setForm({ ...form, email: value })}
+        />
+
+        <InputField
+          label="Password"
+          placeholder="Enter Password"
+          textContentType="password"
+          secureTextEntry={true}
+          icon={<Ionicons name="lock-closed" size={wp("5%")} color="grey" />}
+          style={styles.input}
+          value={form.password}
+          onChangeText={(value) => setForm({ ...form, password: value })}
+        />
+
+        <InputField
+          label="Confirm Password"
+          placeholder="Confirm Password"
+          textContentType="password"
+          secureTextEntry={true}
+          icon={<Ionicons name="lock-closed" size={wp("5%")} color="grey" />}
+          style={styles.input}
+          value={form.confirmPassword}
+          onChangeText={(value) => setForm({ ...form, confirmPassword: value })}
+        />
+      </View>
+
+      <View style={styles.buttonContainer}>
+        <CustomButton
+          onPress={register}
+          loading={loading}
+          title="Sign Up"
+          style={styles.signUpButton}
+        />
+      </View>
+    </View>
   );
 };
 

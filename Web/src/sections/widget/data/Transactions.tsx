@@ -537,14 +537,6 @@ export default function Transactions() {
             </ListItem>
           </List>
         </TabPanel>
-        <Stack direction="row" alignItems="center" spacing={1.25} sx={{ p: 3 }}>
-          <Button variant="outlined" fullWidth color="secondary">
-            Transaction History
-          </Button>
-          <Button variant="contained" fullWidth>
-            Create new Transaction
-          </Button>
-        </Stack>
       </Box>
     </MainCard>
   );

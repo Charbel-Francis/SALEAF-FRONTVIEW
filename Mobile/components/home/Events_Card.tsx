@@ -1,19 +1,48 @@
-import React from "react";
-import { Dimensions, Image, Text, View, StyleSheet } from "react-native";
+import React, { useEffect, useState } from "react";
+import {
+  Dimensions,
+  Image,
+  Text,
+  View,
+  StyleSheet,
+  Pressable,
+} from "react-native";
 import { Card } from "react-native-paper";
 import Carousel from "react-native-reanimated-carousel";
-import { images } from "@/constants";
+import Animated, {
+  SharedTransition,
+  withSpring,
+} from "react-native-reanimated";
 import { BlurView } from "expo-blur";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import { Link } from "expo-router";
+import { EventInterface } from "@/types/types";
+import axiosInstance from "@/utils/config";
+import { sharedTransition } from "../transitions/sharedTransitions";
 
 const Event_Card = () => {
   const width = Dimensions.get("window").width;
-  const itemHeight = hp("30%"); // Increased from 30% to 35%
+  const itemHeight = hp("30%");
+  const [events, setEvents] = useState<EventInterface[]>([]);
 
+  const getEvents = () => {
+    try {
+      axiosInstance
+        .get("/api/Event/get-three-latest-events")
+        .then((response) => {
+          setEvents(response.data);
+        });
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  useEffect(() => {
+    getEvents();
+  }, []);
   const styles = StyleSheet.create({
     container: {
       marginBottom: hp("0"), // Reduced bottom margin
@@ -31,7 +60,9 @@ const Event_Card = () => {
       fontWeight: "700",
     },
     headerSeeAll: {
-      fontSize: wp("3.8%"), // Increased from 3.5%
+      fontSize: wp("3.8%"), // Slightly larger "See All"
+      fontWeight: "600",
+      textDecorationLine: "underline",
     },
     cardContainer: {
       height: hp("32%"), // Increased from 25%
@@ -46,9 +77,9 @@ const Event_Card = () => {
     blurContainer: {
       position: "absolute",
       height: hp("18%"), // Increased from 16%
-      bottom: hp("0.5%"),
-      left: wp("0.5%"),
-      right: wp("0.5%"),
+      bottom: hp("0%"),
+      left: wp("0%"),
+      right: wp("0%"),
       borderRadius: wp("3%"),
       overflow: "hidden",
       flexDirection: "row",
@@ -57,13 +88,14 @@ const Event_Card = () => {
     },
     eventInfoContainer: {
       flex: 1,
-      paddingVertical: hp("0.8%"), // Increased padding
+      paddingVertical: hp("0%"), // Increased padding
     },
     eventTitle: {
       color: "white",
-      fontSize: wp("4.5%"), // Increased from 4%
+      fontSize: wp("4%"), // Increased from 4%
       fontWeight: "700",
       paddingHorizontal: wp("2%"),
+      width: hp("100%"),
     },
     infoRow: {
       flexDirection: "row",
@@ -96,24 +128,15 @@ const Event_Card = () => {
     },
   });
 
-  const events = [
-    {
-      id: 1,
-      title: "Golf Fundraiser",
-      location: "Benoni Country Club",
-      date: "November 15, 2023",
-      price: "R500",
-      image: images.golf,
-      starttime: "17:38",
-      endtime: "17:38",
-    },
-  ];
-
   return (
     <View style={styles.container}>
       <View style={styles.headerContainer}>
         <Text style={styles.headerTitle}>Upcoming Events</Text>
-        <Text style={styles.headerSeeAll}>See All</Text>
+        <Link href={{ pathname: "/(root)/(tabs)/events" }} asChild>
+          <Pressable>
+            <Text style={styles.headerSeeAll}>See All</Text>
+          </Pressable>
+        </Link>
       </View>
 
       <View>
@@ -124,64 +147,100 @@ const Event_Card = () => {
           autoPlay
           data={events}
           autoPlayInterval={2000}
-          scrollAnimationDuration={1000} // Reduced from 6000 for smoother transitions
+          scrollAnimationDuration={1000}
           snapEnabled
           pagingEnabled
           mode="parallax"
-          renderItem={({ index }) => (
-            <Card style={styles.cardContainer}>
-              <Image source={events[index].image} style={styles.cardImage} />
-              <BlurView
-                intensity={30}
-                style={[
-                  styles.blurContainer,
-                  { backgroundColor: "rgba(0, 0, 0, 0.8)" },
-                ]}
-              >
-                <View style={styles.eventInfoContainer}>
-                  <Text style={styles.eventTitle}>{events[index].title}</Text>
-
-                  <View style={styles.infoRow}>
-                    <Ionicons
-                      name="location"
-                      size={wp("5.5%")}
-                      color="white"
-                      style={styles.icon}
+          renderItem={({ item, index }) => (
+            <Link
+              href={{
+                pathname: "/pages/event_details",
+                params: events[index],
+              }}
+              asChild
+            >
+              <Pressable>
+                <Card style={styles.cardContainer}>
+                  <Animated.View
+                    sharedTransitionTag={`event-container-${item.eventId}1`}
+                    sharedTransitionStyle={sharedTransition}
+                  >
+                    <Animated.Image
+                      source={{ uri: item.eventImageUrl }}
+                      sharedTransitionTag={`event-image-${item.eventImageUrl}`}
+                      sharedTransitionStyle={sharedTransition}
+                      style={styles.cardImage}
                     />
-                    <Text style={styles.infoText}>
-                      {events[index].location}
-                    </Text>
-                  </View>
+                  </Animated.View>
+                  <BlurView
+                    intensity={30}
+                    style={[
+                      styles.blurContainer,
+                      { backgroundColor: "rgba(0, 0, 0, 0.8)" },
+                    ]}
+                  >
+                    <View style={styles.eventInfoContainer}>
+                      <Animated.Text
+                        sharedTransitionTag={`event-title-${item.eventName}`}
+                        sharedTransitionStyle={sharedTransition}
+                        style={styles.eventTitle}
+                      >
+                        {item.eventName}
+                      </Animated.Text>
 
-                  <View style={styles.infoRow}>
-                    <Ionicons
-                      name="calendar"
-                      size={wp("5.5%")}
-                      color="white"
-                      style={styles.icon}
-                    />
-                    <Text style={styles.infoText}>{events[index].date}</Text>
-                  </View>
+                      <View style={styles.infoRow}>
+                        <Ionicons
+                          name="location"
+                          size={wp("5.5%")}
+                          color="white"
+                          style={styles.icon}
+                        />
+                        <Animated.Text
+                          sharedTransitionTag={`event-location-${item.location}`}
+                          sharedTransitionStyle={sharedTransition}
+                          style={styles.infoText}
+                        >
+                          {item.location}
+                        </Animated.Text>
+                      </View>
 
-                  <View style={styles.infoRow}>
-                    <Ionicons
-                      name="time"
-                      size={wp("5.5%")}
-                      color="white"
-                      style={styles.icon}
-                    />
-                    <Text style={styles.infoText}>
-                      {events[index].starttime} - {events[index].endtime}
-                    </Text>
-                  </View>
-                </View>
+                      <View style={styles.infoRow}>
+                        <Ionicons
+                          name="calendar"
+                          size={wp("5.5%")}
+                          color="white"
+                          style={styles.icon}
+                        />
+                        <Animated.Text
+                          sharedTransitionTag={`event-date-${item.startDate}`}
+                          sharedTransitionStyle={sharedTransition}
+                          style={styles.infoText}
+                        >
+                          {item.startDate}
+                        </Animated.Text>
+                      </View>
 
-                <View style={styles.priceContainer}>
-                  <Text style={styles.priceLabel}>Starting from:</Text>
-                  <Text style={styles.priceValue}>{events[index].price}</Text>
-                </View>
-              </BlurView>
-            </Card>
+                      <View style={styles.infoRow}>
+                        <Ionicons
+                          name="time"
+                          size={wp("5.5%")}
+                          color="white"
+                          style={styles.icon}
+                        />
+                        <Text style={styles.infoText}>
+                          {item.startTime} - {item.endTime}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <View style={styles.priceContainer}>
+                      <Text style={styles.priceLabel}>Starting from:</Text>
+                      <Text style={styles.priceValue}>{item.eventPrice}</Text>
+                    </View>
+                  </BlurView>
+                </Card>
+              </Pressable>
+            </Link>
           )}
         />
       </View>

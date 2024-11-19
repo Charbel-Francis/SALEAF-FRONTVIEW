@@ -10,6 +10,7 @@ import {
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { icons } from "@/constants";
 import { useAuth } from "@/context/JWTContext";
+import Login_Card from "@/components/home/Login_Card";
 
 const TabIcon = ({
   source,
@@ -84,13 +85,16 @@ export default function Layout() {
           flexDirection: "row",
           position: "absolute",
         },
+        header: () => {
+          return <Login_Card />;
+        },
       }}
     >
       <Tabs.Screen
         name="home"
         options={{
           title: "Home",
-          headerShown: false,
+          headerShown: true,
           tabBarIcon: ({ focused }) => (
             <TabIcon source={icons.home} focused={focused} />
           ),

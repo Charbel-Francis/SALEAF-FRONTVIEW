@@ -22,6 +22,8 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import { useAuth } from "@/context/JWTContext";
+import { useAuthVisibility } from "@/context/AuthVisibilityContext";
 
 const StyledText = styled(Text);
 
@@ -36,7 +38,8 @@ const DonationAmountComponent = ({
   const [selectedButtons, setSelectedButtons] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [contentPosition] = useState(new Animated.Value(0));
-
+  const { authState } = useAuth();
+  const { showSignIn } = useAuthVisibility();
   useEffect(() => {
     const keyboardWillShow = (event: any) => {
       Animated.timing(contentPosition, {
@@ -78,7 +81,7 @@ const DonationAmountComponent = ({
       flex: 1,
     },
     logoSection: {
-      height: hp("25%"),
+      height: hp("20%"),
       alignItems: "center",
       justifyContent: "flex-end",
       paddingBottom: hp("2%"),
@@ -149,14 +152,20 @@ const DonationAmountComponent = ({
 
   const handleContinue = async () => {
     setLoading(true);
+
     try {
-      const response = await axiosInstance.get(
-        `/api/DonorCertificateInfo/donor-certificate-info-exist`
-      );
-      if (!response.data) {
-        setSteps(1);
+      if (authState?.authenticated) {
+        const response = await axiosInstance.get(
+          `/api/DonorCertificateInfo/donor-certificate-info-exist`
+        );
+        if (!response.data) {
+          setSteps(1);
+        } else {
+          setSteps(2);
+          setLoading(false);
+        }
       } else {
-        setSteps(2);
+        showSignIn();
         setLoading(false);
       }
     } catch (error) {

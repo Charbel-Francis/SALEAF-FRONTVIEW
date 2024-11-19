@@ -1,22 +1,9 @@
 import React, { useState, useEffect } from "react";
-import {
-  Text,
-  View,
-  Image,
-  Modal,
-  TouchableOpacity,
-  Keyboard,
-  TouchableWithoutFeedback,
-  KeyboardAvoidingView,
-  Alert,
-  StyleSheet,
-  Platform,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { DualInputField, InputField } from "@/components/InputField";
+import { Text, View, Keyboard, StyleSheet, Platform } from "react-native";
+import { Formik } from "formik";
+import * as Yup from "yup";
+import { InputField } from "@/components/InputField";
 import CustomButton from "@/components/CustomButton";
-import { images } from "@/constants";
-import { EmailIcon, LockIcon, SVGTopLogin } from "@/assets/authImages/SVGs";
 import { useAuth } from "@/context/JWTContext";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import {
@@ -24,60 +11,21 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 
-interface SignInModalProps {
-  visible: boolean;
-  onClose: () => void;
-  openSignUp: () => void;
-}
+const SignInSchema = Yup.object().shape({
+  email: Yup.string()
+    .email("Invalid email address")
+    .required("Email is required"),
+  password: Yup.string()
+    .min(6, "Password must be at least 6 characters")
+    .required("Password is required"),
+});
 
-const SignInModal = ({ visible, onClose, openSignUp }: SignInModalProps) => {
+const SignInModal = () => {
   const { onLogin } = useAuth();
-  const [form, setForm] = useState({
-    email: "",
-    password: "",
-  });
-  const [loading, setLoading] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const styles = StyleSheet.create({
-    overlay: {
-      flex: 1,
-      backgroundColor: "rgba(0, 0, 0, 0.5)",
-      justifyContent: "flex-end",
-    },
-    modalContainer: {
-      backgroundColor: "white",
-      borderTopLeftRadius: wp("6%"),
-      borderTopRightRadius: wp("6%"),
-      height: hp("85%"),
-    },
-    closeButton: {
-      position: "absolute",
-      top: hp("1.5%"),
-      right: wp("4%"),
-      zIndex: 1,
-    },
-    headerContainer: {
-      width: hp("50px"),
-      height: hp("30%"),
-      flexDirection: "row",
-      overflow: "hidden",
-      borderTopLeftRadius: wp("6%"),
-      borderTopRightRadius: wp("6%"),
-    },
-    svgContainer: {
-      flex: 1,
-    },
-    logoContainer: {
-      position: "absolute",
-      top: hp("8%"),
-      right: wp("4%"),
-    },
-    logo: {
-      width: wp("35%"),
-      height: hp("12%"),
-      resizeMode: "contain",
-    },
     contentContainer: {
       position: "absolute",
       top: hp("20%"),
@@ -117,17 +65,10 @@ const SignInModal = ({ visible, onClose, openSignUp }: SignInModalProps) => {
       height: hp("6%"),
       backgroundColor: "#15783D",
     },
-    signUpContainer: {
-      marginTop: hp("4%"),
-      flexDirection: "row",
-      alignItems: "center",
-    },
-    signUpText: {
-      fontSize: wp("4%"),
-    },
-    signUpLink: {
-      color: "#3B82F6",
-      textDecorationLine: "underline",
+    errorText: {
+      color: "red",
+      fontSize: wp("3.5%"),
+      marginTop: hp("0.5%"),
       marginLeft: wp("1%"),
     },
   });
@@ -152,117 +93,106 @@ const SignInModal = ({ visible, onClose, openSignUp }: SignInModalProps) => {
     };
   }, []);
 
-  const login = async () => {
+  interface FormValues {
+    email: string;
+    password: string;
+  }
+
+  interface FormikHelpers {
+    setSubmitting: (isSubmitting: boolean) => void;
+    setFieldError: (field: string, message: string) => void;
+  }
+
+  const handleSubmit = async (
+    values: FormValues,
+    { setSubmitting, setFieldError }: FormikHelpers
+  ): Promise<void> => {
     setLoading(true);
-    if (onLogin) {
-      const results = await onLogin(form.email, form.password);
-      if (results) {
-        setLoading(false);
-        onClose();
+    try {
+      if (onLogin) {
+        const results = await onLogin(values.email, values.password);
+        if (!results) {
+          setFieldError(
+            "general",
+            "Login failed. Please check your credentials."
+          );
+        }
       }
+    } catch (error) {
+      setFieldError("general", "An error occurred during sign in.");
+    } finally {
+      setLoading(false);
+      setSubmitting(false);
     }
   };
 
   return (
-    <Modal
-      animationType="slide"
-      transparent={true}
-      visible={visible}
-      onRequestClose={onClose}
-    >
-      <TouchableWithoutFeedback onPress={onClose}>
-        <View style={styles.overlay}>
-          <SafeAreaView style={{ flex: 1, justifyContent: "flex-end" }}>
-            <KeyboardAvoidingView
-              behavior={Platform.OS === "ios" ? "padding" : "height"}
-              style={{ flex: 1, justifyContent: "flex-end" }}
-            >
-              <TouchableWithoutFeedback>
-                <View style={styles.modalContainer}>
-                  <TouchableOpacity
-                    onPress={onClose}
-                    style={styles.closeButton}
-                  >
-                    <Ionicons name="close" size={wp("6%")} color="black" />
-                  </TouchableOpacity>
+    <View style={styles.contentContainer}>
+      <View style={styles.titleContainer}>
+        <Text style={styles.title}>Hello</Text>
+        <Text style={styles.subtitle}>Sign in to your account</Text>
+      </View>
 
-                  <View style={styles.headerContainer}>
-                    <View style={styles.svgContainer}>
-                      <SVGTopLogin />
-                    </View>
-                  </View>
+      <Formik
+        initialValues={{ email: "", password: "" }}
+        validationSchema={SignInSchema}
+        onSubmit={handleSubmit}
+      >
+        {({
+          handleChange,
+          handleBlur,
+          handleSubmit,
+          values,
+          errors,
+          touched,
+          isSubmitting,
+        }) => (
+          <>
+            <View style={styles.inputContainer}>
+              <InputField
+                label="Email"
+                placeholder="Enter Email"
+                textContentType="emailAddress"
+                value={values.email}
+                onChangeText={handleChange("email")}
+                onBlur={handleBlur("email")}
+                icon={<Ionicons name="mail" size={wp("5%")} color="grey" />}
+                style={styles.input}
+              />
+              {touched.email && errors.email && (
+                <Text style={styles.errorText}>{errors.email}</Text>
+              )}
 
-                  <View style={styles.logoContainer}>
-                    <Image source={images.clearLogo} style={styles.logo} />
-                  </View>
+              <InputField
+                label="Password"
+                placeholder="Enter Password"
+                textContentType="password"
+                secureTextEntry={true}
+                value={values.password}
+                onChangeText={handleChange("password")}
+                onBlur={handleBlur("password")}
+                icon={
+                  <Ionicons name="lock-closed" size={wp("5%")} color="grey" />
+                }
+                style={styles.input}
+              />
+              {touched.password && errors.password && (
+                <Text style={styles.errorText}>{errors.password}</Text>
+              )}
+            </View>
 
-                  <View style={styles.contentContainer}>
-                    <View style={styles.titleContainer}>
-                      <Text style={styles.title}>Hello</Text>
-                      <Text style={styles.subtitle}>
-                        Sign in to your account
-                      </Text>
-                    </View>
-
-                    <View style={styles.inputContainer}>
-                      <InputField
-                        label="Email"
-                        placeholder="Enter Email"
-                        textContentType="emailAddress"
-                        value={form.email}
-                        icon={
-                          <Ionicons name="mail" size={wp("5%")} color="grey" />
-                        }
-                        style={styles.input}
-                        onChangeText={(value) =>
-                          setForm({ ...form, email: value })
-                        }
-                      />
-                      <InputField
-                        label="Password"
-                        placeholder="Enter Password"
-                        textContentType="password"
-                        secureTextEntry={true}
-                        icon={
-                          <Ionicons
-                            name="lock-closed"
-                            size={wp("5%")}
-                            color="grey"
-                          />
-                        }
-                        style={styles.input}
-                        value={form.password}
-                        onChangeText={(value) =>
-                          setForm({ ...form, password: value })
-                        }
-                      />
-                    </View>
-
-                    <View style={styles.buttonContainer}>
-                      <CustomButton
-                        onPress={login}
-                        loading={loading}
-                        title="Sign In"
-                        style={styles.signInButton}
-                      />
-
-                      <View style={styles.signUpContainer}>
-                        <Text style={styles.signUpText}>
-                          Don't have an account?
-                        </Text>
-                        <TouchableOpacity onPress={openSignUp}>
-                          <Text style={styles.signUpLink}>Sign Up</Text>
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-                  </View>
-                </View>
-              </TouchableWithoutFeedback>
-            </KeyboardAvoidingView>
-          </SafeAreaView>
-        </View>
-      </TouchableWithoutFeedback>
-    </Modal>
+            <View style={styles.buttonContainer}>
+              <CustomButton
+                onPress={handleSubmit}
+                loading={loading || isSubmitting}
+                title="Sign In"
+                style={styles.signInButton}
+              />
+            </View>
+          </>
+        )}
+      </Formik>
+    </View>
   );
 };
 

@@ -1,211 +1,468 @@
 import CustomButton from "@/components/CustomButton";
 import { images } from "@/constants";
-import React from "react";
+import React, { useCallback, useState } from "react";
 import {
   Image,
-  SafeAreaView,
   Text,
   TouchableOpacity,
   View,
   StyleSheet,
+  Animated,
+  Modal,
+  Pressable,
 } from "react-native";
 import { Card } from "react-native-paper";
 import { LinearGradient } from "expo-linear-gradient";
+import { BlurView } from "expo-blur";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import { useRoute } from "@react-navigation/native";
+import { useAuth } from "@/context/JWTContext";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useAuthVisibility } from "@/context/AuthVisibilityContext";
 
-const Login_Card = () => {
-  const styles = StyleSheet.create({
-    gradient: {
-      borderRadius: wp("10%"),
-      margin: wp("2%"),
-      position: "relative",
-      minHeight: hp("30%"),
+const ProfileMenu = () => {
+  const [isMenuVisible, setMenuVisible] = useState(false);
+  const { onLogout } = useAuth();
+  const { authState } = useAuth();
+  const { showSignIn } = useAuthVisibility();
+  const router = useRouter();
+  const menuOptions = [
+    {
+      icon: "person",
+      label: "Profile",
+      onPress: () => {
+        console.log("Profile pressed");
+        setMenuVisible(false);
+      },
     },
-    leftCircle: {
-      position: "absolute",
-      bottom: hp("-2.5%"),
-      left: wp("-2.5%"),
-      width: wp("30%"),
-      height: wp("30%"),
-      borderWidth: 1,
-      borderColor: "white",
-      borderRadius: wp("30%"),
+    {
+      icon: "settings",
+      label: "Settings",
+      onPress: () => {
+        console.log("Settings pressed");
+        setMenuVisible(false);
+      },
     },
-    nestedCirclesContainer: {
-      position: "absolute",
-      bottom: hp("1.25%"),
-      left: wp("2.5%"),
-      flexDirection: "column",
-      justifyContent: "center",
-      alignItems: "center",
+    {
+      icon: "information-circle",
+      label: "About SALEAF",
+      onPress: () => {
+        router.navigate("/pages/AboutSaleaf");
+        setMenuVisible(false);
+      },
     },
-    nestedCircle1: {
-      position: "absolute",
-      bottom: hp("-7.5%"),
-      left: wp("-10%"),
-      width: wp("25%"),
-      height: wp("25%"),
-      borderWidth: 1,
-      borderColor: "white",
-      borderRadius: wp("25%"),
-    },
-    nestedCircle2: {
-      position: "absolute",
-      bottom: hp("-5%"),
-      left: wp("-7.5%"),
-      width: wp("27.5%"),
-      height: wp("25%"),
-      borderWidth: 1,
-      borderColor: "white",
-      borderRadius: wp("37.5%"),
-    },
-    nestedCircle3: {
-      position: "absolute",
-      bottom: hp("-10%"),
-      left: wp("-12.5%"),
-      width: wp("25%"),
-      height: wp("25%"),
-      borderWidth: 1,
-      borderColor: "white",
-      borderRadius: wp("25%"),
-    },
-    rightCircleGroup: {
-      position: "absolute",
-      right: wp("-5%"),
-      top: "35%",
-    },
-    rightCircle1: {
-      width: wp("25%"),
-      height: wp("25%"),
-      borderWidth: 1,
-      borderColor: "white",
-      borderRadius: wp("25%"),
-      position: "absolute",
-    },
-    rightCircle2: {
-      width: wp("25%"),
-      height: wp("25%"),
-      borderWidth: 1,
-      borderColor: "white",
-      borderRadius: wp("25%"),
-      position: "absolute",
-      right: wp("-5%"),
-    },
-    rightCircle3: {
-      width: wp("25%"),
-      height: wp("25%"),
-      borderWidth: 1,
-      borderColor: "white",
-      borderRadius: wp("25%"),
-      position: "absolute",
-      right: wp("5%"),
-    },
-    card: {
-      backgroundColor: "transparent",
-      borderRadius: wp("10%"),
-    },
-    contentContainer: {
-      height: hp("20%"),
-      justifyContent: "space-between",
-    },
-    headerContainer: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      paddingTop: hp("1%"),
-    },
-    logo: {
-      height: hp("10%"),
-      width: wp("30%"),
-      resizeMode: "contain",
-    },
-    iconsContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: wp("2%"),
-    },
-    icon: {
-      padding: wp("2%"),
-    },
-    welcomeContainer: {
-      paddingHorizontal: wp("5%"),
-      paddingBottom: hp("2%"),
-    },
-    welcomeText: {
-      fontSize: wp("5%"),
-      color: "white",
-      paddingBottom: hp("2%"),
-    },
-  });
+    authState?.authenticated != false
+      ? {
+          icon: "log-out",
+          label: "Logout",
+          onPress: () => {
+            if (onLogout) {
+              onLogout();
+            }
+            setMenuVisible(false);
+          },
+        }
+      : {
+          icon: "log-in",
+          label: "Login",
+          onPress: () => {
+            showSignIn();
+            setMenuVisible(false);
+          },
+        },
+  ];
 
   return (
-    <LinearGradient
-      colors={[
-        "rgba(21, 120, 61, 0.4)",
-        "rgba(21, 120, 61, 0.8)",
-        "rgba(0, 0, 0, 0.8)",
-      ]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 0, y: 1 }}
-      style={styles.gradient}
-    >
-      <View style={styles.leftCircle} />
-      <View style={styles.nestedCirclesContainer}>
-        <View style={styles.nestedCircle1} />
-        <View style={styles.nestedCircle2} />
-        <View style={styles.nestedCircle3} />
-      </View>
+    <View>
+      <TouchableOpacity
+        onPress={() => setMenuVisible(true)}
+        style={styles.icon}
+      >
+        <Ionicons name="person-circle" size={wp("8%")} color="black" />
+      </TouchableOpacity>
 
-      <View style={styles.rightCircleGroup}>
-        <View style={styles.rightCircle1} />
-        <View style={styles.rightCircle2} />
-        <View style={styles.rightCircle3} />
-      </View>
-
-      <Card style={styles.card}>
-        <Card.Content>
-          <View style={styles.contentContainer}>
-            <View style={styles.headerContainer}>
-              <Image source={images.clearLogo} style={styles.logo} />
-              <View style={styles.iconsContainer}>
-                <TouchableOpacity style={styles.icon} onPress={() => {}}>
-                  <Ionicons
-                    name="notifications"
-                    size={wp("8%")}
-                    color="black"
-                  />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.icon} onPress={() => {}}>
-                  <Ionicons name="settings" size={wp("8%")} color="black" />
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            <View style={styles.welcomeContainer}>
-              <Text style={styles.welcomeText}>
-                Welcome to SALEAF mobile app
-              </Text>
-              <CustomButton
-                title="Click Here to Login or SignUp"
-                style={{
-                  backgroundColor: "black",
-                  minHeight: hp("6%"),
-                }}
-                textStyle={{
-                  fontSize: wp("4%"),
-                }}
-                onPress={() => {}}
-              />
-            </View>
+      <Modal
+        visible={isMenuVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setMenuVisible(false)}
+      >
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setMenuVisible(false)}
+        >
+          <BlurView intensity={20} style={StyleSheet.absoluteFill} />
+          <View style={styles.menuContainer}>
+            {menuOptions.map((option, index) => (
+              <TouchableOpacity
+                key={option.label}
+                style={[
+                  styles.menuItem,
+                  index !== menuOptions.length - 1 && styles.menuItemBorder,
+                ]}
+                onPress={option.onPress}
+              >
+                <Ionicons
+                  name={option.icon}
+                  size={wp("6%")}
+                  color={option.icon === "log-out" ? "#FF4444" : "#4CAF50"}
+                />
+                <Text
+                  style={[
+                    styles.menuText,
+                    option.icon === "log-out" && styles.logoutText,
+                  ]}
+                >
+                  {option.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
-        </Card.Content>
-      </Card>
-    </LinearGradient>
+        </Pressable>
+      </Modal>
+    </View>
   );
 };
+
+const Login_Card = () => {
+  const route = useRoute();
+  const isHomeScreen = route.name === "home";
+  const { authState } = useAuth();
+  const { showSignIn } = useAuthVisibility();
+  const animatedHeight = new Animated.Value(
+    isHomeScreen ? (authState?.authenticated ? 0.8 : 1) : 0
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      const targetValue = isHomeScreen
+        ? authState?.authenticated
+          ? 0.6
+          : 1
+        : 0;
+      animatedHeight.stopAnimation(() => {
+        Animated.timing(animatedHeight, {
+          toValue: targetValue,
+          duration: 300,
+          useNativeDriver: false,
+        }).start();
+      });
+    }, [isHomeScreen, authState?.authenticated])
+  );
+
+  const containerHeight = animatedHeight.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: [hp("10%"), hp("15%"), hp("30%")],
+  });
+  return (
+    <Animated.View
+      style={{
+        height:
+          isHomeScreen != false
+            ? hp("20%")
+            : authState?.authenticated != false
+            ? hp("10%")
+            : hp("30%"),
+      }}
+    >
+      <LinearGradient
+        colors={[
+          "rgba(21, 120, 61, 0.4)",
+          "rgba(21, 120, 61, 0.8)",
+          "rgba(21, 120, 61, 0.8)",
+          "rgba(0, 0, 0, 0.8)",
+        ]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={[styles.gradient, { height: "100%" }]}
+      >
+        <View style={styles.leftCircle} />
+        <View style={styles.nestedCirclesContainer}>
+          <View style={styles.nestedCircle1} />
+          <View style={styles.nestedCircle2} />
+          <View style={styles.nestedCircle3} />
+        </View>
+
+        <View style={styles.rightCircleGroup}>
+          <View style={styles.rightCircle1} />
+          <View style={styles.rightCircle2} />
+          <View style={styles.rightCircle3} />
+        </View>
+
+        <Card style={styles.card}>
+          <Card.Content style={{ height: "100%" }}>
+            <View style={styles.contentContainer}>
+              <View style={styles.headerContainer}>
+                <Image source={images.clearLogo} style={styles.logo} />
+                <View style={styles.iconsContainer}>
+                  <TouchableOpacity style={styles.icon} onPress={() => {}}>
+                    <Ionicons
+                      name="notifications"
+                      size={isHomeScreen ? wp("8%") : wp("8%")}
+                      color="black"
+                    />
+                  </TouchableOpacity>
+                  <ProfileMenu />
+                </View>
+              </View>
+              {isHomeScreen && (
+                <View style={styles.welcomeContainer}>
+                  {authState?.authenticated != false ? (
+                    <View style={styles.progressContainer}>
+                      <View style={styles.progressHeader}>
+                        <Text style={styles.percentageText}>75%</Text>
+                      </View>
+                      <View style={styles.progressBarContainer}>
+                        <Ionicons
+                          name="leaf"
+                          size={wp("5%")}
+                          style={styles.leafIcon}
+                        />
+                        <View style={styles.progressBarWrapper}>
+                          <Animated.View
+                            style={[styles.progressBar, { width: "75%" }]}
+                          />
+                        </View>
+                        <Ionicons
+                          name="leaf"
+                          size={wp("5%")}
+                          style={styles.leafIcon}
+                        />
+                      </View>
+                    </View>
+                  ) : (
+                    <>
+                      <Text style={styles.welcomeText}>
+                        Welcome to SALEAF mobile app
+                      </Text>
+                      <CustomButton
+                        title="Click Here to Login or SignUp"
+                        style={{
+                          backgroundColor: "black",
+                          minHeight: hp("6%"),
+                        }}
+                        textStyle={{
+                          fontSize: wp("4%"),
+                        }}
+                        onPress={() => {
+                          showSignIn();
+                        }}
+                      />
+                    </>
+                  )}
+                </View>
+              )}
+            </View>
+          </Card.Content>
+        </Card>
+      </LinearGradient>
+    </Animated.View>
+  );
+};
+
+const styles = StyleSheet.create({
+  gradient: {
+    borderRadius: wp("10%"),
+    margin: wp("2%"),
+    position: "relative",
+    overflow: "hidden",
+  },
+  leftCircle: {
+    position: "absolute",
+    bottom: hp("-2.5%"),
+    left: wp("-2.5%"),
+    width: wp("30%"),
+    height: wp("30%"),
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.5)",
+    borderRadius: wp("30%"),
+  },
+  nestedCirclesContainer: {
+    position: "absolute",
+    bottom: hp("1.25%"),
+    left: wp("2.5%"),
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  nestedCircle1: {
+    position: "absolute",
+    bottom: hp("-7.5%"),
+    left: wp("-10%"),
+    width: wp("25%"),
+    height: wp("25%"),
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.5)",
+    borderRadius: wp("25%"),
+  },
+  nestedCircle2: {
+    position: "absolute",
+    bottom: hp("-5%"),
+    left: wp("-7.5%"),
+    width: wp("27.5%"),
+    height: wp("25%"),
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.5)",
+    borderRadius: wp("37.5%"),
+  },
+  nestedCircle3: {
+    position: "absolute",
+    bottom: hp("-10%"),
+    left: wp("-12.5%"),
+    width: wp("25%"),
+    height: wp("25%"),
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.5)",
+    borderRadius: wp("25%"),
+  },
+  rightCircleGroup: {
+    position: "absolute",
+    right: wp("-5%"),
+    top: "25%",
+  },
+  rightCircle1: {
+    width: wp("25%"),
+    height: wp("25%"),
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.5)",
+    borderRadius: wp("25%"),
+    position: "absolute",
+  },
+  rightCircle2: {
+    width: wp("25%"),
+    height: wp("25%"),
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.5)",
+    borderRadius: wp("25%"),
+    position: "absolute",
+    right: wp("-5%"),
+  },
+  rightCircle3: {
+    width: wp("25%"),
+    height: wp("25%"),
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.5)",
+    borderRadius: wp("25%"),
+    position: "absolute",
+    right: wp("5%"),
+  },
+  card: {
+    backgroundColor: "transparent",
+    borderRadius: wp("10%"),
+    height: "100%",
+  },
+  contentContainer: {
+    height: "100%",
+    justifyContent: "space-between",
+  },
+  headerContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: wp("2%"),
+  },
+  logo: {
+    height: hp("8%"),
+    width: wp("25%"),
+    resizeMode: "contain",
+  },
+  iconsContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: wp("1%"),
+  },
+  icon: {
+    padding: wp("1%"),
+  },
+  welcomeContainer: {
+    paddingHorizontal: wp("5%"),
+    paddingBottom: hp("2%"),
+    backgroundColor: "transparent",
+  },
+  welcomeText: {
+    fontSize: wp("5%"),
+    color: "white",
+    paddingBottom: hp("2%"),
+  },
+  progressContainer: {
+    paddingHorizontal: wp("5%"),
+    paddingBottom: hp("2%"),
+  },
+  progressHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: hp("1%"),
+  },
+  percentageText: {
+    color: "white",
+    fontSize: wp("4%"),
+    fontWeight: "bold",
+  },
+  progressBarContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: wp("2%"),
+  },
+  progressBarWrapper: {
+    flex: 1,
+    height: hp("1.5%"),
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    borderRadius: wp("2%"),
+    overflow: "hidden",
+  },
+  progressBar: {
+    height: "100%",
+    backgroundColor: "#4CAF50",
+    borderRadius: wp("2%"),
+  },
+  leafIcon: {
+    color: "#4CAF50",
+  },
+  // Profile Menu Styles
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "flex-start",
+    alignItems: "flex-end",
+    paddingTop: hp("8%"),
+    paddingRight: wp("4%"),
+  },
+  menuContainer: {
+    backgroundColor: "white",
+    borderRadius: wp("4%"),
+    width: wp("45%"),
+    overflow: "hidden",
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: wp("4%"),
+    gap: wp("3%"),
+  },
+  menuItemBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E5E5",
+  },
+  menuText: {
+    fontSize: wp("4%"),
+    color: "#333",
+    fontWeight: "500",
+  },
+  logoutText: {
+    color: "#FF4444",
+  },
+});
 
 export default Login_Card;

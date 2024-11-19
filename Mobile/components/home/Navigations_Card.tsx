@@ -1,5 +1,6 @@
 import CustomButton from "@/components/CustomButton";
 import { images } from "@/constants";
+import { router } from "expo-router";
 import React from "react";
 import { Image, Text, TouchableOpacity, View, StyleSheet } from "react-native";
 import { Card } from "react-native-paper";
@@ -57,10 +58,12 @@ const Navigation_Cards = () => {
     {
       icon: images.event,
       title: "Events",
+      navigate: "(tabs)/events",
     },
     {
       icon: images.graduated,
       title: "Students",
+      navigate: "(tabs)/students",
     },
   ];
 
@@ -69,7 +72,9 @@ const Navigation_Cards = () => {
       {cards.map((card, index) => (
         <TouchableOpacity
           key={index}
-          onPress={() => {}}
+          onPress={() => {
+            router.navigate(card.navigate as any);
+          }}
           style={styles.touchable}
         >
           <Card style={styles.card}>

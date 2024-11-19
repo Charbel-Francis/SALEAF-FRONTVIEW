@@ -1,24 +1,42 @@
+// app/_layout.tsx
+import React, { useState } from "react";
 import { AuthProvider, useAuth } from "@/context/JWTContext";
-import { NavigationContainer } from "@react-navigation/native";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { NativeWindStyleSheet } from "nativewind";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import "react-native-reanimated";
 import { Stack, useRouter, useSegments } from "expo-router";
-import { StatusBar } from "react-native";
+import { Platform, StatusBar } from "react-native";
 import AuthContainer from "./pages/AuthContainer";
+import { SharedTransition, withSpring } from "react-native-reanimated";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { PaperProvider } from "react-native-paper";
+import {
+  AuthVisibilityProvider,
+  useAuthVisibility,
+} from "@/context/AuthVisibilityContext";
+
 SplashScreen.preventAutoHideAsync();
 NativeWindStyleSheet.setOutput({
   default: "native",
+});
+
+// Custom transition configuration
+const customTransition = SharedTransition.custom((values) => {
+  "worklet";
+  return {
+    height: withSpring(values.targetHeight),
+    width: withSpring(values.targetWidth),
+    originX: withSpring(values.targetOriginX),
+    originY: withSpring(values.targetOriginY),
+  };
 });
 
 export default function RootLayout() {
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
-  const [isSignInVisible, setSignInVisible] = useState(false);
 
   useEffect(() => {
     if (loaded) {
@@ -31,52 +49,94 @@ export default function RootLayout() {
   }
 
   return (
-    <AuthProvider>
-      <StatusBar hidden={true} />
-      <AuthContainer
-        isSignInVisible={isSignInVisible}
-        setSignInVisible={setSignInVisible}
-      />
-      <RootLayoutNav setSignInVisible={setSignInVisible} />
-    </AuthProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <AuthVisibilityProvider>
+        <PaperProvider>
+          <AuthProvider>
+            <RootLayoutContent />
+          </AuthProvider>
+        </PaperProvider>
+      </AuthVisibilityProvider>
+    </GestureHandlerRootView>
   );
 }
 
-function RootLayoutNav({
-  setSignInVisible,
-}: {
-  setSignInVisible: React.Dispatch<React.SetStateAction<boolean>>;
-}) {
+function RootLayoutContent() {
+  const { isSignInVisible, hideSignIn } = useAuthVisibility();
+
+  return (
+    <>
+      <StatusBar hidden={Platform.OS === "ios" ? true : false} />
+      <AuthContainer
+        isSignInVisible={isSignInVisible}
+        setSignInVisible={(value) => {
+          if (!value) {
+            hideSignIn();
+          }
+        }}
+      />
+      <RootLayoutNav />
+    </>
+  );
+}
+
+function RootLayoutNav() {
   const { authState } = useAuth();
+  const { showSignIn } = useAuthVisibility();
   const router = useRouter();
   const segments = useSegments();
 
   useEffect(() => {
     const inAuthGroup = segments[0] === "(auth)";
-    const protectedPages = ["events", "donate", "profile", "students"];
+    const protectedPages = ["donate", "profile", "students"];
 
     if (!authState?.authenticated && !authState?.anonomous) {
-      console.log(authState?.anonomous);
       if (!inAuthGroup && segments[2] && protectedPages.includes(segments[2])) {
-        setSignInVisible(true); // Show modal instead of navigating
+        showSignIn();
       }
     } else {
       if (inAuthGroup) {
-        router.replace("/(tabs)/home"); // Redirect to home if authenticated
+        router.replace("/(tabs)/home");
       }
     }
-  }, [authState?.authenticated, segments, setSignInVisible]);
+  }, [authState?.authenticated, segments]);
 
   return (
-    <Stack>
-      <Stack.Screen name="index" options={{ headerShown: false }} />
-      <Stack.Screen name="(root)" options={{ headerShown: false }} />
-      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        animation: "fade",
+        customAnimationOnGesture: true,
+      }}
+    >
+      <Stack.Screen
+        name="index"
+        options={{
+          animation: "slide_from_right",
+        }}
+      />
+      <Stack.Screen
+        name="(root)"
+        options={{
+          animation: "slide_from_right",
+        }}
+      />
+      <Stack.Screen
+        name="(auth)"
+        options={{
+          animation: "slide_from_bottom",
+        }}
+      />
       <Stack.Screen
         name="pages/Application_Form"
-        options={{ headerShown: false }}
+        options={{
+          animation: "slide_from_right",
+          customAnimationOnGesture: true,
+        }}
       />
       <Stack.Screen name="+not-found" />
     </Stack>
   );
 }
+
+export { customTransition };

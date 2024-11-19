@@ -39,3 +39,32 @@ declare interface ButtonProps extends TouchableOpacityProps {
     onPress: () => void;
   }
   
+  export type EventInterface = {
+    eventId: number;
+    eventName: string;
+    eventDescription: string;
+    location: string;
+    eventImageUrl: string;
+    startDate: string;
+    endDate: string;
+    startTime: string;
+    endTime: string;
+    status: "Upcoming" | "Ongoing" | "Completed";
+    eventPrice: number;
+    // publish: boolean;
+  };
+  export type StudentInterface = {
+    id: string;
+    firstName: string;
+    lastName: string;
+    skills: string[];
+    achievements: string[];
+    year: string;
+    isFinalYear: boolean;
+    bio: string;
+    graduationDate:Date;
+    university:string;
+    degree:string;
+    onlineProfile:string; 
+    imageUrl:string;
+  };

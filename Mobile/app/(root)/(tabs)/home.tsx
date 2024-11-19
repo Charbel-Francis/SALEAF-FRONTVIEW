@@ -44,14 +44,12 @@ const Home = () => {
 
   return (
     <View style={styles.container}>
-      <Login_Card />
-
       <View style={styles.contentWrapper}>
         <ScrollView
           style={styles.scrollContainer}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
-          bounces={false} // Prevents overscrolling
+          bounces={false}
         >
           <View style={styles.cardSpacing}>
             <Apply_Funding_Card />

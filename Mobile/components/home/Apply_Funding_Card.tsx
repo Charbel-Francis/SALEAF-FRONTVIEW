@@ -31,7 +31,6 @@ const Apply_Funding_Card = () => {
             gap: wp("4%"),
           }}
         >
-          {/* Text container */}
           <View style={{ flex: 1 }}>
             <Text
               style={{
