@@ -1,135 +1,199 @@
-import {
-  ScrollView,
-  Text,
-  View,
-  Image,
-  Pressable,
-  KeyboardAvoidingView,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useState } from "react";
-import { DualInputField, InputField } from "@/components/InputField";
+import React, { useState, useEffect } from "react";
+import { Text, View, Keyboard, StyleSheet, Platform } from "react-native";
+import { Formik } from "formik";
+import * as Yup from "yup";
+import { InputField } from "@/components/InputField";
 import CustomButton from "@/components/CustomButton";
-import { Defs, LinearGradient, Path, Stop, Svg } from "react-native-svg";
-import { images } from "@/constants";
-import {
-  EmailIcon,
-  LockIcon,
-  SVGBottom,
-  SVGTopLogin,
-  SVGTopSignUp,
-  UserIcon,
-} from "@/assets/authImages/SVGs";
-import { Link, router, useRouter } from "expo-router";
-import { SocialIcon } from "react-native-elements";
 import { useAuth } from "@/context/JWTContext";
+import Ionicons from "react-native-vector-icons/Ionicons";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 
-const SignIn = () => {
+const SignInSchema = Yup.object().shape({
+  email: Yup.string()
+    .email("Invalid email address")
+    .required("Email is required"),
+  password: Yup.string()
+    .min(6, "Password must be at least 6 characters")
+    .required("Password is required"),
+});
+
+const SignInModal = () => {
   const { onLogin } = useAuth();
-  const [form, setForm] = useState({
-    firstname: "",
-    lastname: "",
-    email: "",
-    password: "",
-  });
-  const router = useRouter();
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [loading, setLoading] = useState(false);
-  const login = async () => {
-    setLoading(true);
-    if (onLogin) {
-      const results = await onLogin(form.email, form.password);
-      if (results) {
-        setLoading(false);
+
+  const styles = StyleSheet.create({
+    contentContainer: {
+      position: "absolute",
+      top: hp("20%"),
+      left: 0,
+      right: 0,
+      height: hp("65%"),
+      alignItems: "center",
+      paddingHorizontal: wp("4%"),
+    },
+    titleContainer: {
+      alignItems: "center",
+      marginBottom: hp("1%"),
+    },
+    title: {
+      fontSize: wp("12%"),
+      fontWeight: "bold",
+      color: "black",
+      marginBottom: hp("1%"),
+    },
+    subtitle: {
+      fontSize: wp("4.5%"),
+      color: "black",
+    },
+    inputContainer: {
+      width: "100%",
+      marginBottom: hp("3%"),
+    },
+    input: {
+      height: hp("2%"),
+      marginBottom: hp("0%"),
+    },
+    buttonContainer: {
+      width: "100%",
+      marginTop: hp("2%"),
+    },
+    signInButton: {
+      height: hp("6%"),
+      backgroundColor: "#15783D",
+    },
+    errorText: {
+      color: "red",
+      fontSize: wp("3.5%"),
+      marginTop: hp("0.5%"),
+      marginLeft: wp("1%"),
+    },
+  });
+
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      "keyboardDidShow",
+      () => {
+        setKeyboardVisible(true);
       }
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      "keyboardDidHide",
+      () => {
+        setKeyboardVisible(false);
+      }
+    );
+
+    return () => {
+      keyboardDidHideListener.remove();
+      keyboardDidShowListener.remove();
+    };
+  }, []);
+
+  interface FormValues {
+    email: string;
+    password: string;
+  }
+
+  interface FormikHelpers {
+    setSubmitting: (isSubmitting: boolean) => void;
+    setFieldError: (field: string, message: string) => void;
+  }
+
+  const handleSubmit = async (
+    values: FormValues,
+    { setSubmitting, setFieldError }: FormikHelpers
+  ): Promise<void> => {
+    setLoading(true);
+    try {
+      if (onLogin) {
+        const results = await onLogin(values.email, values.password);
+        if (!results) {
+          setFieldError(
+            "general",
+            "Login failed. Please check your credentials."
+          );
+        }
+      }
+    } catch (error) {
+      setFieldError("general", "An error occurred during sign in.");
+    } finally {
+      setLoading(false);
+      setSubmitting(false);
     }
   };
+
   return (
-    <KeyboardAvoidingView className="flex-1 bg-white">
-      <View className="relative w-full h-[250px] flex-row">
-        <View className="flex-1">
-          <SVGTopLogin />
-        </View>
-        <View className="absolute mt-30 bottom-0 left-0 right-0 flex items-center">
-          <View className="justify-start items-end pr-0 pt-5">
-            <Image
-              source={images.clearLogo}
-              style={{ width: 120, height: 100 }}
-            />
-          </View>
-          <Text className="text-5xl text-black font-sans">Hello</Text>
-          <Text className=" text-black font-sans">Sign in to your account</Text>
-        </View>
+    <View style={styles.contentContainer}>
+      <View style={styles.titleContainer}>
+        <Text style={styles.title}>Hello</Text>
+        <Text style={styles.subtitle}>Sign in to your account</Text>
       </View>
-      <View className="py-2 px-4 ">
-        <InputField
-          label="Email"
-          placeholder="Enter Email"
-          textContentType="emailAddress"
-          value={form.email}
-          icon={<EmailIcon />}
-          onChangeText={(value) => setForm({ ...form, email: value })}
-        />
-        <InputField
-          label="Password"
-          placeholder="Enter Password"
-          textContentType="password"
-          secureTextEntry={true}
-          icon={<LockIcon />}
-          value={form.password}
-          onChangeText={(value) => setForm({ ...form, password: value })}
-        />
-      </View>
-      <View className="pt-3 pr-5 pl-5">
-        <View className="flex-2 justify-end">
-          <CustomButton
-            onPress={() => {
-              login();
-            }}
-            loading={loading}
-            title="Sign In"
-          />
-          <View className="mt-4 mr-5">
-            <Text className="text-1 text-blue-500 font-sans text-right">
-              Don't have an account?{" "}
-              <Pressable onPress={() => router.push("/(auth)/sign-up")}>
-                <Text
-                  style={{ color: "blue", textDecorationLine: "underline" }}
-                >
-                  Sign Up
-                </Text>
-              </Pressable>
-            </Text>
-          </View>
-        </View>
-        <View className="relative flex items-center my-2 pl-2">
-          <View className="absolute left-0 right-0 top-1/2 border-t border-gray-300 w-full " />
-          <Text className="bg-white px-4 text-gray-500">OR</Text>
-        </View>
-        <View className="flex-col items-center">
-          <Text>Sign create an account</Text>
-          <View className="flex-row ">
-            <SocialIcon type="facebook" />
-            <SocialIcon type="google" />
-            <SocialIcon type="apple" light />
-          </View>
-        </View>
-      </View>
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          paddingBottom: "10%",
-        }}
+
+      <Formik
+        initialValues={{ email: "", password: "" }}
+        validationSchema={SignInSchema}
+        onSubmit={handleSubmit}
       >
-        <View style={{ transform: [{ rotateY: "0deg" }] }}>
-          <SVGBottom />
-        </View>
-        <View style={{ transform: [{ rotateY: "180deg" }] }}>
-          <SVGBottom />
-        </View>
-      </View>
-    </KeyboardAvoidingView>
+        {({
+          handleChange,
+          handleBlur,
+          handleSubmit,
+          values,
+          errors,
+          touched,
+          isSubmitting,
+        }) => (
+          <>
+            <View style={styles.inputContainer}>
+              <InputField
+                label="Email"
+                placeholder="Enter Email"
+                textContentType="emailAddress"
+                value={values.email}
+                onChangeText={handleChange("email")}
+                onBlur={handleBlur("email")}
+                icon={<Ionicons name="mail" size={wp("5%")} color="grey" />}
+                style={styles.input}
+              />
+              {touched.email && errors.email && (
+                <Text style={styles.errorText}>{errors.email}</Text>
+              )}
+
+              <InputField
+                label="Password"
+                placeholder="Enter Password"
+                textContentType="password"
+                secureTextEntry={true}
+                value={values.password}
+                onChangeText={handleChange("password")}
+                onBlur={handleBlur("password")}
+                icon={
+                  <Ionicons name="lock-closed" size={wp("5%")} color="grey" />
+                }
+                style={styles.input}
+              />
+              {touched.password && errors.password && (
+                <Text style={styles.errorText}>{errors.password}</Text>
+              )}
+            </View>
+
+            <View style={styles.buttonContainer}>
+              <CustomButton
+                onPress={handleSubmit}
+                loading={loading || isSubmitting}
+                title="Sign In"
+                style={styles.signInButton}
+              />
+            </View>
+          </>
+        )}
+      </Formik>
+    </View>
   );
 };
 
-export default SignIn;
+export default SignInModal;

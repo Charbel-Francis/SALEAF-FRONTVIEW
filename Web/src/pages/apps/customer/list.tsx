@@ -76,7 +76,7 @@ function ReactTable({ data, columns, modalToggler }: Props) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [rowSelection, setRowSelection] = useState({});
   const [globalFilter, setGlobalFilter] = useState('');
-
+  const [students, setStudents] = useState([]);
   const table = useReactTable({
     data,
     columns,

@@ -1,40 +1,166 @@
-import { ScrollView, Text, View, Image } from "react-native";
+import React, { useState, useEffect } from "react";
+import {
+  Text,
+  View,
+  Image,
+  Modal,
+  TouchableOpacity,
+  Keyboard,
+  TouchableWithoutFeedback,
+  KeyboardAvoidingView,
+  StyleSheet,
+  Platform,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useState } from "react";
 import { DualInputField, InputField } from "@/components/InputField";
 import CustomButton from "@/components/CustomButton";
-import { Defs, LinearGradient, Path, Stop, Svg } from "react-native-svg";
 import { images } from "@/constants";
-import {
-  EmailIcon,
-  LockIcon,
-  SVGBottom,
-  SVGTopSignUp,
-  UserIcon,
-} from "@/assets/authImages/SVGs";
-import { Link, router } from "expo-router";
-import { SocialIcon, Switch } from "react-native-elements";
+import { EmailIcon, LockIcon, SVGTopLogin } from "@/assets/authImages/SVGs";
 import { useAuth } from "@/context/JWTContext";
+import Ionicons from "react-native-vector-icons/Ionicons";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 
-const SignUp = () => {
+interface SignUpModalProps {
+  visible: boolean;
+  onClose: () => void;
+  openSignIn: () => void;
+}
+
+const SignUpModal = () => {
   const { onRegister } = useAuth();
   const [form, setForm] = useState({
-    firstname: "",
-    lastname: "",
+    firstName: "",
+    lastName: "",
     email: "",
     password: "",
-    isStudent: false,
+    confirmPassword: "",
   });
   const [loading, setLoading] = useState(false);
-  const toggleSwitch = () =>
-    setForm((prevForm) => ({ ...prevForm, isStudent: !prevForm.isStudent }));
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
 
-  const Signup = async () => {
+  const styles = StyleSheet.create({
+    overlay: {
+      flex: 1,
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      justifyContent: "flex-end",
+    },
+    modalContainer: {
+      backgroundColor: "white",
+      borderTopLeftRadius: wp("6%"),
+      borderTopRightRadius: wp("6%"),
+      height: hp("90%"),
+    },
+    closeButton: {
+      position: "absolute",
+      top: hp("1.5%"),
+      right: wp("4%"),
+      zIndex: 1,
+    },
+    headerContainer: {
+      width: "100%",
+      height: hp("25%"),
+      flexDirection: "row",
+      overflow: "hidden",
+      borderTopLeftRadius: wp("6%"),
+      borderTopRightRadius: wp("6%"),
+    },
+    svgContainer: {
+      flex: 1,
+    },
+    logoContainer: {
+      position: "absolute",
+      top: hp("5%"),
+      right: wp("4%"),
+    },
+    logo: {
+      width: wp("35%"),
+      height: hp("12%"),
+      resizeMode: "contain",
+    },
+    contentContainer: {
+      position: "absolute",
+      top: hp("15%"),
+      left: 0,
+      right: 0,
+      height: hp("75%"),
+      alignItems: "center",
+      paddingHorizontal: wp("4%"),
+    },
+    titleContainer: {
+      alignItems: "center",
+      marginBottom: hp("3%"),
+    },
+    title: {
+      fontSize: wp("12%"),
+      fontWeight: "bold",
+      color: "black",
+      marginBottom: hp("1%"),
+    },
+    subtitle: {
+      fontSize: wp("4.5%"),
+      color: "black",
+    },
+    inputContainer: {
+      width: "100%",
+      marginBottom: hp("2%"),
+    },
+    input: {
+      height: hp("2%"),
+    },
+
+    buttonContainer: {
+      width: "100%",
+      marginTop: hp("2%"),
+    },
+    signUpButton: {
+      height: hp("6%"),
+      backgroundColor: "#15783D",
+    },
+    signInContainer: {
+      marginTop: hp("3%"),
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    signInText: {
+      fontSize: wp("4%"),
+      color: "#3B82F6",
+    },
+    signInLink: {
+      color: "#3B82F6",
+      textDecorationLine: "underline",
+      marginLeft: wp("1%"),
+    },
+  });
+
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      "keyboardDidShow",
+      () => {
+        setKeyboardVisible(true);
+      }
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      "keyboardDidHide",
+      () => {
+        setKeyboardVisible(false);
+      }
+    );
+
+    return () => {
+      keyboardDidHideListener.remove();
+      keyboardDidShowListener.remove();
+    };
+  }, []);
+
+  const register = async () => {
     setLoading(true);
     if (onRegister) {
       const results = await onRegister(
-        form.firstname,
-        form.lastname,
+        form.firstName,
+        form.lastName,
         form.email,
         form.password
       );
@@ -43,102 +169,73 @@ const SignUp = () => {
       }
     }
   };
+
   return (
-    <ScrollView className="flex-1 bg-white">
-      <View className="relative w-full h-[180px] flex-row">
-        {/* SVG on the left */}
-        <View className="flex-1">
-          <SVGTopSignUp />
-        </View>
-        {/* Image on the right */}
-        <View className="justify-start items-end pr-0 pt-5">
-          <Image
-            source={images.clearLogo}
-            style={{ width: 150, height: 100 }}
+    <View style={styles.contentContainer}>
+      <View style={styles.titleContainer}>
+        <Text style={styles.title}>Welcome</Text>
+        <Text style={styles.subtitle}>Create your account</Text>
+      </View>
+
+      <View style={styles.inputContainer}>
+        <View>
+          <DualInputField
+            label1="First Name"
+            label2="Last Name"
+            placeholder1="First Name"
+            placeholder2="Last Name"
+            value1={form.firstName}
+            value2={form.lastName}
+            onChange1={(value) => setForm({ ...form, firstName: value })}
+            onChange2={(value) => setForm({ ...form, lastName: value })}
+            icon1={<Ionicons name="person" size={wp("5%")} color="grey" />}
+            icon2={<Ionicons name="person" size={wp("5%")} color="grey" />}
           />
         </View>
-        {/* Text positioned at the bottom and centered horizontally */}
-        <View className="absolute bottom-5 left-0 right-0 flex items-center">
-          <Text className="text-2xl text-black font-sans font-bold">
-            Create Your Account
-          </Text>
-        </View>
-      </View>
-      <View className="py-3 p-3">
-        <DualInputField
-          label1="First Name"
-          label2="Last Name"
-          placeholder1="Enter First Name"
-          placeholder2="Enter Last Name"
-          icon1={<UserIcon />}
-          icon2={<UserIcon />}
-          onChange1={(value) => {
-            setForm({ ...form, firstname: value });
-          }}
-          onChange2={(value) => {
-            setForm({ ...form, lastname: value });
-          }}
-        />
+
         <InputField
           label="Email"
           placeholder="Enter Email"
           textContentType="emailAddress"
           value={form.email}
-          icon={<EmailIcon />}
+          icon={<Ionicons name="mail" size={wp("5%")} color="grey" />}
+          style={styles.input}
           onChangeText={(value) => setForm({ ...form, email: value })}
         />
+
         <InputField
           label="Password"
           placeholder="Enter Password"
           textContentType="password"
           secureTextEntry={true}
-          icon={<LockIcon />}
+          icon={<Ionicons name="lock-closed" size={wp("5%")} color="grey" />}
+          style={styles.input}
           value={form.password}
           onChangeText={(value) => setForm({ ...form, password: value })}
         />
-        <View className="flex-row items-center mt-4">
-          <Text className="mr-2">Student</Text>
-          <Switch value={form.isStudent} onValueChange={toggleSwitch} />
-        </View>
+
+        <InputField
+          label="Confirm Password"
+          placeholder="Confirm Password"
+          textContentType="password"
+          secureTextEntry={true}
+          icon={<Ionicons name="lock-closed" size={wp("5%")} color="grey" />}
+          style={styles.input}
+          value={form.confirmPassword}
+          onChangeText={(value) => setForm({ ...form, confirmPassword: value })}
+        />
       </View>
-      <View className="pt-3 pr-4 pl-4">
-        <View className="flex-1 justify-end">
-          <CustomButton
-            onPress={() => {
-              Signup();
-            }}
-            loading={loading}
-            title="Create Account"
-          />
-          <View className="mt-4 mr-5">
-            <Text className="text-1 text-blue-500 font-sans  text-right">
-              Already have an account?{" "}
-              <Link
-                href="/(auth)/sign-in"
-                style={{ color: "blue", textDecorationLine: "underline" }}
-              >
-                Sign In
-              </Link>
-            </Text>
-          </View>
-        </View>
-        <View className="relative flex items-center my-2 pl-2">
-          <View className="absolute left-0 right-0 top-1/2 border-t border-gray-300 w-full " />
-          <Text className="bg-white px-4 text-gray-500">OR</Text>
-        </View>
+
+      <View style={styles.buttonContainer}>
+        <CustomButton
+          onPress={register}
+          loading={loading}
+          title="Sign Up"
+          style={styles.signUpButton}
+        />
       </View>
-      <View className="flex-row items-center ">
-        <View>
-          <SVGBottom />
-        </View>
-        <View className="flex-row space-x-2 right-1/4 bottom-10">
-          <SocialIcon type="facebook" />
-          <SocialIcon type="google" />
-          <SocialIcon type="apple" light />
-        </View>
-      </View>
-    </ScrollView>
+    </View>
   );
 };
 
-export default SignUp;
+export default SignUpModal;

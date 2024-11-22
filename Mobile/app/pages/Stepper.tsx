@@ -1,3 +1,12 @@
+import DonationTypeComponent from "@/components/Donation/chooseDonationType";
+import DonateOnline from "@/components/Donation/donationOnline";
+import DonatorDetails from "@/components/Donation/donatorDetails";
+import ManualPayment from "@/components/Donation/manualPayment";
+import PaymentCancelComponent from "@/components/Donation/paymentStatus/paymentCancel";
+import PaymentFailureComponent from "@/components/Donation/paymentStatus/paymentFailure";
+import PaymentPendingComponent from "@/components/Donation/paymentStatus/paymentPending";
+import PaymentSuccessComponent from "@/components/Donation/paymentStatus/paymentSucess";
+import ProofOfPaymentRecieved from "@/components/Donation/paymentStatus/ProofofPaymentRecieved";
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -6,15 +15,6 @@ import {
   StyleSheet,
   Animated,
 } from "react-native";
-import DonatorDetails from "../components/Donation/donatorDetails";
-import DonationTypeComponent from "../components/Donation/chooseDonationType";
-import DonateOnline from "../components/Donation/donationOnline";
-import PaymentSuccessComponent from "../components/Donation/paymentStatus/paymentSucess";
-import PaymentFailureComponent from "../components/Donation/paymentStatus/paymentFailure";
-import PaymentCancelComponent from "../components/Donation/paymentStatus/paymentCancel";
-import PaymentPendingComponent from "../components/Donation/paymentStatus/paymentPending";
-import ManualPayment from "../components/Donation/manualPayment";
-import ProofOfPaymentRecieved from "../components/Donation/paymentStatus/ProofofPaymentRecieved";
 
 const StepProgress = ({
   setSteps,
@@ -146,8 +146,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   activeStep: {
-    borderColor: "pink",
-    backgroundColor: "pink",
+    borderColor: "#14783D",
+    backgroundColor: "#14783D",
   },
   stepText: {
     color: "#E7E7E7",
@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
   activeLine: {
-    backgroundColor: "pink",
+    backgroundColor: "#14783D",
   },
   contentContainer: { flex: 1, width: "100%" },
   buttonContainer: {

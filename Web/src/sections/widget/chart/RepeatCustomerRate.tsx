@@ -31,7 +31,7 @@ export default function RepeatCustomerRate() {
   return (
     <MainCard>
       <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
-        <Typography variant="h5">Repeat customer rate</Typography>
+        <Typography variant="h5">Monthly Donations</Typography>
         <IconButton
           color="secondary"
           id="wallet-button"

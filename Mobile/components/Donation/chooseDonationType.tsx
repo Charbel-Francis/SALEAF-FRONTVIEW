@@ -76,27 +76,30 @@ const DonationTypeComponent = ({
         </View>
       </View>
       <View>
-        <StyledText className="text-lg font-sans mb-3 text-center">
+        <StyledText className="text-lg  mb-3 text-center">
           Select Payment Type
         </StyledText>
-        <View className="py-2 pl-20 w-50">
+        <View className="py-2 w-50 p-3">
           <ButtonMultiselect
-            layout={ButtonLayout.GRID}
+            layout={ButtonLayout.FULL_WIDTH}
             buttons={donationType}
             selectedButtons={selectedButtons}
             onButtonSelected={handleButtonSelected}
-            horizontalPadding={50}
+            buttonStyle={{ flexWrap: "wrap" }}
+            textStyle={{ textAlign: "center", width: "100%" }}
+
           />
         </View>
       </View>
       {selectedButtons ? (
-        <View className="pt-3 pr-5 pl-5">
-          <View className="flex-2 justify-end">
+        <View className="pt-3 pr-5 py pl-5">
+          <View className="flex-2 justify-end ">
             <CustomButton
               loading={loading}
               onPress={() => {
                 handleContinue();
               }}
+              className="bg-mainColor"
               title="Continue"
             />
           </View>

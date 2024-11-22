@@ -49,10 +49,10 @@ export default function Navigation() {
   let dashboardMenu = MenuFromAPI();
   useLayoutEffect(() => {
     if (menuLoading && !isFound(menuItem, 'group-dashboard-loading')) {
-      menuItem.items.splice(0, 0, dashboardMenu);
+      // menuItem.items.splice(0, 0, dashboardMenu);
       setMenuItems({ items: [...menuItem.items] });
     } else if (!menuLoading && dashboardMenu?.id !== undefined && !isFound(menuItem, 'group-dashboard')) {
-      menuItem.items.splice(0, 1, dashboardMenu);
+      // menuItem.items.splice(0, 1, dashboardMenu);
       setMenuItems({ items: [...menuItem.items] });
     } else {
       setMenuItems({ items: [...menuItem.items] });
