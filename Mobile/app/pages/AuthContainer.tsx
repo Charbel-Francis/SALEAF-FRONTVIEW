@@ -203,7 +203,7 @@ const AuthContainer = ({
                             authNav("signIn");
                           }}
                         >
-                          <Text style={styles.signUpLink}>Sign sign</Text>
+                          <Text style={styles.signUpLink}>Sign Up</Text>
                         </TouchableOpacity>
                       </View>
                     </View>
@@ -212,14 +212,14 @@ const AuthContainer = ({
                     <View style={styles.contentContainer}>
                       <View style={styles.signUpContainer}>
                         <Text style={styles.signUpText}>
-                          Don't have an account?
+                          Already have an account?
                         </Text>
                         <TouchableOpacity
                           onPress={() => {
                             authNav("signUp");
                           }}
                         >
-                          <Text style={styles.signUpLink}>Sign up</Text>
+                          <Text style={styles.signUpLink}>Sign in</Text>
                         </TouchableOpacity>
                       </View>
                     </View>

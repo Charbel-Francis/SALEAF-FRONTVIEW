@@ -119,7 +119,6 @@ const Application_Form = () => {
     formContainer: {
       flex: 1,
       backgroundColor: "#fff",
-      margin: wp("4%"),
       borderRadius: wp("4%"),
       shadowColor: "#000",
       shadowOffset: {
@@ -141,14 +140,13 @@ const Application_Form = () => {
       flexDirection: "row",
       justifyContent: "space-between",
       paddingVertical: hp("2%"),
-      backgroundColor: "#fff",
-      borderTopWidth: 1,
-      width: "50%",
-      borderTopColor: "#e0e0e0",
+      paddingHorizontal: wp("4%"),
+      maxWidth: wp("60%"), // Add maxWidth constraint
+      alignSelf: "stretch", // Ensure container stretches to parent width
     },
+
     button: {
-      flex: 1,
-      marginHorizontal: wp("2%"),
+      width: wp("42%"), // Reduce width to account for padding
       borderRadius: wp("2%"),
       height: hp("6%"),
       justifyContent: "center",
@@ -454,47 +452,48 @@ const Application_Form = () => {
             {renderStepContent()}
           </View>
         </ScrollView>
+        <View>
+          <Animated.View
+            style={[
+              styles.buttonContainer,
+              {
+                transform: [{ translateY: buttonPosition }],
+              },
+            ]}
+          >
+            {stepper === 0 ? (
+              <CustomButton
+                onPress={() => router.back()}
+                style={[styles.button, styles.backButton]}
+                textStyle={[styles.buttonText, styles.backButtonText]}
+                title="Cancel"
+              />
+            ) : (
+              <CustomButton
+                onPress={NavigateToPreviousApplication}
+                style={[styles.button, styles.backButton]}
+                textStyle={[styles.buttonText, styles.backButtonText]}
+                title="Back"
+              />
+            )}
 
-        <Animated.View
-          style={[
-            styles.buttonContainer,
-            {
-              transform: [{ translateY: buttonPosition }],
-            },
-          ]}
-        >
-          {stepper === 0 ? (
-            <CustomButton
-              onPress={() => router.back()}
-              style={[styles.button, styles.backButton]}
-              textStyle={[styles.buttonText, styles.backButtonText]}
-              title="Cancel"
-            />
-          ) : (
-            <CustomButton
-              onPress={NavigateToPreviousApplication}
-              style={[styles.button, styles.backButton]}
-              textStyle={[styles.buttonText, styles.backButtonText]}
-              title="Back"
-            />
-          )}
-
-          {stepper === 12 ? (
-            <CustomButton
-              onPress={FinishApplication}
-              style={[styles.button, styles.nextButton]}
-              textStyle={[styles.buttonText, styles.nextButtonText]}
-              title="Submit Application"
-            />
-          ) : (
-            <CustomButton
-              onPress={NavigateToNextApplication}
-              style={[styles.button, styles.nextButton]}
-              textStyle={[styles.buttonText, styles.nextButtonText]}
-              title="Continue"
-            />
-          )}
-        </Animated.View>
+            {stepper === 12 ? (
+              <CustomButton
+                onPress={FinishApplication}
+                style={[styles.button, styles.nextButton]}
+                textStyle={[styles.buttonText, styles.nextButtonText]}
+                title="Submit Application"
+              />
+            ) : (
+              <CustomButton
+                onPress={NavigateToNextApplication}
+                style={[styles.button, styles.nextButton]}
+                textStyle={[styles.buttonText, styles.nextButtonText]}
+                title="Continue"
+              />
+            )}
+          </Animated.View>
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

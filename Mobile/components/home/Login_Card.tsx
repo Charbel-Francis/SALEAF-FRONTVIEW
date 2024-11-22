@@ -10,6 +10,7 @@ import {
   Animated,
   Modal,
   Pressable,
+  Platform,
 } from "react-native";
 import { Card } from "react-native-paper";
 import { LinearGradient } from "expo-linear-gradient";
@@ -24,26 +25,36 @@ import { useAuth } from "@/context/JWTContext";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useAuthVisibility } from "@/context/AuthVisibilityContext";
 
-const ProfileMenu = () => {
+// Define ProfileMenu as a named component
+const ProfileMenu = React.memo(() => {
   const [isMenuVisible, setMenuVisible] = useState(false);
   const { onLogout } = useAuth();
   const { authState } = useAuth();
   const { showSignIn } = useAuthVisibility();
   const router = useRouter();
+
+  const isAuthenticated = () => {
+    return authState?.authenticated === true;
+  };
+
   const menuOptions = [
     {
       icon: "person",
       label: "Profile",
       onPress: () => {
-        console.log("Profile pressed");
+        isAuthenticated()
+          ? router.navigate("/pages/DonatorsProfile")
+          : showSignIn();
         setMenuVisible(false);
       },
     },
     {
-      icon: "settings",
-      label: "Settings",
+      icon: "calendar",
+      label: "Events",
       onPress: () => {
-        console.log("Settings pressed");
+        isAuthenticated()
+          ? router.navigate("/pages/MyEventsScreen")
+          : showSignIn();
         setMenuVisible(false);
       },
     },
@@ -55,7 +66,7 @@ const ProfileMenu = () => {
         setMenuVisible(false);
       },
     },
-    authState?.authenticated != false
+    isAuthenticated()
       ? {
           icon: "log-out",
           label: "Logout",
@@ -126,24 +137,26 @@ const ProfileMenu = () => {
       </Modal>
     </View>
   );
-};
+});
 
-const Login_Card = () => {
+// Define LoginCard as a named component
+const LoginCard = React.memo(() => {
   const route = useRoute();
   const isHomeScreen = route.name === "home";
   const { authState } = useAuth();
   const { showSignIn } = useAuthVisibility();
+
+  const isAuthenticated = () => {
+    return authState?.authenticated === true;
+  };
+
   const animatedHeight = new Animated.Value(
-    isHomeScreen ? (authState?.authenticated ? 0.8 : 1) : 0
+    isHomeScreen ? (isAuthenticated() ? 0.8 : 1) : 0
   );
 
   useFocusEffect(
     useCallback(() => {
-      const targetValue = isHomeScreen
-        ? authState?.authenticated
-          ? 0.6
-          : 1
-        : 0;
+      const targetValue = isHomeScreen ? (isAuthenticated() ? 0.6 : 1) : 0;
       animatedHeight.stopAnimation(() => {
         Animated.timing(animatedHeight, {
           toValue: targetValue,
@@ -154,19 +167,19 @@ const Login_Card = () => {
     }, [isHomeScreen, authState?.authenticated])
   );
 
-  const containerHeight = animatedHeight.interpolate({
-    inputRange: [0, 0.5, 1],
-    outputRange: [hp("10%"), hp("15%"), hp("30%")],
-  });
   return (
     <Animated.View
       style={{
-        height:
-          isHomeScreen != false
+        height: isAuthenticated()
+          ? isHomeScreen
             ? hp("20%")
-            : authState?.authenticated != false
-            ? hp("10%")
-            : hp("30%"),
+            : hp("10%")
+          : isHomeScreen
+          ? hp("25%")
+          : hp("10%"),
+        margin: wp("2%"),
+        borderRadius: wp("10%"),
+        overflow: "hidden",
       }}
     >
       <LinearGradient
@@ -178,7 +191,7 @@ const Login_Card = () => {
         ]}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
-        style={[styles.gradient, { height: "100%" }]}
+        style={[styles.gradient]}
       >
         <View style={styles.leftCircle} />
         <View style={styles.nestedCirclesContainer}>
@@ -211,7 +224,7 @@ const Login_Card = () => {
               </View>
               {isHomeScreen && (
                 <View style={styles.welcomeContainer}>
-                  {authState?.authenticated != false ? (
+                  {isAuthenticated() ? (
                     <View style={styles.progressContainer}>
                       <View style={styles.progressHeader}>
                         <Text style={styles.percentageText}>75%</Text>
@@ -262,14 +275,17 @@ const Login_Card = () => {
       </LinearGradient>
     </Animated.View>
   );
-};
+});
 
+export default LoginCard;
 const styles = StyleSheet.create({
   gradient: {
-    borderRadius: wp("10%"),
-    margin: wp("2%"),
-    position: "relative",
-    overflow: "hidden",
+    flex: 1,
+    ...Platform.select({
+      android: {
+        elevation: 0,
+      },
+    }),
   },
   leftCircle: {
     position: "absolute",
@@ -354,6 +370,18 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
     borderRadius: wp("10%"),
     height: "100%",
+    ...Platform.select({
+      android: {
+        elevation: 0,
+        shadowColor: "transparent",
+      },
+      ios: {
+        shadowColor: "transparent",
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0,
+        shadowRadius: 0,
+      },
+    }),
   },
   contentContainer: {
     height: "100%",
@@ -423,7 +451,6 @@ const styles = StyleSheet.create({
   leafIcon: {
     color: "#4CAF50",
   },
-  // Profile Menu Styles
   modalOverlay: {
     flex: 1,
     justifyContent: "flex-start",
@@ -464,5 +491,3 @@ const styles = StyleSheet.create({
     color: "#FF4444",
   },
 });
-
-export default Login_Card;

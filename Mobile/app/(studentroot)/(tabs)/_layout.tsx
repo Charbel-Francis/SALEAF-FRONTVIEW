@@ -111,25 +111,15 @@ export default function Layout() {
           ),
         }}
       />
+
       <Tabs.Screen
-        name="donate"
+        name="profile"
         options={{
-          title: "Donate",
+          title: "Profile",
           headerShown: true,
           headerRight: () => <LogoutButton onPress={handleLogout} />,
           tabBarIcon: ({ focused }) => (
-            <TabIcon source={icons.donate} focused={focused} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="students"
-        options={{
-          title: "Students",
-          headerShown: true,
-          headerRight: () => <LogoutButton onPress={handleLogout} />,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon source={icons.student} focused={focused} />
+            <TabIcon source={icons.profile} focused={focused} />
           ),
         }}
       />

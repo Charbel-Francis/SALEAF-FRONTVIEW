@@ -28,6 +28,7 @@ export type UserProfile = {
   tier?: string;
   // Progress?: ProfileProgress;
 };
+export type UserAccounts = {}
 
 export type UserCardProps = {
   id: number;

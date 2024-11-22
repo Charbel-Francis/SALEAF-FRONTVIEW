@@ -134,6 +134,7 @@ function RootLayoutNav() {
           customAnimationOnGesture: true,
         }}
       />
+      <Stack.Screen name="pages/barcode" />
       <Stack.Screen name="+not-found" />
     </Stack>
   );
