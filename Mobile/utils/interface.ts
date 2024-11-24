@@ -4,7 +4,8 @@
       firstName: string,
       lastName: string,
       email: string,
-      password: string
+      password: string,
+      isStudent: boolean
     ) => Promise<any>;
     onLogin?: (email: string, password: string) => Promise<any>;
     onLogout?: () => Promise<any>;

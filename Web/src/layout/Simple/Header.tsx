@@ -146,8 +146,7 @@ export default function Header({ layout = 'landing', ...others }: Props) {
                 sx={{ ml: theme.direction === ThemeDirection.RTL ? 3 : 0 }}
                 color="secondary.main"
                 component={RouterLink}
-                to={ispValueAvailable ? '/login?isp=1' : '/login'}
-                target="_blank"
+                to={ispValueAvailable ? '/' : '/'}
                 underline="none"
               >
                 About Us
@@ -157,8 +156,7 @@ export default function Header({ layout = 'landing', ...others }: Props) {
                 sx={{ ml: theme.direction === ThemeDirection.RTL ? 3 : 0 }}
                 color="secondary.main"
                 component={RouterLink}
-                to={ispValueAvailable ? '/login?isp=1' : '/login'}
-                target="_blank"
+                to={ispValueAvailable ? '/donate' : '/donate'}
                 underline="none"
               >
                 Donate

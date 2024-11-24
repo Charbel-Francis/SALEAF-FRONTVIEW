@@ -1,5 +1,5 @@
 import { useState, SyntheticEvent } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import { preload } from 'swr';
 
 // material-ui
@@ -36,12 +36,13 @@ export default function AuthLogin({ forgot }: { forgot?: string }) {
 
   const { isLoggedIn, login } = useAuth();
   const scriptedRef = useScriptRef();
-
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const handleClickShowPassword = () => {
     setShowPassword(!showPassword);
   };
-
+  const location = useLocation();
+  const redirectUrl = (location.state as { from?: string })?.from || '/';
   const handleMouseDownPassword = (event: SyntheticEvent) => {
     event.preventDefault();
   };
@@ -64,7 +65,8 @@ export default function AuthLogin({ forgot }: { forgot?: string }) {
             if (scriptedRef.current) {
               setStatus({ success: true });
               setSubmitting(false);
-              preload('api/menu/dashboard', fetcher); // load menu on login success
+              // preload('api/menu/dashboard', fetcher);
+              navigate(redirectUrl);
             }
           } catch (err: any) {
             console.error(err);

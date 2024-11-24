@@ -57,9 +57,6 @@ export function AuthVisibilityProvider({
 export function useAuthVisibility() {
   const context = useContext(AuthVisibilityContext);
   if (context === undefined) {
-    throw new Error(
-      "useAuthVisibility must be used within an AuthVisibilityProvider"
-    );
   }
   return context;
 }

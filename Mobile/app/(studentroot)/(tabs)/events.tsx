@@ -74,7 +74,10 @@ const EventCard = ({ event }: { event: EventInterface }) => {
     <Link
       href={{
         pathname: "/pages/event_details",
-        params: event,
+        params: {
+          ...event,
+          packages: JSON.stringify(event.packages),
+        },
       }}
       asChild
     >
@@ -141,7 +144,7 @@ const EventCard = ({ event }: { event: EventInterface }) => {
                       style={styles.infoText}
                       numberOfLines={1}
                     >
-                      {event.startDate}-{event.endDate}
+                      {event.startDate}
                     </Animated.Text>
                   </View>
 
@@ -161,7 +164,9 @@ const EventCard = ({ event }: { event: EventInterface }) => {
 
               <View style={styles.priceContainer}>
                 <Text style={styles.priceLabel}>Starting from:</Text>
-                <Text style={styles.priceValue}>{event.eventPrice}</Text>
+                <Text style={styles.priceValue}>
+                  {event?.packages?.[0]?.packagePrice}
+                </Text>
               </View>
             </View>
           </BlurView>

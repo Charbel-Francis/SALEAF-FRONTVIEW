@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -16,6 +16,8 @@ import {
 } from "react-native-responsive-screen";
 import * as DocumentPicker from "expo-document-picker";
 import { MaterialIcons } from "@expo/vector-icons";
+import axiosInstance from "@/utils/config";
+import { isAxiosError } from "axios";
 
 interface FileInfo {
   name: string;
@@ -61,7 +63,9 @@ const StudentMarksTaskCard: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<FileInfo | null>(null);
   const [isCompleted, setIsCompleted] = useState<boolean>(false);
   const [isUploading, setIsUploading] = useState<boolean>(false);
-
+  const [canUpload, setCanUpload] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const formatFileSize = (bytes?: number): string => {
     if (!bytes) return "0 B";
     const sizes = ["B", "KB", "MB", "GB"];
@@ -109,8 +113,43 @@ const StudentMarksTaskCard: React.FC = () => {
     setIsCompleted(true);
     Alert.alert("Success", "File uploaded successfully!");
   };
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const response = await axiosInstance.get(
+          "/api/StudentMarksUpload/can-upload"
+        );
+        console.log("API Response:", response);
 
-  return (
+        setCanUpload(response.data);
+      } catch (err) {
+        console.error("API Error:", err);
+        if (isAxiosError(err) && err.response) {
+          if (isAxiosError(err) && err.response) {
+            if (err.response.status === 401) {
+              setError("Authentication error. Please try logging in again.");
+            } else {
+              setError(
+                `Server error: ${err.response.data.message || "Unknown error"}`
+              );
+            }
+          } else if (err.request) {
+            setError("Network error. Please check your connection.");
+          } else {
+            setError("An unexpected error occurred.");
+          }
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [canUpload]);
+
+  return canUpload ? (
     <View style={styles.container}>
       <View style={styles.card}>
         {/* Task Header */}
@@ -222,7 +261,7 @@ const StudentMarksTaskCard: React.FC = () => {
         </TouchableOpacity>
       </View>
     </View>
-  );
+  ) : null;
 };
 
 const styles = StyleSheet.create<StylesType>({

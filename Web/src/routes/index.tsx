@@ -12,9 +12,29 @@ import Loadable from 'components/Loadable';
 
 // render - landing page
 const PagesLanding = Loadable(lazy(() => import('pages/landing')));
+const Donate = Loadable(lazy(() => import('pages/donate/Donate')));
 
 // ==============================|| ROUTES RENDER ||============================== //
 
-const router = createBrowserRouter([LoginRoutes, ComponentsRoutes, MainRoutes], { basename: import.meta.env.VITE_APP_BASE_NAME });
+const router = createBrowserRouter(
+  [
+    {
+      path: '/',
+      element: <SimpleLayout layout={SimpleLayoutType.LANDING} />,
+      children: [
+        {
+          index: true,
+          element: <PagesLanding />
+        },
+        { path: '/donate', element: <Donate /> }
+      ]
+    },
+
+    LoginRoutes,
+    ComponentsRoutes,
+    MainRoutes
+  ],
+  { basename: import.meta.env.VITE_APP_BASE_NAME }
+);
 
 export default router;

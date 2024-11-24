@@ -1,32 +1,22 @@
+import { Redirect, useRootNavigationState } from "expo-router";
 import { useAuth } from "@/context/JWTContext";
-import { Redirect } from "expo-router";
 import { View, ActivityIndicator } from "react-native";
-import { useEffect, useState } from "react";
 
-const Page = () => {
+export default function Index() {
   const { authState } = useAuth();
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 100);
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (isLoading) {
-    return (
-      <View className="flex-1 items-center justify-center">
-        <ActivityIndicator size="large" />
-      </View>
-    );
+  const rootNavigationState = useRootNavigationState();
+  if (!rootNavigationState?.key) return null;
+  // Only redirect once we have the auth state
+  if (!authState?.authenticated) {
+    return <Redirect href="/(root)/(tabs)/home" />;
   }
 
-  if (authState?.authenticated) {
-    return <Redirect href="/(studentroot)/(tabs)/home" />;
+  switch (authState.role?.toLowerCase()) {
+    case "admin":
+      return <Redirect href="/(adminroot)/(tabs)/home" />;
+    case "student":
+      return <Redirect href="/(studentroot)/(tabs)/home" />;
+    default:
+      return <Redirect href="/(root)/(tabs)/home" />;
   }
-
-  return <Redirect href="/(studentroot)/(tabs)/home" />;
-};
-
-export default Page;
+}

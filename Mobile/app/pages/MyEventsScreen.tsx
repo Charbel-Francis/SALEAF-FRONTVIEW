@@ -12,12 +12,42 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BlurView } from "expo-blur";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import * as Animatable from "react-native-animatable";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
+import axios from "axios";
+import axiosInstance, { API_URL } from "@/utils/config";
+import { ActivityIndicator } from "react-native-paper";
+
+interface Event {
+  id: number;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  numberOfParticipant: number;
+  eventId: number;
+  event: {
+    eventId: number;
+    eventName: string;
+    eventDescription: string;
+    location: string;
+    eventImageUrl: string | null;
+    startDate: string;
+    endDate: string;
+    startTime: string;
+    endTime: string;
+    status: string;
+  };
+  pacakageName: string;
+  registrationDate: string;
+  currency: string;
+  amount: number;
+  isPaid: boolean;
+  paymentId: string;
+}
 
 const MyEventsScreen = () => {
   const [selectedTab, setSelectedTab] = useState<"upcoming" | "past">(
@@ -25,66 +55,83 @@ const MyEventsScreen = () => {
   );
   const [showQR, setShowQR] = useState(false);
   const [selectedEventQR, setSelectedEventQR] = useState("");
+  const [events, setEvents] = useState<Event[]>([]);
   const router = useRouter();
+  const [isQRLoading, setIsQRLoading] = useState(false);
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const response = await axiosInstance.get(
+          "/EventRegistration/get-logged-register-event"
+        );
+        if (response.data) {
+          // Access the data array from the response
+          setEvents(response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching events:", error);
+      }
+    };
 
-  const myEvents = {
-    upcoming: [
-      {
-        id: 1,
-        eventName: "Tech Conference 2024",
-        date: "Apr 15, 2024",
-        time: "09:00 AM",
-        location: "Convention Center",
-        status: "confirmed",
-        qrCode: `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=Example`,
-        gradient: ["#4158D0", "#C850C0"],
-      },
-      {
-        id: 2,
-        eventName: "Networking Mixer",
-        date: "Apr 20, 2024",
-        time: "06:30 PM",
-        location: "Downtown Hub",
-        status: "pending",
-        qrCode: `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=Example`,
-        gradient: ["#0093E9", "#80D0C7"],
-      },
-    ],
-    past: [
-      {
-        id: 3,
-        eventName: "Workshop Series",
-        date: "Mar 10, 2024",
-        time: "02:00 PM",
-        location: "Innovation Lab",
-        status: "completed",
-        qrCode: `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=Example`,
-        gradient: ["#8EC5FC", "#E0C3FC"],
-      },
-    ],
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "confirmed":
-        return {
-          bg: "rgba(52, 199, 89, 0.1)",
-          text: "#34C759",
-        };
-      case "pending":
-        return {
-          bg: "rgba(255, 149, 0, 0.1)",
-          text: "#FF9500",
-        };
+    fetchEvents();
+  }, []);
+  // Define gradient colors for different package types
+  const getGradientColors = (packageName: string) => {
+    switch (packageName.toLowerCase()) {
+      case "vip":
+        return ["#FFD700", "#FFA500"];
+      case "standard":
+        return ["#4158D0", "#C850C0"];
       default:
-        return {
-          bg: "rgba(142, 142, 147, 0.1)",
-          text: "#8E8E93",
-        };
+        return ["#0093E9", "#80D0C7"];
     }
   };
 
-  const renderEventCard = (event: any) => (
+  const getPaymentStatusColor = (isPaid: boolean) => {
+    return isPaid
+      ? {
+          bg: "rgba(52, 199, 89, 0.1)",
+          text: "#34C759",
+        }
+      : {
+          bg: "rgba(255, 149, 0, 0.1)",
+          text: "#FF9500",
+        };
+  };
+
+  const generateQRData = async (event: Event) => {
+    setIsQRLoading(true); // Start loading
+    try {
+      const response = await axiosInstance.get(
+        "https://saleafapi-production.up.railway.app/EventRegistration/generate-qr-code?eventId=1",
+        {
+          responseType: "blob",
+        }
+      );
+
+      if (response.status === 200) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(response.data);
+          reader.onloadend = () => {
+            const base64data = reader.result;
+            setSelectedEventQR(base64data as string);
+            setIsQRLoading(false); // Stop loading
+            resolve(base64data);
+          };
+          reader.onerror = (error) => {
+            setIsQRLoading(false); // Stop loading on error
+            reject(error);
+          };
+        });
+      }
+    } catch (error) {
+      setIsQRLoading(false); // Stop loading on error
+      console.error("Error fetching QR code:", error);
+    }
+  };
+
+  const renderEventCard = (event: Event) => (
     <Animatable.View
       animation="fadeInUp"
       duration={800}
@@ -93,26 +140,26 @@ const MyEventsScreen = () => {
       style={styles.eventCard}
     >
       <LinearGradient
-        colors={event.gradient}
+        colors={getGradientColors(event.pacakageName)}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.cardHeader}
       >
         <View style={styles.eventTitleContainer}>
-          <Text style={styles.eventName}>{event.eventName}</Text>
+          <Text style={styles.eventName}>{event.event.eventName}</Text>
           <View
             style={[
               styles.statusBadge,
-              { backgroundColor: getStatusColor(event.status).bg },
+              { backgroundColor: getPaymentStatusColor(event.isPaid).bg },
             ]}
           >
             <Text
               style={[
                 styles.statusText,
-                { color: getStatusColor(event.status).text },
+                { color: getPaymentStatusColor(event.isPaid).text },
               ]}
             >
-              {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
+              {event.isPaid ? "Paid" : "Pending Payment"}
             </Text>
           </View>
         </View>
@@ -128,13 +175,18 @@ const MyEventsScreen = () => {
                 color="#007AFF"
               />
             </View>
-            <Text style={styles.detailText}>{event.date}</Text>
+            <Text style={styles.detailText}>
+              {formatDateTime(event.event.startDate, event.event.startTime)}
+            </Text>
           </View>
           <View style={styles.detailRow}>
             <View style={styles.iconContainer}>
-              <Ionicons name="time-outline" size={wp("5%")} color="#007AFF" />
+              <Ionicons name="ticket-outline" size={wp("5%")} color="#007AFF" />
             </View>
-            <Text style={styles.detailText}>{event.time}</Text>
+            <Text style={styles.detailText}>
+              {event.pacakageName} - {event.numberOfParticipant}{" "}
+              {event.numberOfParticipant > 1 ? "tickets" : "ticket"}
+            </Text>
           </View>
           <View style={styles.detailRow}>
             <View style={styles.iconContainer}>
@@ -144,23 +196,90 @@ const MyEventsScreen = () => {
                 color="#007AFF"
               />
             </View>
-            <Text style={styles.detailText}>{event.location}</Text>
+            <Text style={styles.detailText}>{event.event.location}</Text>
+          </View>
+          <View style={styles.detailRow}>
+            <View style={styles.iconContainer}>
+              <Ionicons name="cash-outline" size={wp("5%")} color="#007AFF" />
+            </View>
+            <Text style={styles.detailText}>
+              {event.currency} {event.amount.toFixed(2)}
+            </Text>
           </View>
         </View>
 
-        <Pressable
-          style={styles.qrButton}
-          onPress={() => {
-            setSelectedEventQR(event.qrCode);
-            setShowQR(true);
-          }}
-        >
-          <Text style={styles.qrButtonText}>View QR Code</Text>
-          <Ionicons name="qr-code-outline" size={wp("5%")} color="white" />
-        </Pressable>
+        {event.isPaid && (
+          <Pressable
+            style={styles.qrButton}
+            onPress={() => {
+              generateQRData(event);
+              setShowQR(true);
+            }}
+          >
+            <Text style={styles.qrButtonText}>View Ticket QR</Text>
+            <Ionicons name="qr-code-outline" size={wp("5%")} color="white" />
+          </Pressable>
+        )}
       </View>
     </Animatable.View>
   );
+
+  // Replace your current filterEvents function with this:
+  const filterEvents = () => {
+    const currentDate = new Date();
+
+    return events.filter((event) => {
+      try {
+        const monthMap: { [key: string]: number } = {
+          January: 0,
+          February: 1,
+          March: 2,
+          April: 3,
+          May: 4,
+          June: 5,
+          July: 6,
+          August: 7,
+          September: 8,
+          October: 9,
+          November: 10,
+          December: 11,
+        };
+
+        const [day, month, year] = event.event.startDate.split(" ");
+        const eventDate = new Date(
+          parseInt(year),
+          monthMap[month],
+          parseInt(day)
+        );
+        if (isNaN(eventDate.getTime())) {
+          console.error("Invalid date for event:", event.event.eventName);
+          return false;
+        }
+
+        const isUpcoming = eventDate >= currentDate;
+
+        return selectedTab === "upcoming" ? isUpcoming : !isUpcoming;
+      } catch (error) {
+        console.error(
+          "Error parsing date for event:",
+          event.event.eventName,
+          error
+        );
+        return false;
+      }
+    });
+  };
+
+  // Update the formatDateTime function as well:
+  const formatDateTime = (dateStr: string, timeStr: string) => {
+    try {
+      const [day, month, year] = dateStr.split(" ");
+      return `${day} ${month} ${year} at ${timeStr}`;
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return dateStr + " at " + timeStr;
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -204,9 +323,9 @@ const MyEventsScreen = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollViewContent}
       >
-        {myEvents[selectedTab].map((event) => renderEventCard(event))}
+        {filterEvents().map((event) => renderEventCard(event))}
 
-        {myEvents[selectedTab].length === 0 && (
+        {filterEvents().length === 0 && (
           <Animatable.View
             animation="fadeIn"
             duration={800}
@@ -234,11 +353,18 @@ const MyEventsScreen = () => {
               duration={300}
               style={styles.qrContainer}
             >
-              <Image
-                source={{ uri: selectedEventQR }}
-                style={styles.qrImage}
-                resizeMode="contain"
-              />
+              {isQRLoading ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="large" color="#0000ff" />
+                  <Text style={styles.loadingText}>Loading QR Code...</Text>
+                </View>
+              ) : (
+                <Image
+                  source={{ uri: selectedEventQR }}
+                  style={styles.qrImage}
+                  resizeMode="contain"
+                />
+              )}
               <Pressable
                 style={styles.closeButton}
                 onPress={() => setShowQR(false)}
@@ -291,6 +417,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp("4%"),
     backgroundColor: "white",
     paddingBottom: hp("2%"),
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    maxHeight: 100, // match this with your QR image height
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: "#666",
   },
   tab: {
     flex: 1,

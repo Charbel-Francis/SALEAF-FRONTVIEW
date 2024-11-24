@@ -1,121 +1,361 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import * as base64 from "base-64";
 import * as SecureStore from "expo-secure-store";
 import { AuthProps } from "@/utils/interface";
 import axiosInstance from "@/utils/config";
+import { useRouter, useSegments } from "expo-router";
+import { Platform } from "react-native";
 
+// Constants
 const Token_key = "my-jwt";
-const AuthContext = createContext<AuthProps>({});
 
+// Types
+interface AuthState {
+  token: string | null;
+  authenticated: boolean | null;
+  role: string | null;
+}
+
+interface AuthContextType extends AuthProps {
+  authState?: AuthState;
+  onRegister?: (
+    firstName: string,
+    lastName: string,
+    email: string,
+    password: string,
+    isStudent: boolean
+  ) => Promise<any>;
+  onLogin?: (email: string, password: string) => Promise<any>;
+  onLogout?: () => Promise<void>;
+  onAnonymousLogin?: () => Promise<void>;
+}
+
+// Create context
+const AuthContext = createContext<AuthContextType>({});
+
+// Hook for using auth context
 export const useAuth = () => {
   return useContext(AuthContext);
 };
 
-export const AuthProvider = ({ children }: any) => {
-  const [authState, setAuthState] = useState<{
-    token: string | null;
-    authenticated: boolean | null;
-    role: string | null;
-  }>({
+// Helper function to get route based on role
+export const getHomeRouteByRole = (role: string | null): string => {
+  switch (role?.toLowerCase()) {
+    case "admin":
+      return "/(adminroot)/(tabs)/home";
+    case "student":
+      return "/(studentroot)/(tabs)/home";
+    case "sponsor":
+    default:
+      return "/(root)/(tabs)/home";
+  }
+};
+
+// JWT Token handling functions
+const decodeJWTPayload = (token: string) => {
+  try {
+    // Split the token into parts
+    const parts = token.split(".");
+    if (parts.length !== 3) {
+      throw new Error("Invalid JWT format");
+    }
+
+    // Get the payload (middle part)
+    const payload = parts[1];
+
+    // Handle padding
+    const paddedPayload = payload.padEnd(
+      payload.length + ((4 - (payload.length % 4)) % 4),
+      "="
+    );
+
+    // Decode based on platform
+    let decodedPayload;
+    if (Platform.OS === "android") {
+      // For Android: manually decode base64url to JSON
+      const encodedPayload = paddedPayload
+        .replace(/-/g, "+")
+        .replace(/_/g, "/");
+
+      const decodedString = base64.decode(encodedPayload);
+      decodedPayload = JSON.parse(decodedString);
+    } else {
+      // For iOS: standard atob decoding works fine
+      const decodedString = atob(paddedPayload);
+      decodedPayload = JSON.parse(decodedString);
+    }
+
+    return decodedPayload;
+  } catch (error) {
+    console.error("Error decoding JWT:", error);
+    throw new Error("Failed to decode JWT payload");
+  }
+};
+
+const isTokenExpired = (token: string): boolean => {
+  try {
+    const decoded = decodeJWTPayload(token);
+    if (!decoded?.exp) return true;
+    const currentTime = Math.floor(Date.now() / 1000);
+    return decoded.exp < currentTime;
+  } catch {
+    return true;
+  }
+};
+
+// Main AuthProvider component
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [authState, setAuthState] = useState<AuthState>({
     token: null,
-    authenticated: null,
+    authenticated: false,
     role: null,
   });
 
+  const router = useRouter();
+  const segments = useSegments();
+
+  // Navigation effect
+  useEffect(() => {
+    if (isLoading) return;
+
+    const inAuthGroup = segments[0] === "(auth)";
+
+    if (authState.authenticated) {
+      if (inAuthGroup) {
+        const homeRoute = getHomeRouteByRole(authState.role);
+        router.replace(homeRoute as any);
+      }
+    } else {
+      if (!inAuthGroup) {
+        router.replace("/(root)/(tabs)/home" as any);
+      }
+    }
+  }, [authState.authenticated, authState.role, isLoading, segments]);
+
+  // Axios interceptors setup
+  useEffect(() => {
+    const requestInterceptor = axiosInstance.interceptors.request.use(
+      async (config) => {
+        const token = await SecureStore.getItemAsync(Token_key);
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+      },
+      (error) => Promise.reject(error)
+    );
+
+    const responseInterceptor = axiosInstance.interceptors.response.use(
+      (response) => response,
+      async (error) => {
+        if (error.response?.status === 401) {
+          await SecureStore.deleteItemAsync(Token_key);
+          delete axiosInstance.defaults.headers.common["Authorization"];
+          setAuthState({
+            token: null,
+            authenticated: false,
+            role: null,
+          });
+        }
+        return Promise.reject(error);
+      }
+    );
+
+    return () => {
+      axiosInstance.interceptors.request.eject(requestInterceptor);
+      axiosInstance.interceptors.response.eject(responseInterceptor);
+    };
+  }, []);
+
+  // Initial token load
   useEffect(() => {
     const loadToken = async () => {
-      const token = await SecureStore.getItemAsync(Token_key);
-      console.log("stored:", token);
-      if (token) {
-        axiosInstance.defaults.headers.common[
-          "Authorization"
-        ] = `Bearer ${token}`;
+      try {
+        const token = await SecureStore.getItemAsync(Token_key);
+        console.log(
+          "Loading token from storage:",
+          token ? "Token exists" : "No token"
+        );
+
+        if (token && !isTokenExpired(token)) {
+          const decodedPayload = decodeJWTPayload(token);
+          const role =
+            decodedPayload?.[
+              "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+            ];
+
+          axiosInstance.defaults.headers.common[
+            "Authorization"
+          ] = `Bearer ${token}`;
+
+          setAuthState({
+            token,
+            authenticated: true,
+            role,
+          });
+        } else {
+          if (token) {
+            console.log("Token expired, removing from storage");
+            await SecureStore.deleteItemAsync(Token_key);
+            delete axiosInstance.defaults.headers.common["Authorization"];
+          }
+
+          setAuthState({
+            token: null,
+            authenticated: false,
+            role: null,
+          });
+        }
+      } catch (error) {
+        console.error("Error in loadToken:", error);
         setAuthState({
-          token: token,
-          authenticated: true,
+          token: null,
+          authenticated: false,
           role: null,
         });
+      } finally {
+        setIsLoading(false);
       }
     };
+
     loadToken();
   }, []);
 
+  // Authentication methods
   const register = async (
     firstName: string,
     lastName: string,
     email: string,
-    password: string
+    password: string,
+    isStudent: boolean
   ) => {
     try {
-      console.log(firstName, lastName, email, password);
+      console.log("Registering user:", {
+        firstName,
+        lastName,
+        email,
+        isStudent,
+      });
+
       const results = await axiosInstance.post(`/api/Account/register`, {
         firstName,
         lastName,
         email,
         password,
+        isStudent,
       });
-      console.log("account created", results);
-      setAuthState({
-        token: results.data.token,
-        authenticated: true,
-        role: null,
-      });
+
+      const { token } = results.data;
+
+      if (!token) {
+        throw new Error("No token received from server");
+      }
+
+      const payload = decodeJWTPayload(token);
+      const role =
+        payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+
+      await SecureStore.setItemAsync(Token_key, token);
       axiosInstance.defaults.headers.common[
         "Authorization"
-      ] = `Bearer ${results.data.token}`;
-      await SecureStore.setItemAsync(Token_key, results.data.token);
+      ] = `Bearer ${token}`;
+
+      setAuthState({
+        token,
+        authenticated: true,
+        role,
+      });
+
       return results;
     } catch (e) {
-      console.log(e);
+      console.error("Registration error:", e);
+      throw e;
     }
   };
 
   const login = async (email: string, password: string) => {
     try {
-      const results = await axiosInstance.post(`/api/Account/login`, {
+      console.log("Attempting login for:", email);
+      const response = await axiosInstance.post(`/api/Account/login`, {
         email,
         password,
       });
-      setAuthState({
-        token: results.data.token,
-        authenticated: true,
-        role: null,
-      });
+      console.log("Login response:", response.data);
+      const { token } = response.data;
+
+      if (!token) {
+        throw new Error("No token received from server");
+      }
+
+      const payload = decodeJWTPayload(token);
+      console.log(payload);
+      const role =
+        payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+
+      await SecureStore.setItemAsync(Token_key, token);
       axiosInstance.defaults.headers.common[
         "Authorization"
-      ] = `Bearer ${results.data.token}`;
+      ] = `Bearer ${token}`;
 
-      await SecureStore.setItemAsync(Token_key, results.data.token);
-      return results;
-    } catch (e) {
-      return { error: true, msg: (e as any).response.data.msg };
+      setAuthState({
+        token,
+        authenticated: true,
+        role,
+      });
+
+      return response;
+    } catch (error) {
+      console.error("Login error:", error);
+      return {
+        error: true,
+        msg: (error as any).response?.data?.msg || "Login failed",
+      };
     }
   };
 
   const logout = async () => {
-    await SecureStore.deleteItemAsync(Token_key);
-    axiosInstance.defaults.headers.common["Authorization"] = "";
-    setAuthState({
-      token: null,
-      authenticated: false,
-      role: null,
-    });
-  };
-  const anonomusLogin = async () => {
-    setAuthState({
-      token: null,
-      authenticated: false,
-      role: null,
-    });
-    console.log("anonomus login");
+    try {
+      await SecureStore.deleteItemAsync(Token_key);
+      delete axiosInstance.defaults.headers.common["Authorization"];
+
+      setAuthState({
+        token: null,
+        authenticated: false,
+        role: null,
+      });
+    } catch (error) {
+      console.error("Logout error:", error);
+      setAuthState({
+        token: null,
+        authenticated: false,
+        role: null,
+      });
+    }
   };
 
-  const value = {
+  const anonymousLogin = async () => {
+    console.log("Setting anonymous login state");
+    setAuthState({
+      token: null,
+      authenticated: false,
+      role: null,
+    });
+  };
+
+  if (isLoading) {
+    return null;
+  }
+
+  const value: AuthContextType = {
     onRegister: register,
     onLogin: login,
     onLogout: logout,
-    onAnonomusLogin: anonomusLogin,
+    onAnonymousLogin: anonymousLogin,
     authState,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
+
+export { AuthContext };

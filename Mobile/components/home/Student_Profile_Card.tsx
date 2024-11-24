@@ -15,10 +15,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
-import Animated, {
-  SharedTransition,
-  withSpring,
-} from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 import { StudentInterface } from "@/types/types";
 import { Link } from "expo-router";
 import axiosInstance from "@/utils/config";
@@ -28,8 +25,10 @@ const Student_Profile_Card = () => {
   const width = Dimensions.get("window").width;
   const itemHeight = hp("30%");
   const [students, setStudents] = useState<StudentInterface[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const getStudents = () => {
+    setLoading(true);
     try {
       axiosInstance
         .get("/api/StudentProfile/all-studentprofiles")
@@ -38,9 +37,11 @@ const Student_Profile_Card = () => {
             (student: StudentInterface) => student.isFinalYear
           );
           setStudents(finalYearStudents);
-        });
+        })
+        .finally(() => setLoading(false));
     } catch (error) {
       console.log(error);
+      setLoading(false);
     }
   };
 
@@ -146,126 +147,170 @@ const Student_Profile_Card = () => {
       width: wp("5.5%"),
       height: wp("5.5%"),
     },
+    noDataContainer: {
+      height: itemHeight,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: "#f5f5f5",
+      borderRadius: wp("2.5%"),
+      marginHorizontal: wp("2%"),
+    },
+    noDataText: {
+      fontSize: wp("4%"),
+      color: "#666",
+      textAlign: "center",
+      marginTop: hp("1%"),
+    },
+    loadingContainer: {
+      height: itemHeight,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    loadingText: {
+      fontSize: wp("4%"),
+      color: "#666",
+    },
   });
+
+  const renderContent = () => {
+    if (loading) {
+      return (
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading...</Text>
+        </View>
+      );
+    }
+
+    if (!Array.isArray(students) || students.length === 0) {
+      return (
+        <View style={styles.noDataContainer}>
+          <Ionicons name="alert-circle-outline" size={wp("15%")} color="#666" />
+          <Text style={styles.noDataText}>
+            No final year students available
+          </Text>
+        </View>
+      );
+    }
+
+    return (
+      <Carousel
+        loop
+        width={width}
+        height={itemHeight}
+        autoPlay
+        data={students}
+        autoPlayInterval={2000}
+        scrollAnimationDuration={1000}
+        snapEnabled
+        pagingEnabled
+        mode="parallax"
+        renderItem={({ item: student }) => (
+          <Link
+            href={{
+              pathname: "/pages/student_details",
+              params: {
+                ...student,
+                skills: JSON.stringify(student.skills),
+                achievements: JSON.stringify(student.achievements),
+                isFinalYear: student.isFinalYear.toString(),
+                graduationDate: new Date(student.graduationDate).toISOString(),
+                studentImageUrl: student.imageUrl,
+              },
+            }}
+            asChild
+          >
+            <Pressable style={styles.cardWrapper}>
+              <Card style={styles.cardContainer}>
+                <View style={styles.cardContent}>
+                  <Animated.View
+                    sharedTransitionTag={`student-container-${student.id}`}
+                    sharedTransitionStyle={sharedTransition}
+                  >
+                    <Animated.Image
+                      source={{ uri: student.imageUrl }}
+                      sharedTransitionTag={`student-image-${student.imageUrl}`}
+                      sharedTransitionStyle={sharedTransition}
+                      style={styles.cardImage}
+                      resizeMode="cover"
+                    />
+                  </Animated.View>
+                  <BlurView
+                    intensity={30}
+                    style={[
+                      styles.blurContainer,
+                      { backgroundColor: "rgba(0, 0, 0, 0.8)" },
+                    ]}
+                  >
+                    <View style={styles.studentInfoContainer}>
+                      <Animated.Text
+                        sharedTransitionTag={`card-name-${student.firstName}`}
+                        sharedTransitionStyle={sharedTransition}
+                        style={styles.studentName}
+                        numberOfLines={1}
+                      >
+                        {student.firstName} {student.lastName}
+                      </Animated.Text>
+
+                      <View style={styles.infoRow}>
+                        <Ionicons
+                          name="school"
+                          size={wp("5.5%")}
+                          color="white"
+                          style={styles.icon}
+                        />
+                        <Animated.Text
+                          sharedTransitionTag={`card-university-${student.university}`}
+                          sharedTransitionStyle={sharedTransition}
+                          style={styles.infoText}
+                          numberOfLines={1}
+                        >
+                          {student.university}
+                        </Animated.Text>
+                      </View>
+
+                      <View style={styles.infoRow}>
+                        <Ionicons
+                          name="book"
+                          size={wp("5.5%")}
+                          color="white"
+                          style={styles.icon}
+                        />
+                        <Text style={styles.infoText} numberOfLines={1}>
+                          {student.degree}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <View style={styles.graduationContainer}>
+                      <Text style={styles.graduationLabel}>
+                        Graduation Year
+                      </Text>
+                      <Text style={styles.graduationYear}>
+                        {new Date(student.graduationDate).getFullYear()}
+                      </Text>
+                    </View>
+                  </BlurView>
+                </View>
+              </Card>
+            </Pressable>
+          </Link>
+        )}
+      />
+    );
+  };
 
   return (
     <View style={styles.container}>
       <View style={styles.headerContainer}>
         <Text style={styles.headerTitle}>Final Year Students</Text>
-        <Link href={{ pathname: "/(root)/(tabs)/students" }} asChild>
+        <Link href={{ pathname: "/(tabs)/students" }} asChild>
           <Pressable>
             <Text style={styles.headerSeeAll}>See All</Text>
           </Pressable>
         </Link>
       </View>
 
-      {students.length > 0 && (
-        <Carousel
-          loop
-          width={width}
-          height={itemHeight}
-          autoPlay
-          data={students}
-          autoPlayInterval={2000}
-          scrollAnimationDuration={1000}
-          snapEnabled
-          pagingEnabled
-          mode="parallax"
-          renderItem={({ item: student }) => (
-            <Link
-              href={{
-                pathname: "/pages/student_details",
-                params: {
-                  ...student,
-                  skills: JSON.stringify(student.skills),
-                  achievements: JSON.stringify(student.achievements),
-                  isFinalYear: student.isFinalYear.toString(),
-                  graduationDate: new Date(
-                    student.graduationDate
-                  ).toISOString(),
-                  studentImageUrl: student.imageUrl,
-                },
-              }}
-              asChild
-            >
-              <Pressable style={styles.cardWrapper}>
-                <Card style={styles.cardContainer}>
-                  <View style={styles.cardContent}>
-                    <Animated.View
-                      sharedTransitionTag={`student-container-${student.id}`}
-                      sharedTransitionStyle={sharedTransition}
-                    >
-                      <Animated.Image
-                        source={{ uri: student.imageUrl }}
-                        sharedTransitionTag={`student-image-${student.imageUrl}`}
-                        sharedTransitionStyle={sharedTransition}
-                        style={styles.cardImage}
-                        resizeMode="cover"
-                      />
-                    </Animated.View>
-                    <BlurView
-                      intensity={30}
-                      style={[
-                        styles.blurContainer,
-                        { backgroundColor: "rgba(0, 0, 0, 0.8)" },
-                      ]}
-                    >
-                      <View style={styles.studentInfoContainer}>
-                        <Animated.Text
-                          sharedTransitionTag={`card-name-${student.firstName}`}
-                          sharedTransitionStyle={sharedTransition}
-                          style={styles.studentName}
-                          numberOfLines={1}
-                        >
-                          {student.firstName} {student.lastName}
-                        </Animated.Text>
-
-                        <View style={styles.infoRow}>
-                          <Ionicons
-                            name="school"
-                            size={wp("5.5%")}
-                            color="white"
-                            style={styles.icon}
-                          />
-                          <Animated.Text
-                            sharedTransitionTag={`card-university-${student.university}`}
-                            sharedTransitionStyle={sharedTransition}
-                            style={styles.infoText}
-                            numberOfLines={1}
-                          >
-                            {student.university}
-                          </Animated.Text>
-                        </View>
-
-                        <View style={styles.infoRow}>
-                          <Ionicons
-                            name="book"
-                            size={wp("5.5%")}
-                            color="white"
-                            style={styles.icon}
-                          />
-                          <Text style={styles.infoText} numberOfLines={1}>
-                            {student.degree}
-                          </Text>
-                        </View>
-                      </View>
-
-                      <View style={styles.graduationContainer}>
-                        <Text style={styles.graduationLabel}>
-                          Graduation Year
-                        </Text>
-                        <Text style={styles.graduationYear}>
-                          {new Date(student.graduationDate).getFullYear()}
-                        </Text>
-                      </View>
-                    </BlurView>
-                  </View>
-                </Card>
-              </Pressable>
-            </Link>
-          )}
-        />
-      )}
+      {renderContent()}
     </View>
   );
 };

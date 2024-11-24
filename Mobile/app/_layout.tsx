@@ -1,5 +1,4 @@
-// app/_layout.tsx
-import React, { useState } from "react";
+import React from "react";
 import { AuthProvider, useAuth } from "@/context/JWTContext";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
@@ -17,7 +16,10 @@ import {
   useAuthVisibility,
 } from "@/context/AuthVisibilityContext";
 
+// Prevent splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
+
+// Configure NativeWind
 NativeWindStyleSheet.setOutput({
   default: "native",
 });
@@ -34,10 +36,12 @@ const customTransition = SharedTransition.custom((values) => {
 });
 
 export default function RootLayout() {
+  // Load custom fonts
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
 
+  // Hide splash screen once fonts are loaded
   useEffect(() => {
     if (loaded) {
       SplashScreen.hideAsync();
@@ -53,7 +57,7 @@ export default function RootLayout() {
       <AuthVisibilityProvider>
         <PaperProvider>
           <AuthProvider>
-            <RootLayoutContent />
+            <RootLayoutNav />
           </AuthProvider>
         </PaperProvider>
       </AuthVisibilityProvider>
@@ -61,12 +65,82 @@ export default function RootLayout() {
   );
 }
 
-function RootLayoutContent() {
-  const { isSignInVisible, hideSignIn } = useAuthVisibility();
+function RootLayoutNav() {
+  const { authState } = useAuth();
+  const segments = useSegments();
+  const { showSignIn, isSignInVisible, hideSignIn } = useAuthVisibility();
+  const router = useRouter();
+
+  useEffect(() => {
+    // Check if segments exists before comparing
+    const firstSegment = segments[0] || "";
+    console.log("Current segments:", segments);
+
+    // Check current route segments
+    const inAuthGroup = firstSegment === "(auth)";
+    const inAdminGroup = firstSegment === "(adminroot)";
+    const inStudentGroup = firstSegment === "(studentroot)";
+    const inSponsorGroup = firstSegment === "(root)";
+    const inPagesGroup = firstSegment === "pages";
+
+    // Define protected pages (these would be under the role-based routes, not in /pages/)
+    const protectedPages = ["donate", "profile", "students"];
+
+    // If we're in the pages group, allow access
+    if (inPagesGroup) {
+      // Allow the navigation to continue
+      return;
+    }
+
+    if (!authState?.authenticated) {
+      // Only check protection for non-pages routes
+      if (!inAuthGroup && segments[2] && protectedPages.includes(segments[2])) {
+        showSignIn();
+      }
+    } else {
+      // Handle authenticated users
+      if (inAuthGroup) {
+        // Redirect from auth pages based on role
+        const userRole = authState.role?.toLowerCase();
+        switch (userRole) {
+          case "admin":
+            router.replace("/(adminroot)/(tabs)/home");
+            break;
+          case "student":
+            router.replace("/(studentroot)/(tabs)/home");
+            break;
+          default:
+            router.replace("/(root)/(tabs)/home");
+            break;
+        }
+      } else {
+        // Only check role-based routes
+        const userRole = authState.role?.toLowerCase();
+        const isInWrongSection =
+          (userRole === "admin" && !inAdminGroup) ||
+          (userRole === "student" && !inStudentGroup) ||
+          (userRole === "sponsor" && !inSponsorGroup);
+
+        if (isInWrongSection) {
+          switch (userRole) {
+            case "admin":
+              router.replace("/(adminroot)/(tabs)/home");
+              break;
+            case "student":
+              router.replace("/(studentroot)/(tabs)/home");
+              break;
+            default:
+              router.replace("/(root)/(tabs)/home");
+              break;
+          }
+        }
+      }
+    }
+  }, [authState?.authenticated, authState?.role, segments]);
 
   return (
     <>
-      <StatusBar hidden={Platform.OS === "ios" ? true : false} />
+      <StatusBar hidden={Platform.OS === "ios"} />
       <AuthContainer
         isSignInVisible={isSignInVisible}
         setSignInVisible={(value) => {
@@ -75,68 +149,48 @@ function RootLayoutContent() {
           }
         }}
       />
-      <RootLayoutNav />
-    </>
-  );
-}
-
-function RootLayoutNav() {
-  const { authState } = useAuth();
-  const { showSignIn } = useAuthVisibility();
-  const router = useRouter();
-  const segments = useSegments();
-
-  useEffect(() => {
-    const inAuthGroup = segments[0] === "(auth)";
-    const protectedPages = ["donate", "profile", "students"];
-
-    if (!authState?.authenticated && !authState?.anonomous) {
-      if (!inAuthGroup && segments[2] && protectedPages.includes(segments[2])) {
-        showSignIn();
-      }
-    } else {
-      if (inAuthGroup) {
-        router.replace("/(tabs)/home");
-      }
-    }
-  }, [authState?.authenticated, segments]);
-
-  return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-        animation: "fade",
-        customAnimationOnGesture: true,
-      }}
-    >
-      <Stack.Screen
-        name="index"
-        options={{
-          animation: "slide_from_right",
-        }}
-      />
-      <Stack.Screen
-        name="(root)"
-        options={{
-          animation: "slide_from_right",
-        }}
-      />
-      <Stack.Screen
-        name="(auth)"
-        options={{
-          animation: "slide_from_bottom",
-        }}
-      />
-      <Stack.Screen
-        name="pages/Application_Form"
-        options={{
-          animation: "slide_from_right",
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          animation: "fade",
           customAnimationOnGesture: true,
         }}
-      />
-      <Stack.Screen name="pages/barcode" />
-      <Stack.Screen name="+not-found" />
-    </Stack>
+      >
+        <Stack.Screen
+          name="index"
+          options={{
+            animation: "slide_from_right",
+          }}
+        />
+
+        {/* Existing Routes */}
+        <Stack.Screen
+          name="(root)"
+          options={{ animation: "slide_from_right" }}
+        />
+        <Stack.Screen
+          name="(adminroot)"
+          options={{ animation: "slide_from_right" }}
+        />
+        <Stack.Screen
+          name="(studentroot)"
+          options={{ animation: "slide_from_right" }}
+        />
+        <Stack.Screen
+          name="(auth)"
+          options={{ animation: "slide_from_bottom" }}
+        />
+        <Stack.Screen
+          name="pages/Application_Form"
+          options={{
+            animation: "slide_from_right",
+            customAnimationOnGesture: true,
+          }}
+        />
+        <Stack.Screen name="pages/barcode" />
+        <Stack.Screen name="+not-found" />
+      </Stack>
+    </>
   );
 }
 

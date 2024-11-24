@@ -25,6 +25,8 @@ import Avatar5 from 'assets/images/users/avatar-4.png';
 import Avatar6 from 'assets/images/users/avatar-5.png';
 import Avatar7 from 'assets/images/users/avatar-7.png';
 import Avatar8 from 'assets/images/users/avatar-8.png';
+import { useEffect, useState } from 'react';
+import axiosServices from 'utils/axios';
 
 // ================================|| SLIDER - ITEMS ||================================ //
 
@@ -53,6 +55,12 @@ function Item({ item }: { item: { image: string; text: string; name: string; des
 // ==============================|| LANDING - TestimonialPage ||============================== //
 
 export default function TestimonialPage() {
+  const [students, setStudents] = useState([]);
+  useEffect(() => {
+    axiosServices.get('/api/StudentProfile/all-studentprofiles').then((response) => {
+      setStudents(response.data);
+    });
+  }, []);
   const theme = useTheme();
   const items = [
     { image: Avatar1, text: '“Amazing template for fast develop.💎“', name: 'devbar', designation: 'Customizability' },
@@ -116,28 +124,11 @@ export default function TestimonialPage() {
                 }}
               >
                 <Typography variant="h2">
-                  They{' '}
+                  Have a look at some of{' '}
                   <Typography variant="h2" component="span" sx={{ color: theme.palette.primary.main }}>
-                    love
+                    SALEAF Students
                   </Typography>{' '}
-                  Able Pro, Now your turn 😍
-                </Typography>
-              </motion.div>
-            </Grid>
-            <Grid item xs={12} md={7}>
-              <motion.div
-                initial={{ opacity: 0, translateY: 550 }}
-                animate={{ opacity: 1, translateY: 0 }}
-                transition={{
-                  type: 'spring',
-                  stiffness: 150,
-                  damping: 30,
-                  delay: 0.4
-                }}
-              >
-                <Typography>
-                  We take pride in our Dashboard development, which has been consistently rated 4.6/5 by our satisfied customers. It brings
-                  us joy to share the positive feedback we have received from our loyal clients.
+                  that we have helped.
                 </Typography>
               </motion.div>
             </Grid>
@@ -149,7 +140,7 @@ export default function TestimonialPage() {
           <Grid item xs={12} sx={{ direction: theme.direction }}>
             <FadeInWhenVisible>
               <Marquee pauseOnHover direction={theme.direction === ThemeDirection.RTL ? 'right' : 'left'} gradient={false}>
-                {items.map((item, index) => (
+                {students.map((item, index) => (
                   <Item key={index} item={item} />
                 ))}
               </Marquee>
@@ -158,7 +149,7 @@ export default function TestimonialPage() {
           <Grid item xs={12} sx={{ direction: theme.direction }}>
             <FadeInWhenVisible>
               <Marquee pauseOnHover direction={theme.direction === ThemeDirection.RTL ? 'left' : 'right'} gradient={false}>
-                {items.map((item, index) => (
+                {students.map((item, index) => (
                   <Item key={index} item={item} />
                 ))}
               </Marquee>

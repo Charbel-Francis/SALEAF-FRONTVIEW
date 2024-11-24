@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, View, ScrollView, Platform } from "react-native";
+import { StyleSheet, View, ScrollView, Platform, Alert } from "react-native";
 import {
   Portal,
   Dialog,
@@ -10,18 +10,33 @@ import {
   TextInput,
   HelperText,
   Surface,
+  ActivityIndicator,
 } from "react-native-paper";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import axiosInstance from "@/utils/config";
+import { useRouter } from "expo-router";
 
-// Package types with their base prices
-const PACKAGES = [
-  { id: "standard", label: "Standard Package", basePrice: 2500 },
-  { id: "premium", label: "Premium Package", basePrice: 3500 },
-  { id: "vip", label: "VIP Package", basePrice: 5000 },
-];
+interface Package {
+  packageName: string;
+  packagePrice: number;
+}
+
+interface EventRegistrationRequest {
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  numberOfParticipant: number;
+  eventId: number;
+  packageName: string;
+  cancelUrl: string;
+  successUrl: string;
+  failureUrl: string;
+  amount: number;
+  currency: string;
+}
 
 type RegistrationDialogProps = {
   visible: boolean;
@@ -30,11 +45,18 @@ type RegistrationDialogProps = {
     package: string;
     quantity: number;
     totalPrice: number;
-    name: string;
+    firstName: string;
+    lastName: string;
     email: string;
     phone: string;
   }) => void;
   eventTitle: string;
+  packages: Package[];
+  eventId: number;
+  successUrl: string;
+  cancelUrl: string;
+  failureUrl: string;
+  currency: string;
 };
 
 export default function RegistrationDialog({
@@ -42,43 +64,173 @@ export default function RegistrationDialog({
   onDismiss,
   onSubmit,
   eventTitle,
+  packages,
+  eventId,
+  successUrl,
+  cancelUrl,
+  failureUrl,
+  currency,
 }: RegistrationDialogProps) {
-  const [selectedPackage, setSelectedPackage] = useState(PACKAGES[0].id);
+  const [selectedPackage, setSelectedPackage] = useState<string>(
+    packages?.[0]?.packageName || ""
+  );
   const [quantity, setQuantity] = useState("1");
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [totalPrice, setTotalPrice] = useState(PACKAGES[0].basePrice);
+  const [totalPrice, setTotalPrice] = useState(
+    packages?.[0]?.packagePrice || 0
+  );
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
-  // Validate email format
+  useEffect(() => {
+    if (packages?.length > 0 && !selectedPackage) {
+      setSelectedPackage(packages[0].packageName);
+      setTotalPrice(packages[0].packagePrice);
+    }
+  }, [packages]);
+
   const emailIsValid = (email: string) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
 
-  // Calculate total price whenever package or quantity changes
   useEffect(() => {
-    const selectedPackageDetails = PACKAGES.find(
-      (pkg) => pkg.id === selectedPackage
+    const selectedPackageDetails = packages.find(
+      (pkg) => pkg.packageName === selectedPackage
     );
     if (selectedPackageDetails) {
       const qty = parseInt(quantity) || 0;
-      setTotalPrice(selectedPackageDetails.basePrice * qty);
+      setTotalPrice(selectedPackageDetails.packagePrice * qty);
     }
-  }, [selectedPackage, quantity]);
+  }, [selectedPackage, quantity, packages]);
 
-  const handleSubmit = () => {
-    if (!name || !emailIsValid(email) || !phone || parseInt(quantity) < 1) {
+  const submitEventRegistration = async (registrationData: {
+    package: string;
+    quantity: number;
+    totalPrice: number;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+  }) => {
+    const requestData: EventRegistrationRequest = {
+      firstName: registrationData.firstName,
+      lastName: registrationData.lastName,
+      phoneNumber: registrationData.phone,
+      numberOfParticipant: registrationData.quantity,
+      eventId,
+      packageName: registrationData.package,
+      cancelUrl,
+      successUrl,
+      failureUrl,
+      amount: registrationData.totalPrice,
+      currency,
+    };
+
+    try {
+      console.log(
+        "Sending request with data:",
+        JSON.stringify(requestData, null, 2)
+      );
+      const response = await axiosInstance.post(
+        "/EventRegistration",
+        requestData
+      );
+
+      if (response.status === 200) {
+        console.log("Success response:", response.data);
+        router.push({
+          pathname: "/pages/paymentGateway",
+          params: { donationLink: response.data.redirectUrl },
+        });
+      }
+    } catch (error: any) {
+      console.error("Full error object:", error);
+
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        console.error("Error response data:", error.response.data);
+        console.error("Error response status:", error.response.status);
+        console.error("Error response headers:", error.response.headers);
+
+        // Show detailed error to user
+        let errorMessage = "Registration failed: ";
+        if (error.response.data && error.response.data.message) {
+          errorMessage += error.response.data.message;
+        } else if (
+          error.response.data &&
+          typeof error.response.data === "string"
+        ) {
+          errorMessage += error.response.data;
+        } else if (error.response.status === 400) {
+          errorMessage +=
+            "Invalid registration details. Please check your information.";
+        } else {
+          errorMessage += "Something went wrong. Please try again.";
+        }
+
+        Alert.alert("Registration Error", errorMessage, [
+          { text: "OK", onPress: () => console.log("OK Pressed") },
+        ]);
+      } else if (error.request) {
+        // The request was made but no response was received
+        console.error("Error request:", error.request);
+        Alert.alert(
+          "Network Error",
+          "Unable to connect to the server. Please check your internet connection.",
+          [{ text: "OK", onPress: () => console.log("OK Pressed") }]
+        );
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        console.error("Error message:", error.message);
+        Alert.alert(
+          "Error",
+          "An unexpected error occurred. Please try again.",
+          [{ text: "OK", onPress: () => console.log("OK Pressed") }]
+        );
+      }
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (
+      !firstName ||
+      !lastName ||
+      !emailIsValid(email) ||
+      !phone ||
+      parseInt(quantity) < 1
+    ) {
+      Alert.alert(
+        "Validation Error",
+        "Please fill in all required fields correctly.",
+        [{ text: "OK", onPress: () => console.log("OK Pressed") }]
+      );
       return;
     }
 
-    onSubmit({
-      package: selectedPackage,
-      quantity: parseInt(quantity),
-      totalPrice,
-      name,
-      email,
-      phone,
-    });
+    setIsLoading(true);
+    try {
+      const registrationData = {
+        package: selectedPackage,
+        quantity: parseInt(quantity),
+        totalPrice,
+        firstName,
+        lastName,
+        email,
+        phone,
+      };
+
+      console.log("Submitting registration with data:", registrationData);
+      await submitEventRegistration(registrationData);
+      onSubmit(registrationData);
+    } catch (error) {
+      console.error("Submit error:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -97,13 +249,13 @@ export default function RegistrationDialog({
                   onValueChange={(value) => setSelectedPackage(value)}
                   value={selectedPackage}
                 >
-                  {PACKAGES.map((pkg) => (
-                    <View key={pkg.id} style={styles.packageRow}>
+                  {packages.map((pkg) => (
+                    <View key={pkg.packageName} style={styles.packageRow}>
                       <RadioButton.Item
                         label={`${
-                          pkg.label
-                        } - R${pkg.basePrice.toLocaleString()}`}
-                        value={pkg.id}
+                          pkg.packageName
+                        } - ${currency}${pkg.packagePrice.toLocaleString()}`}
+                        value={pkg.packageName}
                         position="leading"
                         labelStyle={styles.radioLabel}
                         style={styles.radioItem}
@@ -134,15 +286,26 @@ export default function RegistrationDialog({
 
               {/* Personal Information */}
               <Text style={styles.sectionTitle}>Contact Information</Text>
-              <TextInput
-                mode="outlined"
-                label="Full Name"
-                value={name}
-                onChangeText={setName}
-                style={styles.input}
-                outlineColor="#ccc"
-                activeOutlineColor="#2196F3"
-              />
+              <View style={styles.nameContainer}>
+                <TextInput
+                  mode="outlined"
+                  label="First Name"
+                  value={firstName}
+                  onChangeText={setFirstName}
+                  style={[styles.input, styles.nameInput]}
+                  outlineColor="#ccc"
+                  activeOutlineColor="#2196F3"
+                />
+                <TextInput
+                  mode="outlined"
+                  label="Last Name"
+                  value={lastName}
+                  onChangeText={setLastName}
+                  style={[styles.input, styles.nameInput]}
+                  outlineColor="#ccc"
+                  activeOutlineColor="#2196F3"
+                />
+              </View>
               <TextInput
                 mode="outlined"
                 label="Email"
@@ -175,7 +338,8 @@ export default function RegistrationDialog({
               <Surface style={styles.priceContainer}>
                 <Text style={styles.priceLabel}>Total Price:</Text>
                 <Text style={styles.priceValue}>
-                  R{totalPrice.toLocaleString()}
+                  {currency}
+                  {totalPrice.toLocaleString()}
                 </Text>
               </Surface>
             </View>
@@ -187,6 +351,7 @@ export default function RegistrationDialog({
             onPress={onDismiss}
             textColor="#666"
             style={styles.actionButton}
+            disabled={isLoading}
           >
             Cancel
           </Button>
@@ -194,13 +359,22 @@ export default function RegistrationDialog({
             mode="contained"
             onPress={handleSubmit}
             disabled={
-              !name || !emailIsValid(email) || !phone || parseInt(quantity) < 1
+              isLoading ||
+              !firstName ||
+              !lastName ||
+              !emailIsValid(email) ||
+              !phone ||
+              parseInt(quantity) < 1
             }
             buttonColor="#2196F3"
             textColor="white"
             style={styles.actionButton}
           >
-            Register
+            {isLoading ? (
+              <ActivityIndicator color="white" size="small" />
+            ) : (
+              "Register"
+            )}
           </Button>
         </Dialog.Actions>
       </Dialog>
@@ -209,6 +383,15 @@ export default function RegistrationDialog({
 }
 
 const styles = StyleSheet.create({
+  // ... (previous styles remain the same)
+  nameContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: wp("2%"),
+  },
+  nameInput: {
+    flex: 1,
+  },
   dialog: {
     marginVertical: -hp("5%"),
     backgroundColor: "white",

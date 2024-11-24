@@ -8,9 +8,17 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import { useAuth } from "@/context/JWTContext";
+import { useAuthVisibility } from "@/context/AuthVisibilityContext";
+import { useRouter } from "expo-router";
 
 const Apply_Funding_Card = () => {
-  const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const router = useRouter();
+  const { authState } = useAuth();
+  const { showSignIn } = useAuthVisibility();
+  const isAuthenticated = () => {
+    return authState?.authenticated === true;
+  };
 
   return (
     <Card
@@ -58,7 +66,11 @@ const Apply_Funding_Card = () => {
                 color: "white",
                 textAlign: "center",
               }}
-              onPress={() => navigation.navigate("pages/Application_Form")}
+              onPress={() => {
+                isAuthenticated()
+                  ? router.navigate("/pages/Application_Form")
+                  : showSignIn();
+              }}
             />
           </View>
         </View>
