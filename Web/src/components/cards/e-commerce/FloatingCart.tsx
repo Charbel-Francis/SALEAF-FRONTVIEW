@@ -31,7 +31,7 @@ export default function FloatingCart() {
   return (
     <Fab
       component={Link}
-      to="/apps/e-commerce/checkout"
+      to="/apps/event/checkout"
       size="large"
       variant="circular"
       sx={{

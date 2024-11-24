@@ -33,7 +33,7 @@ const Technologies = [
     image: featureEcommerce,
     title: 'E-commerce',
     href: 'ecommerce',
-    description: 'Collection, Filter, Product Detail, Add New Product, and Checkout pages makes your e-commerce app complete.'
+    description: 'Collection, Filter, Product Detail, Add New Event, and Checkout pages makes your e-commerce app complete.'
   },
   {
     image: featureMail,
