@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,17 +8,39 @@ import {
   Image,
   Platform,
   StyleSheet,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import { BlurView } from "expo-blur";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { LinearGradient } from "expo-linear-gradient";
 import * as ImagePicker from "expo-image-picker";
+import axios from "axios";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import axiosInstance from "@/utils/config";
+import { useRouter } from "expo-router";
+import * as DocumentPicker from "expo-document-picker";
+interface ProfileData {
+  firstName: string;
+  lastName: string;
+  bio: string;
+  skills: string[];
+  achievements: string[];
+  university: string;
+  degree: string;
+  graduationDate: string;
+  year: string;
+  isFinalYear: boolean;
+  onlineProfile: string;
+  profileImage: string | null;
+}
 
 export default function ProfileScreen() {
+  const [loading, setLoading] = useState(true);
+  const [hasProfile, setHasProfile] = useState(false);
   const [editingSections, setEditingSections] = useState({
     header: false,
     bio: false,
@@ -27,40 +49,226 @@ export default function ProfileScreen() {
   });
   const [newSkill, setNewSkill] = useState("");
   const [newAchievement, setNewAchievement] = useState("");
-
-  const [profileData, setProfileData] = useState({
-    firstName: "John",
-    lastName: "Doe",
-    bio: "Passionate computer science student with a focus on mobile development and AI.",
-    skills: ["React Native", "TypeScript", "Python", "Machine Learning"],
-    achievements: ["First Place Hackathon 2023", "Dean's List 2022"],
-    university: "Tech University",
-    degree: "BSc Computer Science",
-    graduationDate: "2025-05",
-    year: "3rd",
-    onlineProfile: "github.com/johndoe",
-    profileImage: null as string | null,
+  const router = useRouter();
+  const [profileData, setProfileData] = useState<ProfileData>({
+    firstName: "",
+    lastName: "",
+    bio: "",
+    skills: [],
+    achievements: [],
+    university: "",
+    degree: "",
+    graduationDate: new Date().toISOString(),
+    year: "",
+    isFinalYear: false,
+    onlineProfile: "",
+    profileImage: null,
   });
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    try {
+      const response = await axiosInstance.get(
+        "/api/StudentProfile/get-logged-user-profile"
+      );
+      console.log("Profile Data:", response.data);
+
+      if (response.data) {
+        setProfileData({
+          ...response.data,
+          profileImage: response.data.imageUrl,
+        });
+        setHasProfile(true);
+      }
+      setLoading(false);
+    } catch (error: any) {
+      setLoading(false);
+      setHasProfile(false);
+
+      // Detailed error logging
+      console.error("Profile fetch error details:", {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        headers: error.response?.headers,
+        config: {
+          url: error.config?.url,
+          method: error.config?.method,
+          headers: error.config?.headers,
+        },
+      });
+
+      // Handle specific error cases
+      if (error.response) {
+        // Server responded with error
+        switch (error.response.status) {
+          case 401:
+            console.error("Authentication error - user not authorized");
+            // You might want to trigger a logout or token refresh here
+            break;
+          case 403:
+            console.error(
+              "Permission denied - user not allowed to access profile"
+            );
+            break;
+          case 404:
+            console.error("Profile not found");
+            break;
+          case 500:
+            console.error("Server error:", error.response.data);
+            break;
+          default:
+            console.error(
+              `Unexpected error (${error.response.status}):`,
+              error.response.data
+            );
+        }
+      } else if (error.request) {
+        // Request made but no response received
+        console.error("Network error - no response received:", error.request);
+      } else {
+        // Error in setting up the request
+        console.error("Request setup error:", error.message);
+      }
+
+      // Check request headers
+      console.log("Request headers:", {
+        authorization:
+          error.config?.headers?.Authorization || "No auth header found",
+        contentType: error.config?.headers?.["Content-Type"],
+      });
+    }
+  };
+
+  const updateProfile = async () => {
+    try {
+      setLoading(true);
+
+      // Create FormData instance
+      const formData = new FormData();
+
+      // Add all profile data fields with null checks
+      formData.append("FirstName", profileData.firstName || "");
+      formData.append("LastName", profileData.lastName || "");
+      formData.append("Bio", profileData.bio || "");
+      formData.append("University", profileData.university || "");
+      formData.append("Degree", profileData.degree || "");
+      formData.append(
+        "GraduationDate",
+        profileData.graduationDate || new Date().toISOString()
+      );
+      formData.append("Year", profileData.year || "");
+      formData.append("IsFinalYear", String(Boolean(profileData.isFinalYear)));
+      formData.append("OnlineProfile", profileData.onlineProfile || "");
+
+      // Add arrays as JSON strings with null checks
+      formData.append("Skills", JSON.stringify(profileData.skills || []));
+      formData.append(
+        "Achievements",
+        JSON.stringify(profileData.achievements || [])
+      );
+
+      // Handle profile image
+      if (profileData.profileImage) {
+        if (profileData.profileImage.startsWith("file://")) {
+          const imageUri = profileData.profileImage;
+          const filename = imageUri.split("/").pop() || "image.jpg";
+          const match = /\.(\w+)$/.exec(filename);
+          const type = match ? `image/${match[1]}` : "image/jpeg";
+
+          formData.append("ProfileImage", {
+            uri: imageUri,
+            name: filename,
+            type,
+          } as any);
+        } else if (profileData.profileImage.startsWith("data:")) {
+          // Handle base64 image if needed
+          formData.append("ProfileImage", profileData.profileImage);
+        }
+      }
+
+      const response = await axiosInstance.put(
+        "/api/StudentProfile/update-profile",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          transformRequest: (data) => data,
+        }
+      );
+
+      console.log("Profile update response:", response.data);
+      Alert.alert("Success", "Profile updated successfully!");
+    } catch (error: any) {
+      console.error("Update error details:", {
+        message: error.message,
+        response: error.response?.data,
+        stack: error.stack,
+      });
+      Alert.alert(
+        "Error",
+        error.response?.data?.message ||
+          "Failed to update profile. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   type Section = "header" | "bio" | "skills" | "achievements";
 
-  const toggleEditSection = (section: Section) => {
+  const toggleEditSection = async (section: Section) => {
+    if (editingSections[section]) {
+      await updateProfile();
+    }
     setEditingSections((prev) => ({
       ...prev,
       [section]: !prev[section],
     }));
   };
 
-  const pickImage = async () => {};
+  const pickImage = async (
+    setFieldValue: React.Dispatch<React.SetStateAction<ProfileData>>
+  ) => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ["image/*", "application/pdf"],
+      });
+      if (!result.canceled) {
+        setFieldValue((prev) => ({
+          ...prev,
+          profileImage: result.assets[0].uri,
+        }));
+      } else {
+        setFieldValue((prev) => ({ ...prev, profileImage: null }));
+      }
+    } catch (error) {
+      console.error("Error picking document:", error);
+    }
+  };
 
   const addSkill = () => {
-    if (newSkill.trim()) {
-      setProfileData((prev) => ({
-        ...prev,
-        skills: [...prev.skills, newSkill.trim()],
-      }));
-      setNewSkill("");
-    }
+    if (!newSkill.trim()) return;
+
+    setProfileData((prev) => ({
+      ...prev,
+      skills: [...(prev.skills || []), newSkill.trim()],
+    }));
+    setNewSkill("");
+  };
+
+  const addAchievement = () => {
+    if (!newAchievement.trim()) return;
+
+    setProfileData((prev) => ({
+      ...prev,
+      achievements: [...(prev.achievements || []), newAchievement.trim()],
+    }));
+    setNewAchievement("");
   };
 
   const removeSkill = (index: number) => {
@@ -70,22 +278,40 @@ export default function ProfileScreen() {
     }));
   };
 
-  const addAchievement = () => {
-    if (newAchievement.trim()) {
-      setProfileData((prev) => ({
-        ...prev,
-        achievements: [...prev.achievements, newAchievement.trim()],
-      }));
-      setNewAchievement("");
-    }
-  };
-
   const removeAchievement = (index: number) => {
     setProfileData((prev) => ({
       ...prev,
       achievements: prev.achievements.filter((_, i) => i !== index),
     }));
   };
+  const EmptyProfileView = () => (
+    <View style={styles.emptyProfileContainer}>
+      <Ionicons name="person-circle-outline" size={wp("20%")} color="#3949ab" />
+      <Text style={styles.emptyProfileTitle}>Create Your Profile</Text>
+      <Text style={styles.emptyProfileText}>
+        Would you like to promote yourself for employment from potential donors?
+        Create your profile now!
+      </Text>
+      <Pressable
+        style={styles.createProfileButton}
+        onPress={() => router.navigate("/pages/CreateProfile")}
+      >
+        <Text style={styles.createProfileButtonText}>Create Profile</Text>
+      </Pressable>
+    </View>
+  );
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#3949ab" />
+      </View>
+    );
+  }
+
+  if (!hasProfile) {
+    return <EmptyProfileView />;
+  }
 
   return (
     <View style={styles.container}>
@@ -96,7 +322,11 @@ export default function ProfileScreen() {
       >
         <View style={styles.imageContainer}>
           <Pressable
-            onPress={editingSections.header ? pickImage : undefined}
+            onPress={
+              editingSections.header
+                ? () => pickImage(setProfileData)
+                : undefined
+            }
             style={styles.imageWrapper}
           >
             {profileData.profileImage ? (
@@ -217,13 +447,15 @@ export default function ProfileScreen() {
           {/* Quick Stats */}
           <View style={styles.quickStats}>
             <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{profileData.skills.length}</Text>
+              <Text style={styles.statNumber}>
+                {profileData?.skills?.length || 0}
+              </Text>
               <Text style={styles.statLabel}>Skills</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
               <Text style={styles.statNumber}>
-                {profileData.achievements.length}
+                {profileData?.achievements?.length || 0}
               </Text>
               <Text style={styles.statLabel}>Achievements</Text>
             </View>
@@ -321,23 +553,24 @@ export default function ProfileScreen() {
               </View>
             )}
             <View style={styles.tagContainer}>
-              {profileData.skills.map((skill, index) => (
-                <View key={index} style={styles.tag}>
-                  <Text style={styles.tagText}>{skill}</Text>
-                  {editingSections.skills && (
-                    <Pressable
-                      onPress={() => removeSkill(index)}
-                      style={styles.removeTagButton}
-                    >
-                      <Ionicons
-                        name="close-circle"
-                        size={wp("4%")}
-                        color="#3949ab"
-                      />
-                    </Pressable>
-                  )}
-                </View>
-              ))}
+              {Array.isArray(profileData?.skills) &&
+                profileData.skills.map((skill, index) => (
+                  <View key={index} style={styles.tag}>
+                    <Text style={styles.tagText}>{skill}</Text>
+                    {editingSections.skills && (
+                      <Pressable
+                        onPress={() => removeSkill(index)}
+                        style={styles.removeTagButton}
+                      >
+                        <Ionicons
+                          name="close-circle"
+                          size={wp("4%")}
+                          color="#3949ab"
+                        />
+                      </Pressable>
+                    )}
+                  </View>
+                ))}
             </View>
           </View>
 
@@ -383,31 +616,32 @@ export default function ProfileScreen() {
                 </Pressable>
               </View>
             )}
-            {profileData.achievements.map((achievement, index) => (
-              <View key={index} style={styles.achievementItem}>
-                <View style={styles.achievementIcon}>
-                  <LinearGradient
-                    colors={["#FFD700", "#FFA000"]}
-                    style={styles.achievementIconGradient}
-                  >
-                    <Ionicons name="star" size={wp("4%")} color="white" />
-                  </LinearGradient>
+            {Array.isArray(profileData?.achievements) &&
+              profileData.achievements.map((achievement, index) => (
+                <View key={index} style={styles.achievementItem}>
+                  <View style={styles.achievementIcon}>
+                    <LinearGradient
+                      colors={["#FFD700", "#FFA000"]}
+                      style={styles.achievementIconGradient}
+                    >
+                      <Ionicons name="star" size={wp("4%")} color="white" />
+                    </LinearGradient>
+                  </View>
+                  <Text style={styles.achievementText}>{achievement}</Text>
+                  {editingSections.achievements && (
+                    <Pressable
+                      onPress={() => removeAchievement(index)}
+                      style={styles.removeAchievementButton}
+                    >
+                      <Ionicons
+                        name="close-circle"
+                        size={wp("5%")}
+                        color="#666"
+                      />
+                    </Pressable>
+                  )}
                 </View>
-                <Text style={styles.achievementText}>{achievement}</Text>
-                {editingSections.achievements && (
-                  <Pressable
-                    onPress={() => removeAchievement(index)}
-                    style={styles.removeAchievementButton}
-                  >
-                    <Ionicons
-                      name="close-circle"
-                      size={wp("5%")}
-                      color="#666"
-                    />
-                  </Pressable>
-                )}
-              </View>
-            ))}
+              ))}
           </View>
         </View>
       </ScrollView>
@@ -533,7 +767,43 @@ const styles = StyleSheet.create({
   contentContainer: {
     padding: wp("4%"),
     marginTop: -hp("2%"),
-    paddingBottom: hp("10%"), // Added padding for tab bar
+    paddingBottom: hp("10%"),
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  emptyProfileContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: wp("8%"),
+    backgroundColor: "#F5F7FA",
+  },
+  emptyProfileTitle: {
+    fontSize: wp("6%"),
+    fontWeight: "bold",
+    color: "#3949ab",
+    marginVertical: hp("2%"),
+  },
+  emptyProfileText: {
+    fontSize: wp("4%"),
+    color: "#666",
+    textAlign: "center",
+    marginBottom: hp("4%"),
+    lineHeight: wp("6%"),
+  },
+  createProfileButton: {
+    backgroundColor: "#3949ab",
+    paddingHorizontal: wp("8%"),
+    paddingVertical: hp("2%"),
+    borderRadius: wp("2%"),
+  },
+  createProfileButtonText: {
+    color: "white",
+    fontSize: wp("4%"),
+    fontWeight: "600",
   },
   quickStats: {
     flexDirection: "row",

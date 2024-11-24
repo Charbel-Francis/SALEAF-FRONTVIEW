@@ -31,6 +31,7 @@ import event from "@/assets/images/event.png";
 import graduated from "@/assets/images/graduated.png";
 import golf from "@/assets/images/images.jpeg";
 import students from "@/assets/images/student.jpg";
+import { QuickReply } from "@/types/types";
 export const images = {
   clearLogo,
   event,
@@ -243,3 +244,10 @@ interface FamilyBackground {
   grossMonthly?: string;
   otherIncome?: string;
 }
+
+export const MOCK_QUICK_REPLIES: QuickReply[] = [
+  { id: "1", text: "Technical Support" },
+  { id: "2", text: "Billing Question" },
+  { id: "3", text: "Feature Request" },
+  { id: "4", text: "Account Help" },
+];

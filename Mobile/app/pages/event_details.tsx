@@ -1,6 +1,13 @@
 import { useLocalSearchParams, Stack, useRouter } from "expo-router";
 import Animated from "react-native-reanimated";
-import { View, StyleSheet, Pressable, Text, ScrollView } from "react-native";
+import {
+  View,
+  StyleSheet,
+  Pressable,
+  Text,
+  ScrollView,
+  ActivityIndicator,
+} from "react-native";
 import { BlurView } from "expo-blur";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import {
@@ -8,10 +15,22 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import { sharedTransition } from "@/components/transitions/sharedTransitions";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import RegistrationDialog from "@/components/Events/Register_Dialog";
 import { useAuth } from "@/context/JWTContext";
 import { useAuthVisibility } from "@/context/AuthVisibilityContext";
+import { EventInterface } from "@/types/types";
+import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
+
+interface RegistrationData {
+  package: string;
+  quantity: number;
+  totalPrice: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+}
 
 export default function EventDetailScreen() {
   const params = useLocalSearchParams();
@@ -19,24 +38,14 @@ export default function EventDetailScreen() {
   const { showSignIn } = useAuthVisibility();
   const router = useRouter();
   const [registrationVisible, setRegistrationVisible] = useState(false);
-  interface RegistrationData {
-    name: string;
-    email: string;
-    [key: string]: any;
-  }
+  const [isLoading, setIsLoading] = useState(true);
+  const [evtPackages, setevtPackages] = useState<EventInterface["packages"]>(
+    []
+  );
+  const [eventPackages, setEventPackages] = useState<
+    EventInterface["packages"]
+  >([]);
 
-  const handleRegistration = (registrationData: RegistrationData) => {
-    setRegistrationVisible(false);
-  };
-  const openRegistration = () => {
-    try {
-      if (authState?.authenticated) {
-        setRegistrationVisible(true);
-      } else {
-        showSignIn();
-      }
-    } catch (error) {}
-  };
   const {
     eventId,
     eventName,
@@ -48,8 +57,98 @@ export default function EventDetailScreen() {
     startTime,
     endTime,
     status,
-    eventPrice,
-  } = params;
+    packages,
+  } = params as unknown as EventInterface;
+
+  useEffect(() => {
+    if (params) {
+      try {
+        const parsedPackages = Array.isArray(packages)
+          ? packages.map((pkg) =>
+              typeof pkg === "string" ? JSON.parse(pkg) : pkg
+            )
+          : [];
+
+        setEventPackages(parsedPackages);
+        getPackages();
+        console.log(eventImageUrl);
+      } catch (error) {
+        console.error("Error parsing packages:", error);
+        setEventPackages([]);
+      }
+      setIsLoading(false);
+    }
+  }, []);
+
+  const handleRegistration = (registrationData: RegistrationData) => {
+    setRegistrationVisible(false);
+  };
+
+  const openRegistration = () => {
+    try {
+      if (authState?.authenticated) {
+        setRegistrationVisible(true);
+      } else {
+        showSignIn();
+      }
+    } catch (error) {
+      console.error("Error in openRegistration:", error);
+    }
+  };
+
+  const getPackages = () => {
+    try {
+      let eventPackages;
+      if (typeof packages === "string") {
+        eventPackages = JSON.parse(packages);
+      } else if (Array.isArray(packages)) {
+        eventPackages = packages;
+      }
+
+      setevtPackages(eventPackages);
+    } catch (error) {
+      console.error("Error getting packages:", error);
+    }
+  };
+
+  const getStartingPrice = () => {
+    try {
+      let parsedPackages;
+      if (typeof packages === "string") {
+        parsedPackages = JSON.parse(packages);
+      } else if (Array.isArray(packages)) {
+        parsedPackages = packages;
+      } else {
+        return "N/A";
+      }
+      if (parsedPackages && parsedPackages.length > 0) {
+        const prices: number[] = (parsedPackages as { packagePrice: number }[])
+          .map((pkg) => pkg.packagePrice)
+          .filter((price): price is number => Boolean(price));
+        if (prices.length > 0) {
+          const minPrice = Math.min(...prices);
+          return `R${minPrice.toFixed(2)}`;
+        }
+      }
+      return "N/A";
+    } catch (error) {
+      console.error("Error processing price:", error);
+      return "N/A";
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <View
+        style={[
+          styles.container,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
+      >
+        <ActivityIndicator size="large" color="#007AFF" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -159,14 +258,9 @@ export default function EventDetailScreen() {
       <View style={styles.footer}>
         <View style={styles.priceContainer}>
           <Text style={styles.priceLabel}>Starting from</Text>
-          <Text style={styles.priceValue}>{eventPrice}</Text>
+          <Text style={styles.priceValue}>{getStartingPrice()}</Text>
         </View>
-        <Pressable
-          style={styles.bookButton}
-          onPress={() => {
-            openRegistration();
-          }}
-        >
+        <Pressable style={styles.bookButton} onPress={openRegistration}>
           <Text style={styles.bookButtonText}>Book Now</Text>
         </Pressable>
       </View>
@@ -176,11 +270,18 @@ export default function EventDetailScreen() {
           <Ionicons name="arrow-back" size={wp("6%")} color="black" />
         </BlurView>
       </Pressable>
+
       <RegistrationDialog
         visible={registrationVisible}
         onDismiss={() => setRegistrationVisible(false)}
         onSubmit={handleRegistration}
-        eventTitle={"test"}
+        eventTitle={eventName}
+        packages={evtPackages}
+        cancelUrl={`http://localhost:3000/cancel`}
+        successUrl={`http://localhost:3000/success`}
+        failureUrl={`http://localhost:3000/failure`}
+        currency="ZAR"
+        eventId={eventId}
       />
     </View>
   );

@@ -59,21 +59,27 @@ const Header: React.FC<HeaderProps> = ({ scrollY, navigation }) => {
       [0, 1],
       Extrapolate.CLAMP
     );
-    return { opacity };
+    return {
+      backgroundColor: `rgba(255, 255, 255, ${opacity})`,
+    };
   });
 
   return (
     <Animated.View style={[styles.header, headerStyle]}>
-      <BlurView intensity={100} style={StyleSheet.absoluteFill} />
+      <BlurView intensity={100} style={[StyleSheet.absoluteFill]} />
       <View style={styles.headerContent}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
-          style={styles.backButton}
+          style={[styles.backButton, { opacity: 1 }]} // Force opacity to 1
         >
           <Ionicons name="chevron-back" size={wp("6%")} color="#1F2937" />
           <Text style={styles.backText}>Back</Text>
         </TouchableOpacity>
-        <Animated.Text style={styles.headerTitle}>About Us</Animated.Text>
+        <Animated.Text
+          style={[styles.headerTitle, { opacity: scrollY.value > 20 ? 1 : 0 }]}
+        >
+          About Us
+        </Animated.Text>
       </View>
     </Animated.View>
   );
@@ -289,7 +295,6 @@ const styles = StyleSheet.create({
     right: 0,
     zIndex: 1000,
     height: Platform.OS === "ios" ? hp("12%") : hp("8%"),
-    backgroundColor: "rgba(255, 255, 255, 0.85)",
   },
   headerContent: {
     flex: 1,
@@ -306,6 +311,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     zIndex: 1,
     paddingTop: Platform.OS === "ios" ? hp("4%") : hp("2%"),
+    // Add background for better visibility when at top
+    backgroundColor: "rgba(255, 255, 255, 0.5)",
+    padding: wp("2%"),
+    borderRadius: wp("5%"),
   },
   backText: {
     fontSize: wp("4%"),

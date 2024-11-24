@@ -172,7 +172,7 @@ const LoginCard = React.memo(() => {
       style={{
         height: isAuthenticated()
           ? isHomeScreen
-            ? hp("20%")
+            ? hp("10%")
             : hp("10%")
           : isHomeScreen
           ? hp("25%")
@@ -212,41 +212,13 @@ const LoginCard = React.memo(() => {
               <View style={styles.headerContainer}>
                 <Image source={images.clearLogo} style={styles.logo} />
                 <View style={styles.iconsContainer}>
-                  <TouchableOpacity style={styles.icon} onPress={() => {}}>
-                    <Ionicons
-                      name="notifications"
-                      size={isHomeScreen ? wp("8%") : wp("8%")}
-                      color="black"
-                    />
-                  </TouchableOpacity>
                   <ProfileMenu />
                 </View>
               </View>
               {isHomeScreen && (
                 <View style={styles.welcomeContainer}>
                   {isAuthenticated() ? (
-                    <View style={styles.progressContainer}>
-                      <View style={styles.progressHeader}>
-                        <Text style={styles.percentageText}>75%</Text>
-                      </View>
-                      <View style={styles.progressBarContainer}>
-                        <Ionicons
-                          name="leaf"
-                          size={wp("5%")}
-                          style={styles.leafIcon}
-                        />
-                        <View style={styles.progressBarWrapper}>
-                          <Animated.View
-                            style={[styles.progressBar, { width: "75%" }]}
-                          />
-                        </View>
-                        <Ionicons
-                          name="leaf"
-                          size={wp("5%")}
-                          style={styles.leafIcon}
-                        />
-                      </View>
-                    </View>
+                    <View style={styles.progressContainer}></View>
                   ) : (
                     <>
                       <Text style={styles.welcomeText}>

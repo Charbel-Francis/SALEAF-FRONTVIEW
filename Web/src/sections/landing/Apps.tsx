@@ -1,73 +1,19 @@
 import { useRef, useState } from 'react';
-
-// material-ui
-import { alpha, useTheme } from '@mui/material/styles';
+import { useTheme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Button from '@mui/material/Button';
 import CardMedia from '@mui/material/CardMedia';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
-
-// project-imports
-import FadeInWhenVisible from './Animation';
-import { ThemeDirection } from 'config';
-
-// third-party
+import { motion } from 'framer-motion';
 import Slider, { Settings } from 'react-slick';
+import SALEAFChurchhill from '../../assets/images/landing/churchill-saleaf-1024x548.jpg';
+// Import your images here
 
-// assets
-import featureChat from 'assets/images/landing/chat.png';
-import featureEcommerce from 'assets/images/landing/e-commerce.png';
-import featureMail from 'assets/images/landing/mail.png';
-import featureSocial from 'assets/images/landing/social.png';
-
-const Technologies = [
-  {
-    image: featureChat,
-    title: 'Chat',
-    href: 'chat',
-    description: 'Power your web apps with the conceptual chat app of Able Pro Dashboard Template.'
-  },
-  {
-    image: featureEcommerce,
-    title: 'E-commerce',
-    href: 'ecommerce',
-    description: 'Collection, Filter, Product Detail, Add New Product, and Checkout pages makes your e-commerce app complete.'
-  },
-  {
-    image: featureMail,
-    title: 'Inbox',
-    href: 'mail',
-    description: 'Compose Message, List Message (email), Detailed Inbox pages well suited for any conversation based web apps.'
-  },
-  {
-    image: featureSocial,
-    title: 'User Management',
-    href: 'social',
-    description: 'Detailed pages for User Management like Profile settings, role, account settings, social profile and more to explore.'
-  }
-];
-// ==============================|| LANDING - AppsPage ||============================== //
-
-export default function AppsPage() {
+export default function FundraisingPage() {
   const theme = useTheme();
-  const [slideIndex, setSlideIndex] = useState<number>(0);
-
-  function handleChange(value: number) {
-    goToSlide(value);
-    setSlideIndex(value);
-  }
-
-  const [state, setState] = useState(0);
   const sliderRef = useRef<Slider>(null);
-
-  const goToSlide = (index: number) => {
-    setState(index);
-    if (sliderRef.current) {
-      sliderRef.current.slickGoTo(index);
-    }
-  };
 
   const settings: Settings = {
     autoplay: true,
@@ -77,99 +23,172 @@ export default function AppsPage() {
     infinite: true,
     speed: 5000,
     slidesToShow: 1,
-    slidesToScroll: 1,
-    beforeChange: function (currentSlide: number, next: number) {
-      setSlideIndex(next);
-    }
+    slidesToScroll: 1
   };
 
   return (
-    <Box sx={{ bgcolor: theme.palette.primary.main, overflow: 'hidden', pt: { md: 10, xs: 5 } }}>
+    <Box sx={{ bgcolor: '#14783D', overflow: 'hidden', py: { md: 10, xs: 5 } }}>
       <Container>
         <Grid container spacing={3} alignItems="center" justifyContent="center">
+          {/* Header Section */}
           <Grid item xs={12}>
-            <Grid container spacing={2} justifyContent="center" sx={{ textAlign: 'center', marginBottom: 3 }}>
+            <Grid container spacing={2} justifyContent="center" sx={{ textAlign: 'center', mb: 5 }}>
               <Grid item xs={12}>
-                <Typography variant="h2" color="white">
-                  Working Conceptual Apps
-                </Typography>
-              </Grid>
-              <Grid item xs={12} md={7}>
-                <Typography color="white">
-                  Each App is carefully crafted to achieve the best feature rich working concept for your project
-                </Typography>
+                <motion.div
+                  initial={{ opacity: 0, translateY: 550 }}
+                  animate={{ opacity: 1, translateY: 0 }}
+                  transition={{
+                    type: 'spring',
+                    stiffness: 150,
+                    damping: 30
+                  }}
+                >
+                  <Typography variant="h2" sx={{ color: 'white', mb: 3 }}>
+                    Fundraising
+                  </Typography>
+                </motion.div>
               </Grid>
             </Grid>
           </Grid>
         </Grid>
-      </Container>
-      <Container>
-        <Grid container spacing={3} alignItems="center" justifyContent="center" sx={{ pt: { md: 10, xs: 2.5 } }}>
-          <Grid item xs={12}>
-            <Grid container spacing={3} alignItems="start">
-              <Grid item xs={12} md={6}>
-                <Box pb={{ xs: 0, md: 10 }}>
-                  <Grid container spacing={1.5} alignItems="center">
-                    {Technologies.map((tech, index) => (
-                      <Grid item xs={12} key={index}>
-                        <FadeInWhenVisible>
-                          <Button
-                            onClick={() => {
-                              handleChange(index);
-                            }}
-                            role="link"
-                            href={`#${tech.href}`}
-                            sx={{
-                              p: 3,
-                              borderRadius: 1.5,
-                              ...(slideIndex === index && {
-                                background: alpha(theme.palette.secondary.lighter, 0.13),
-                                boxShadow: theme.customShadows.z1,
-                                '&:hover': { background: alpha(theme.palette.secondary.lighter, 0.13), boxShadow: theme.customShadows.z1 }
-                              })
-                            }}
-                            variant="light"
-                          >
-                            <Grid container textAlign="start" spacing={2}>
-                              <Grid item xs={12}>
-                                <Typography variant="h4" color="white">
-                                  {tech.title}
-                                </Typography>
-                              </Grid>
-                              <Grid item xs={12}>
-                                <Typography color="white">{tech.description}</Typography>
-                              </Grid>
-                            </Grid>
-                          </Button>
-                        </FadeInWhenVisible>
-                      </Grid>
-                    ))}
-                  </Grid>
-                </Box>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Box
+
+        <Grid container spacing={4} alignItems="center" justifyContent="center">
+          {/* Content Section */}
+          <Grid item xs={12} md={6}>
+            <motion.div
+              initial={{ opacity: 0, translateY: 550 }}
+              animate={{ opacity: 1, translateY: 0 }}
+              transition={{
+                type: 'spring',
+                stiffness: 150,
+                damping: 30,
+                delay: 0.2
+              }}
+            >
+              <Box sx={{ p: { xs: 2, md: 4 } }}>
+                <Typography
+                  color="white"
                   sx={{
-                    transform: 'scale(1.56)',
-                    transformOrigin: 'top left',
-                    mt: 3,
-                    width: '100%',
-                    pointerEvents: 'none',
-                    ...(theme.direction === ThemeDirection.RTL && {
-                      '& .slick-slider > .slick-list > .slick-track > .slick-slide': { float: 'right !important' }
-                    })
+                    mb: 3,
+                    fontSize: { xs: '1rem', md: '1.125rem' },
+                    lineHeight: 1.8,
+                    textAlign: 'justify'
                   }}
                 >
-                  <Slider ref={sliderRef} {...settings}>
-                    {Technologies.map((tech, index) => (
-                      <Box key={index + state}>
-                        <CardMedia component="img" image={tech.image} sx={{ width: '100%', minHeight: '100%' }} />
-                      </Box>
-                    ))}
-                  </Slider>
-                </Box>
-              </Grid>
-            </Grid>
+                  In South Africa, our current socio-economic environment rightly requires that previously disadvantaged candidates continue
+                  to be a priority for financial support from Government, educational institutions, NGO's and the business sector; and the
+                  demand for this assistance is significant.
+                </Typography>
+
+                <Typography
+                  color="white"
+                  sx={{
+                    mb: 3,
+                    fontSize: { xs: '1rem', md: '1.125rem' },
+                    lineHeight: 1.8,
+                    textAlign: 'justify'
+                  }}
+                >
+                  This means that many South African Lebanese candidates who have excelled academically and are in need of financial
+                  assistance to further their studies are of necessity overlooked.
+                </Typography>
+
+                <Typography
+                  color="white"
+                  sx={{
+                    mb: 4,
+                    fontSize: { xs: '1rem', md: '1.125rem' },
+                    lineHeight: 1.8,
+                    textAlign: 'justify'
+                  }}
+                >
+                  Please help us to make a difference in the lives of many young students. All they need is an opportunity. No amount is too
+                  small.
+                </Typography>
+
+                <Button
+                  variant="contained"
+                  size="large"
+                  sx={{
+                    bgcolor: 'white',
+                    color: '#14783D',
+                    px: 4,
+                    py: 1.5,
+                    fontSize: '1.1rem',
+                    fontWeight: 600,
+                    '&:hover': {
+                      bgcolor: 'rgba(255, 255, 255, 0.9)'
+                    },
+                    boxShadow: '0 4px 14px 0 rgba(0, 0, 0, 0.2)'
+                  }}
+                >
+                  Donate Now
+                </Button>
+              </Box>
+            </motion.div>
+          </Grid>
+
+          {/* Slider Section */}
+          {/* Image Section */}
+          <Grid item xs={12} md={6}>
+            <motion.div
+              initial={{ opacity: 0, translateY: 550 }}
+              animate={{ opacity: 1, translateY: 0 }}
+              transition={{
+                type: 'spring',
+                stiffness: 150,
+                damping: 30,
+                delay: 0.3
+              }}
+            >
+              <Box
+                sx={{
+                  width: '100%',
+                  overflow: 'hidden',
+                  borderRadius: 2,
+                  bgcolor: 'background.paper',
+                  boxShadow: theme.customShadows?.z1,
+                  p: 2,
+                  position: 'relative',
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: 4,
+                    bgcolor: '#14783D'
+                  }
+                }}
+              >
+                <CardMedia
+                  component="img"
+                  image={SALEAFChurchhill} // Replace with your image path
+                  alt="Fundraising"
+                  sx={{
+                    width: '100%',
+                    height: { xs: '300px', md: '400px' },
+                    objectFit: 'cover',
+                    borderRadius: 1,
+                    transition: 'transform 0.3s ease-in-out',
+                    '&:hover': {
+                      transform: 'scale(1.02)'
+                    }
+                  }}
+                />
+                <Typography
+                  variant="subtitle1"
+                  sx={{
+                    mt: 2,
+                    textAlign: 'center',
+                    color: 'text.secondary',
+                    fontStyle: 'italic'
+                  }}
+                >
+                  Supporting the educational journey of South African Lebanese students
+                </Typography>
+              </Box>
+            </motion.div>
           </Grid>
         </Grid>
       </Container>

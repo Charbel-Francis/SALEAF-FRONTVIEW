@@ -17,9 +17,7 @@ export default function Landing() {
       <Technologies />
       <Combo />
       <Apps />
-      <Free />
       <Testimonial />
-      <Partner />
       <ContactUs />
     </>
   );

@@ -15,7 +15,7 @@ import {
 export default function EventDetailScreen() {
   const params = useLocalSearchParams();
   const router = useRouter();
-  const { id, title, location, date, price, imageUrl, starttime, endtime } =
+  const { id, title, location, date, packages, imageUrl, starttime, endtime } =
     params;
 
   const styles = StyleSheet.create({
@@ -154,7 +154,7 @@ export default function EventDetailScreen() {
 
           <View style={styles.priceContainer}>
             <Text style={styles.priceLabel}>Starting from:</Text>
-            <Text style={styles.priceValue}>{price}</Text>
+            <Text style={styles.priceValue}>{packages[0]}</Text>
           </View>
         </BlurView>
       </View>

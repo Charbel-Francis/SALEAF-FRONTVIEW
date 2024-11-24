@@ -4,7 +4,7 @@
     "slug": "SALEAF",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/icons/favicon.ico",
     "scheme": "saleaf",
     "platforms": [
       "ios",
@@ -29,7 +29,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/icons/favicon.ico",
         "backgroundColor": "#ffffff"
       },
       "package": "com.charbelfrancis.SALEAF"
@@ -37,7 +37,7 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/icons/favicon.ico"
     },
     "plugins": [
       "expo-router",

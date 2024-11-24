@@ -1,61 +1,109 @@
-import { Link as RouterLink } from 'react-router-dom';
-
-// material-ui
-import Link from '@mui/material/Link';
+import React from 'react';
 import Grid from '@mui/material/Grid';
-import Button from '@mui/material/Button';
-import CardMedia from '@mui/material/CardMedia';
 import Container from '@mui/material/Container';
-import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-
-// third party
-import { motion } from 'framer-motion';
-
-// project-imports
-import FadeInWhenVisible from './Animation';
+import { motion, useAnimation } from 'framer-motion';
+import { useInView } from 'react-intersection-observer';
 import MainCard from 'components/MainCard';
-import { useIspValue } from 'hooks/useIspValue';
 
-// assets
-import { ExportSquare } from 'iconsax-react';
-// import featureFigma from 'assets/images/landing/feature-figma.png';
-import featureComponents from 'assets/images/landing/feature-components.png';
-import featureDocumentation from 'assets/images/landing/feature-documentation.png';
+// Animation component
+const FadeInWhenVisible: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const controls = useAnimation();
+  const [ref, inView] = useInView();
 
-const Technologies = [
-  // {
-  //   icon: featureFigma,
-  //   title: 'Figma Design System',
-  //   description: 'Check the live preview of Able Pro Figma design file. Figma file included in all licenses.',
-  //   preview: 'https://www.figma.com/file/6XqmRhRmkr33w0EFD49acY/Able-Pro--v9.0-Figma-Preview?type=design&mode=design&t=4FS2Lw6WxsmJ3RLm-0'
-  // },
+  React.useEffect(() => {
+    if (inView) {
+      controls.start('visible');
+    }
+  }, [controls, inView]);
+
+  return (
+    <motion.div
+      ref={ref}
+      animate={controls}
+      initial="hidden"
+      transition={{ duration: 0.3 }}
+      variants={{
+        visible: { opacity: 1, y: 0 },
+        hidden: { opacity: 0, y: 20 }
+      }}
+    >
+      {children}
+    </motion.div>
+  );
+};
+
+// Type declaration for theme
+declare module '@mui/material/styles' {
+  interface Theme {
+    customShadows: {
+      z1: string;
+    };
+  }
+  interface ThemeOptions {
+    customShadows?: {
+      z1?: string;
+    };
+  }
+}
+
+// Example testimonials data
+interface Testimonial {
+  id: number;
+  name: string;
+  course: string;
+  quote: string;
+  image?: string;
+}
+
+const testimonials: Testimonial[] = [
   {
-    icon: featureComponents,
-    title: 'Explore Components',
-    description: 'Access all components of Able Pro in one place to make your development work easier.',
-    preview: '/components-overview/buttons'
+    id: 1,
+    name: 'Sarah Johnson',
+    course: 'Bachelor of Commerce',
+    quote:
+      "SALEAF's support has been instrumental in my academic journey. Their funding helped me focus on my studies without financial worry."
   },
   {
-    icon: featureDocumentation,
-    title: 'Documentation',
-    description: 'Find solutions and navigate through our helper guide with ease.',
-    preview: 'https://phoenixcoded.gitbook.io/able-pro'
+    id: 2,
+    name: 'Michael Smith',
+    course: 'Engineering',
+    quote: 'Thanks to SALEAF, I was able to pursue my dream of becoming an engineer. Their support goes beyond just financial assistance.'
+  },
+  {
+    id: 3,
+    name: 'Emma Davis',
+    course: 'Medicine',
+    quote: "The foundation's belief in my potential made all the difference. I'm proud to be a SALEAF beneficiary."
   }
 ];
 
-// ==============================|| LANDING - ComboPage ||============================== //
-
-export default function ComboPage() {
-  const ispValueAvailable = useIspValue();
-
+export default function TestimonialsPage() {
   return (
-    <Container>
-      <Grid container spacing={3} alignItems="center" justifyContent="center" sx={{ mt: { md: 15, xs: 2.5 }, mb: { md: 10, xs: 2.5 } }}>
-        <Grid item xs={12}>
-          <Grid container spacing={2} justifyContent="center" sx={{ textAlign: 'center', marginBottom: 3 }}>
-            <Grid item xs={12}>
+    <Box sx={{ bgcolor: 'background.default', py: { xs: 6, md: 10 } }}>
+      <Container>
+        <Grid container spacing={4} justifyContent="center">
+          {/* Header Section */}
+          <Grid item xs={12}>
+            <Box
+              sx={{
+                textAlign: 'center',
+                mb: 6,
+                position: 'relative',
+                '&::after': {
+                  content: '""',
+                  position: 'absolute',
+                  bottom: -16,
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: 60,
+                  height: 4,
+                  bgcolor: '#14783D',
+                  borderRadius: 1
+                }
+              }}
+            >
               <motion.div
                 initial={{ opacity: 0, translateY: 550 }}
                 animate={{ opacity: 1, translateY: 0 }}
@@ -66,81 +114,154 @@ export default function ComboPage() {
                   delay: 0.2
                 }}
               >
-                <Typography variant="h2">Complete Combo</Typography>
-              </motion.div>
-            </Grid>
-            <Grid item xs={12} md={7}>
-              <motion.div
-                initial={{ opacity: 0, translateY: 550 }}
-                animate={{ opacity: 1, translateY: 0 }}
-                transition={{
-                  type: 'spring',
-                  stiffness: 150,
-                  damping: 30,
-                  delay: 0.4
-                }}
-              >
-                <Typography>
-                  Able Pro caters to the needs of both developers and designers, whether they are beginners or experts.
-                </Typography>
-              </motion.div>
-            </Grid>
-          </Grid>
-        </Grid>
-        <Grid item xs={12}>
-          <Grid container spacing={3}>
-            {Technologies.map((tech, index) => (
-              <Grid item xs={12} md={6} key={index}>
-                <Box
+                <Typography
+                  variant="h2"
                   sx={{
-                    height: '100%',
-                    '& > div': {
-                      height: '100%'
-                    }
+                    mb: 1,
+                    color: '#14783D',
+                    fontWeight: 600
                   }}
                 >
+                  Student Testimonials
+                </Typography>
+                <Typography
+                  variant="subtitle1"
+                  color="text.secondary"
+                  sx={{
+                    fontSize: { xs: '1rem', md: '1.125rem' },
+                    maxWidth: '600px',
+                    mx: 'auto'
+                  }}
+                >
+                  Hear directly from our students about how SALEAF has transformed their educational journey
+                </Typography>
+              </motion.div>
+            </Box>
+          </Grid>
+
+          {/* Video Section */}
+          <Grid item xs={12}>
+            <FadeInWhenVisible>
+              <MainCard
+                sx={{
+                  p: { xs: 2, sm: 3, md: 4 },
+                  borderRadius: 2,
+                  overflow: 'hidden',
+                  boxShadow: (theme: { customShadows: { z1: any } }) => theme.customShadows?.z1,
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: 4,
+                    bgcolor: '#14783D'
+                  }
+                }}
+              >
+                <Box
+                  sx={{
+                    position: 'relative',
+                    width: '100%',
+                    paddingTop: '56.25%',
+                    bgcolor: 'grey.100',
+                    borderRadius: 1,
+                    overflow: 'hidden'
+                  }}
+                >
+                  <iframe
+                    src="https://www.youtube.com/embed/PWBGFM2wD94"
+                    title="Student Testimonials"
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: '100%',
+                      border: 0
+                    }}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </Box>
+
+                <Typography
+                  variant="body1"
+                  sx={{
+                    mt: 2,
+                    textAlign: 'center',
+                    color: 'text.secondary',
+                    fontStyle: 'italic'
+                  }}
+                >
+                  Watch our students share their inspiring stories and experiences with SALEAF
+                </Typography>
+              </MainCard>
+            </FadeInWhenVisible>
+          </Grid>
+
+          {/* Written Testimonials Section */}
+          <Grid item xs={12} sx={{ mt: 4 }}>
+            <Grid container spacing={3}>
+              {testimonials.map((testimonial) => (
+                <Grid item xs={12} md={4} key={testimonial.id}>
                   <FadeInWhenVisible>
-                    <MainCard sx={{ height: '100%' }}>
-                      <Grid container spacing={3.5}>
-                        <Grid item xs={12}>
-                          <Stack spacing={1}>
-                            <Typography variant="h5">{tech.title}</Typography>
-                            <Typography>{tech.description}</Typography>
-                          </Stack>
-                        </Grid>
-                        <Grid item xs={12}>
-                          <CardMedia component="img" image={tech.icon} sx={{ width: '100%' }} />
-                        </Grid>
-                        <Grid item xs={12}>
-                          <Button
-                            variant="contained"
-                            color="secondary"
-                            size="large"
-                            startIcon={<ExportSquare />}
-                            component={tech.title === 'Explore Components' ? RouterLink : Link}
-                            {...(tech.title === 'Explore Components'
-                              ? { to: ispValueAvailable ? `${tech.preview}?isp=1` : tech.preview }
-                              : { href: tech.preview })}
-                            target="_blank"
-                            sx={{
-                              fontWeight: 500,
-                              bgcolor: 'secondary.light',
-                              color: 'secondary.darker',
-                              '&:hover': { color: 'secondary.lighter' }
-                            }}
-                          >
-                            Reference
-                          </Button>
-                        </Grid>
-                      </Grid>
+                    <MainCard
+                      sx={{
+                        height: '100%',
+                        p: 3,
+                        position: 'relative',
+                        '&::before': {
+                          content: '""',
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          height: 4,
+                          bgcolor: '#14783D'
+                        }
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', gap: 2 }}>
+                        <Typography
+                          sx={{
+                            fontSize: '3rem',
+                            color: '#14783D',
+                            opacity: 0.2,
+                            height: 30,
+                            lineHeight: 1
+                          }}
+                        >
+                          "
+                        </Typography>
+                        <Typography
+                          variant="body1"
+                          sx={{
+                            flex: 1,
+                            fontSize: '1rem',
+                            lineHeight: 1.8,
+                            fontStyle: 'italic'
+                          }}
+                        >
+                          {testimonial.quote}
+                        </Typography>
+                        <Box sx={{ mt: 2 }}>
+                          <Typography variant="h6" color="#14783D">
+                            {testimonial.name}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            {testimonial.course}
+                          </Typography>
+                        </Box>
+                      </Box>
                     </MainCard>
                   </FadeInWhenVisible>
-                </Box>
-              </Grid>
-            ))}
+                </Grid>
+              ))}
+            </Grid>
           </Grid>
         </Grid>
-      </Grid>
-    </Container>
+      </Container>
+    </Box>
   );
 }

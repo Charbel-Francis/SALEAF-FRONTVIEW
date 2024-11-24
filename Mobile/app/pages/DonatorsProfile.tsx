@@ -1,3 +1,4 @@
+import React, { useState, useEffect, useRef } from "react";
 import {
   Text,
   View,
@@ -5,8 +6,8 @@ import {
   TouchableOpacity,
   RefreshControl,
   Animated,
+  Alert,
 } from "react-native";
-import { useState, useEffect, useRef } from "react";
 import { DualInputField, InputField } from "@/components/InputField";
 import CustomButton from "@/components/CustomButton";
 import Ionicons from "react-native-vector-icons/Ionicons";
@@ -17,11 +18,20 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import { useNavigation } from "expo-router";
+import { ToastAndroid } from "react-native";
 
 const DonatorProfile = () => {
   const navigation = useNavigation();
   const [refreshing, setRefreshing] = useState(false);
-  const [donations, setDonations] = useState([]);
+
+  type Donation = {
+    amount: number;
+    createdAt: string;
+    id: number;
+  };
+
+  const [allDonations, setAllDonations] = useState<Donation[]>([]);
+  const [filteredDonations, setFilteredDonations] = useState<Donation[]>([]);
   const [editMode, setEditMode] = useState(false);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [statistics, setStatistics] = useState({
@@ -41,7 +51,57 @@ const DonatorProfile = () => {
     preferredCommunication: "email",
   });
 
-  // Animation for edit mode
+  useEffect(() => {
+    fetchDonationData();
+  }, []);
+
+  useEffect(() => {
+    if (Array.isArray(allDonations)) {
+      filterDonationsByYear();
+    }
+  }, [selectedYear, allDonations]);
+
+  const fetchDonationData = async () => {
+    try {
+      const response = await axiosInstance.get(
+        "/api/Donation/get-logged-user-donations"
+      );
+      const {
+        totalDonations,
+        averageDonation,
+        numberofCertificates,
+        donations,
+      } = response.data;
+
+      // Add null check for donations array
+      setAllDonations(Array.isArray(donations) ? donations : []);
+      setStatistics({
+        totalDonated: totalDonations || 0,
+        averageDonation: averageDonation || 0,
+        certificatesIssued: numberofCertificates || 0,
+      });
+    } catch (error) {
+      console.error("Error fetching donation data:", error);
+      // Set empty arrays on error
+      setAllDonations([]);
+      setFilteredDonations([]);
+      setStatistics({
+        totalDonated: 0,
+        averageDonation: 0,
+        certificatesIssued: 0,
+      });
+    }
+  };
+
+  const filterDonationsByYear = () => {
+    if (!Array.isArray(allDonations)) return;
+
+    const filtered = allDonations.filter(
+      (donation) => new Date(donation.createdAt).getFullYear() === selectedYear
+    );
+    setFilteredDonations(filtered);
+  };
+
   useEffect(() => {
     Animated.spring(editAnimation, {
       toValue: editMode ? 1 : 0,
@@ -51,7 +111,20 @@ const DonatorProfile = () => {
 
   const onRefresh = async () => {
     setRefreshing(true);
+    await fetchDonationData();
     setRefreshing(false);
+  };
+
+  const handleSendSection18A = async (paymentId: string) => {
+    try {
+      const response = await axiosInstance.get(
+        `/api/Donation/request-section18-page/${paymentId}`
+      );
+      ToastAndroid.show("Section 18A sent to email", ToastAndroid.SHORT);
+    } catch (error) {
+      console.error("Error sending Section 18A:", error);
+      ToastAndroid.show("Failed to send Section 18A", ToastAndroid.SHORT);
+    }
   };
 
   const BackButton = () => (
@@ -70,6 +143,7 @@ const DonatorProfile = () => {
       <Ionicons name="arrow-back" size={wp("6%")} color="white" />
     </TouchableOpacity>
   );
+
   const YearSelector = () => (
     <View className="flex-row justify-center space-x-4 mb-4">
       {[2024, 2023, 2022].map((year) => (
@@ -111,12 +185,6 @@ const DonatorProfile = () => {
     </View>
   );
 
-  interface Donation {
-    amount: number;
-    date: string;
-    reference: string;
-  }
-
   const DonationCard = ({ donation }: { donation: Donation }) => (
     <View style={{ width: wp("90%") }} className="bg-white rounded-xl p-4 mb-3">
       <View className="flex-row justify-between items-center">
@@ -128,34 +196,20 @@ const DonatorProfile = () => {
             R {donation.amount.toLocaleString()}
           </Text>
           <Text style={{ fontSize: wp("3.5%") }} className="text-gray-600">
-            {new Date(donation.date).toLocaleDateString()}
-          </Text>
-          <Text style={{ fontSize: wp("3%") }} className="text-gray-500 mt-1">
-            Reference: {donation.reference}
+            {new Date(donation.createdAt).toLocaleDateString()}
           </Text>
         </View>
         <View>
           <TouchableOpacity
             className="bg-mainColor px-4 py-2 rounded-lg mb-2"
             style={{ width: wp("25%") }}
-            onPress={() => console.log("View Certificate")}
+            onPress={() => handleSendSection18A(donation.id.toString())}
           >
             <Text
               style={{ fontSize: wp("3%") }}
               className="text-white text-center"
             >
-              Section 18A
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            className="bg-gray-100 px-4 py-2 rounded-lg"
-            style={{ width: wp("25%") }}
-          >
-            <Text
-              style={{ fontSize: wp("3%") }}
-              className="text-gray-600 text-center"
-            >
-              Details
+              Send Section 18A to email
             </Text>
           </TouchableOpacity>
         </View>
@@ -189,10 +243,7 @@ const DonatorProfile = () => {
               style={{ fontSize: wp("5%") }}
               className="text-white mt-2 font-semibold"
             >
-              {form.identityNoOrCompanyRegNo}
-            </Text>
-            <Text style={{ fontSize: wp("3.5%") }} className="text-white/80">
-              Valued Donor Since 2022
+              Valued Donor
             </Text>
           </View>
         </View>
@@ -216,16 +267,6 @@ const DonatorProfile = () => {
           />
         </View>
 
-        {/* Details Section */}
-        <View
-          style={{ width: wp("90%") }}
-          className="bg-white mx-4 mt-4 rounded-xl"
-        >
-          <View className="p-4">
-            {/* ... rest of your details section content ... */}
-          </View>
-        </View>
-
         {/* Donation History */}
         <View style={{ paddingHorizontal: wp("4%") }}>
           <Text
@@ -235,9 +276,15 @@ const DonatorProfile = () => {
             Donation History
           </Text>
           <YearSelector />
-          {donations.map((donation, index) => (
-            <DonationCard key={index} donation={donation} />
-          ))}
+          {Array.isArray(filteredDonations) && filteredDonations.length > 0 ? (
+            filteredDonations.map((donation, index) => (
+              <DonationCard key={index} donation={donation} />
+            ))
+          ) : (
+            <Text className="text-center text-gray-500 mt-4">
+              No donations found for {selectedYear}
+            </Text>
+          )}
         </View>
 
         <View style={{ height: hp("10%") }} />

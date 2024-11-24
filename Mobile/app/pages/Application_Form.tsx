@@ -8,6 +8,7 @@ import {
   SafeAreaView,
   ScrollView,
   KeyboardAvoidingView,
+  ToastAndroid,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Text } from "react-native-paper";
@@ -42,7 +43,7 @@ const Application_Form = () => {
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const buttonPosition = useRef(new Animated.Value(0)).current;
   const router = useRouter();
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const styles = StyleSheet.create({
     container: {
       flex: 1,
@@ -56,7 +57,7 @@ const Application_Form = () => {
       backgroundColor: "#fff",
     },
     header: {
-      paddingVertical: hp("3%"),
+      paddingVertical: hp("5%"),
       paddingHorizontal: wp("4%"),
       backgroundColor: "rgba(21, 120, 61, 0.9)",
     },
@@ -75,9 +76,9 @@ const Application_Form = () => {
     },
     progressContainer: {
       backgroundColor: "#fff",
-      paddingVertical: hp("2%"),
+      paddingVertical: hp("1%"),
       paddingHorizontal: wp("4%"),
-      borderBottomWidth: 1,
+      borderBottomWidth: 2,
       borderBottomColor: "#e0e0e0",
     },
     progressBar: {
@@ -143,6 +144,7 @@ const Application_Form = () => {
       paddingHorizontal: wp("4%"),
       maxWidth: wp("60%"), // Add maxWidth constraint
       alignSelf: "stretch", // Ensure container stretches to parent width
+      backgroundColor: "transparent",
     },
 
     button: {
@@ -252,7 +254,12 @@ const Application_Form = () => {
   };
 
   const FinishApplication = async () => {
+    if (isSubmitting) return; // Prevent double submission
+    const showToast = (message: string) => {
+      ToastAndroid.show(message, ToastAndroid.SHORT);
+    };
     try {
+      setIsSubmitting(true);
       const response = await axiosInstance.post(
         "/api/BursaryApplication",
         application,
@@ -262,18 +269,22 @@ const Application_Form = () => {
           },
         }
       );
-      console.log("Application submitted successfully:", response.data);
+
+      showToast("Application submitted successfully!");
+      router.replace("/(tabs)/home");
     } catch (error: any) {
       if (error.response) {
         console.error("Server Error:", error.response.data);
-        // Handle server error (e.g., show error message)
+        showToast(error.response.data.message || "Server error occurred");
       } else if (error.request) {
         console.error("Network Error:", error.request);
-        // Handle network error
+        showToast("Network error. Please check your connection.");
       } else {
         console.error("Error:", error.message);
-        // Handle other errors
+        showToast("An unexpected error occurred");
       }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -406,222 +417,96 @@ const Application_Form = () => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.container}
-      >
-        <View style={styles.header}>
-          <Text style={styles.headerText}>Bursary Application Form</Text>
-          <Text style={styles.subHeaderText}>
-            Complete all sections to submit your application
-          </Text>
-        </View>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={styles.container}
+    >
+      <View style={styles.header}>
+        <Text style={styles.headerText}>Bursary Application Form</Text>
+        <Text style={styles.subHeaderText}>
+          Complete all sections to submit your application
+        </Text>
+      </View>
 
-        <View style={styles.progressContainer}>
-          <View style={styles.progressBar}>
-            <Animated.View style={styles.progressBackground}>
-              <Animated.View
-                style={[
-                  styles.progressFill,
-                  {
-                    width: progress.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: ["0%", "100%"],
-                    }),
-                  },
-                ]}
-              />
-            </Animated.View>
-          </View>
-          <Text style={styles.progressText}>{progressText}</Text>
-          <View style={styles.stepIndicator}>
-            <Text style={styles.stepText}>
-              Step {stepper + 1} of {totalSteps + 1}
-            </Text>
-          </View>
-        </View>
-
-        <ScrollView
-          style={styles.formScrollView}
-          contentContainerStyle={{ flexGrow: 1 }}
-          keyboardShouldPersistTaps="handled"
-        >
-          <View style={styles.formContainer}>
-            <Text style={styles.sectionTitle}>{getSectionTitle()}</Text>
-            {renderStepContent()}
-          </View>
-        </ScrollView>
-        <View>
-          <Animated.View
-            style={[
-              styles.buttonContainer,
-              {
-                transform: [{ translateY: buttonPosition }],
-              },
-            ]}
-          >
-            {stepper === 0 ? (
-              <CustomButton
-                onPress={() => router.back()}
-                style={[styles.button, styles.backButton]}
-                textStyle={[styles.buttonText, styles.backButtonText]}
-                title="Cancel"
-              />
-            ) : (
-              <CustomButton
-                onPress={NavigateToPreviousApplication}
-                style={[styles.button, styles.backButton]}
-                textStyle={[styles.buttonText, styles.backButtonText]}
-                title="Back"
-              />
-            )}
-
-            {stepper === 12 ? (
-              <CustomButton
-                onPress={FinishApplication}
-                style={[styles.button, styles.nextButton]}
-                textStyle={[styles.buttonText, styles.nextButtonText]}
-                title="Submit Application"
-              />
-            ) : (
-              <CustomButton
-                onPress={NavigateToNextApplication}
-                style={[styles.button, styles.nextButton]}
-                textStyle={[styles.buttonText, styles.nextButtonText]}
-                title="Continue"
-              />
-            )}
+      <View style={styles.progressContainer}>
+        <View style={styles.progressBar}>
+          <Animated.View style={styles.progressBackground}>
+            <Animated.View
+              style={[
+                styles.progressFill,
+                {
+                  width: progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: ["0%", "100%"],
+                  }),
+                },
+              ]}
+            />
           </Animated.View>
         </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+        <Text style={styles.progressText}>{progressText}</Text>
+        <View style={styles.stepIndicator}>
+          <Text style={styles.stepText}>
+            Step {stepper + 1} of {totalSteps + 1}
+          </Text>
+        </View>
+      </View>
+
+      <ScrollView
+        style={styles.formScrollView}
+        contentContainerStyle={{ flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.formContainer}>
+          <Text style={styles.sectionTitle}>{getSectionTitle()}</Text>
+          {renderStepContent()}
+        </View>
+      </ScrollView>
+      <View>
+        <Animated.View
+          style={[
+            styles.buttonContainer,
+            {
+              transform: [{ translateY: buttonPosition }],
+            },
+          ]}
+        >
+          {stepper === 0 ? (
+            <CustomButton
+              onPress={() => router.back()}
+              style={[styles.button, styles.backButton]}
+              textStyle={[styles.buttonText, styles.backButtonText]}
+              title="Cancel"
+            />
+          ) : (
+            <CustomButton
+              onPress={NavigateToPreviousApplication}
+              style={[styles.button, styles.backButton]}
+              textStyle={[styles.buttonText, styles.backButtonText]}
+              title="Back"
+            />
+          )}
+
+          {stepper === 12 ? (
+            <CustomButton
+              onPress={FinishApplication}
+              style={[styles.button, styles.nextButton]}
+              textStyle={[styles.buttonText, styles.nextButtonText]}
+              loading={isSubmitting}
+              title="Submit Application"
+            />
+          ) : (
+            <CustomButton
+              onPress={NavigateToNextApplication}
+              style={[styles.button, styles.nextButton]}
+              textStyle={[styles.buttonText, styles.nextButtonText]}
+              title="Continue"
+            />
+          )}
+        </Animated.View>
+      </View>
+    </KeyboardAvoidingView>
   );
 };
-
-const formSectionStyles = StyleSheet.create({
-  sectionContainer: {
-    marginBottom: hp("3%"),
-  },
-  inputContainer: {
-    marginBottom: hp("2%"),
-  },
-  label: {
-    fontSize: wp("3.8%"),
-    color: "#333",
-    marginBottom: hp("1%"),
-    fontWeight: "500",
-  },
-  input: {
-    backgroundColor: "#f9f9f9",
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
-    borderRadius: wp("2%"),
-    padding: wp("3%"),
-    fontSize: wp("3.8%"),
-  },
-  errorInput: {
-    borderColor: "#ff3333",
-  },
-  errorText: {
-    color: "#ff3333",
-    fontSize: wp("3.2%"),
-    marginTop: hp("0.5%"),
-  },
-  helperText: {
-    fontSize: wp("3.2%"),
-    color: "#666",
-    marginTop: hp("0.5%"),
-  },
-  required: {
-    color: "#ff3333",
-    marginLeft: wp("1%"),
-  },
-  radioGroup: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    marginTop: hp("1%"),
-  },
-  radioButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginRight: wp("4%"),
-    marginBottom: hp("1%"),
-  },
-  radioLabel: {
-    fontSize: wp("3.8%"),
-    color: "#333",
-    marginLeft: wp("2%"),
-  },
-  datePicker: {
-    backgroundColor: "#f9f9f9",
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
-    borderRadius: wp("2%"),
-    padding: wp("3%"),
-  },
-  dropdown: {
-    backgroundColor: "#f9f9f9",
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
-    borderRadius: wp("2%"),
-    padding: wp("3%"),
-  },
-  dropdownItem: {
-    padding: wp("3%"),
-    borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
-  },
-  dropdownItemText: {
-    fontSize: wp("3.8%"),
-    color: "#333",
-  },
-  fileInput: {
-    backgroundColor: "#f9f9f9",
-    borderWidth: 1,
-    borderStyle: "dashed",
-    borderColor: "#e0e0e0",
-    borderRadius: wp("2%"),
-    padding: wp("3%"),
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  fileInputText: {
-    fontSize: wp("3.8%"),
-    color: "rgba(21, 120, 61, 1)",
-    textAlign: "center",
-  },
-  uploadedFile: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#f0f9f4",
-    padding: wp("2%"),
-    borderRadius: wp("1%"),
-    marginTop: hp("1%"),
-  },
-  uploadedFileName: {
-    flex: 1,
-    fontSize: wp("3.5%"),
-    color: "#333",
-  },
-  removeFileButton: {
-    padding: wp("2%"),
-  },
-  removeFileText: {
-    color: "#ff3333",
-    fontSize: wp("3.5%"),
-  },
-  helpText: {
-    fontSize: wp("3.2%"),
-    color: "#666",
-    marginTop: hp("0.5%"),
-    fontStyle: "italic",
-  },
-  divider: {
-    height: 1,
-    backgroundColor: "#e0e0e0",
-    marginVertical: hp("2%"),
-  },
-});
 
 export default Application_Form;

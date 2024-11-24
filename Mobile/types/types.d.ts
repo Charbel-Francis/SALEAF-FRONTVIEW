@@ -50,9 +50,14 @@ declare interface ButtonProps extends TouchableOpacityProps {
     startTime: string;
     endTime: string;
     status: "Upcoming" | "Ongoing" | "Completed";
-    eventPrice: number;
+    packages:{ packageName:string;
+      packagePrice:number;}[];
     // publish: boolean;
   };
+  interface Packages{
+    packageName:string;
+    packagePrice:number;
+  }
   export type StudentInterface = {
     id: string;
     firstName: string;
@@ -68,3 +73,22 @@ declare interface ButtonProps extends TouchableOpacityProps {
     onlineProfile:string; 
     imageUrl:string;
   };
+
+  export interface Message {
+    id: string | number;
+    text: string;
+    isUser: boolean;
+    timestamp: Date;
+    loading?: boolean;
+  }
+  
+  export interface ChatThread {
+    id: string | number;
+    messages: Message[];
+    timestamp: Date;
+  }
+  
+  export interface QuickReply {
+    id: string;
+    text: string;
+  }

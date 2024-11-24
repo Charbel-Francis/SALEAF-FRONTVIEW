@@ -34,13 +34,41 @@ const verifyToken: (st: string) => boolean = (serviceToken) => {
   return decoded.exp > Date.now() / 1000;
 };
 
-const setSession = (serviceToken?: string | null) => {
+const setSession = (serviceToken?: string | null, refreshToken?: string | null) => {
   if (serviceToken) {
     localStorage.setItem('serviceToken', serviceToken);
     axios.defaults.headers.common.Authorization = `Bearer ${serviceToken}`;
   } else {
     localStorage.removeItem('serviceToken');
     delete axios.defaults.headers.common.Authorization;
+  }
+  if (refreshToken) {
+    localStorage.setItem('refreshToken', refreshToken);
+  }
+};
+
+const refreshAuthToken = async () => {
+  try {
+    const serviceToken = localStorage.getItem('serviceToken');
+    const refreshToken = localStorage.getItem('refreshToken');
+
+    if (!serviceToken || !refreshToken) {
+      throw new Error('No tokens available');
+    }
+
+    const response = await axios.post('/api/Account/refresh-token', {
+      token: serviceToken,
+      refreshToken: refreshToken
+    });
+
+    const { token: newServiceToken, refreshToken: newRefreshToken } = response.data;
+    setSession(newServiceToken, newRefreshToken);
+    console.log('Token refreshed');
+    return true;
+  } catch (error) {
+    console.error('Token refresh failed:', error);
+    setSession(null, null);
+    return false;
   }
 };
 
@@ -54,28 +82,40 @@ export const JWTProvider = ({ children }: { children: React.ReactElement }) => {
   useEffect(() => {
     const init = async () => {
       try {
-        const serviceToken = window.localStorage.getItem('serviceToken');
-        if (serviceToken && verifyToken(serviceToken)) {
-          setSession(serviceToken);
-          const response = await axios.get('/api/Account/login');
-          const { user } = response.data;
+        const serviceToken = localStorage.getItem('serviceToken');
+        const refreshToken = localStorage.getItem('refreshToken');
+
+        if (!serviceToken || !refreshToken) {
+          dispatch({ type: LOGOUT });
+          return;
+        }
+
+        if (verifyToken(serviceToken)) {
+          setSession(serviceToken, refreshToken);
           dispatch({
             type: LOGIN,
             payload: {
-              isLoggedIn: true,
-              user
+              isLoggedIn: true
             }
           });
+        } else if (verifyToken(refreshToken)) {
+          const refreshSuccess = await refreshAuthToken();
+          if (refreshSuccess) {
+            dispatch({
+              type: LOGIN,
+              payload: {
+                isLoggedIn: true
+              }
+            });
+          } else {
+            dispatch({ type: LOGOUT });
+          }
         } else {
-          dispatch({
-            type: LOGOUT
-          });
+          dispatch({ type: LOGOUT });
         }
       } catch (err) {
         console.error(err);
-        dispatch({
-          type: LOGOUT
-        });
+        dispatch({ type: LOGOUT });
       }
     };
 
@@ -84,8 +124,8 @@ export const JWTProvider = ({ children }: { children: React.ReactElement }) => {
 
   const login = async (email: string, password: string) => {
     const response = await axios.post('/api/account/login', { email, password });
-    const { serviceToken, user } = response.data;
-    setSession(serviceToken);
+    const { token, user, refreshToken } = response.data;
+    setSession(token, refreshToken);
     dispatch({
       type: LOGIN,
       payload: {
