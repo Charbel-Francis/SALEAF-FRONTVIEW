@@ -25,7 +25,7 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: []
     },
-    base: API_URL,
+    base: '/',
     plugins: [react(), viteTsconfigPaths()]
   };
 });
