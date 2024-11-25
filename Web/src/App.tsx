@@ -19,23 +19,23 @@ import { JWTProvider as AuthProvider } from 'contexts/JWTContext';
 
 // ==============================|| APP - THEME, ROUTER, LOCAL  ||============================== //
 
-export default function App() {
+const App = () => {
   return (
     <ThemeCustomization>
       <RTLLayout>
         <Locales>
           <ScrollTop>
             <AuthProvider>
-              <>
-                <Notistack>
-                  <RouterProvider router={router} />
-                  <Snackbar />
-                </Notistack>
-              </>
+              <Notistack>
+                <RouterProvider router={router} />
+                <Snackbar />
+              </Notistack>
             </AuthProvider>
           </ScrollTop>
         </Locales>
       </RTLLayout>
     </ThemeCustomization>
   );
-}
+};
+
+export default App;

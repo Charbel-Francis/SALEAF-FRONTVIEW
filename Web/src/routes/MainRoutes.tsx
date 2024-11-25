@@ -8,7 +8,10 @@ import PagesLayout from 'layout/Pages';
 import SimpleLayout from 'layout/Simple';
 
 import { SimpleLayoutType } from 'config';
-import { loader as productsLoader, productLoader } from 'api/products';
+import { loader as eventListLoader } from 'pages/apps/event/events-list';
+import AddDirectors from 'pages/apps/directors/AddDirectors';
+// import ListDirectors from 'pages/apps/directors/ListDirectors';
+import ListDonations from 'pages/apps/donations/ListDonations';
 
 // render - dashboard
 const DashboardDefault = Loadable(lazy(() => import('pages/dashboard/default')));
@@ -23,18 +26,11 @@ const WidgetChart = Loadable(lazy(() => import('pages/widget/chart')));
 const AppChat = Loadable(lazy(() => import('pages/apps/chat')));
 const AppCalendar = Loadable(lazy(() => import('pages/apps/calendar')));
 
-const AppKanban = Loadable(lazy(() => import('pages/apps/kanban')));
 const AppKanbanBacklogs = Loadable(lazy(() => import('sections/apps/kanban/Backlogs')));
 const AppKanbanBoard = Loadable(lazy(() => import('sections/apps/kanban/Board')));
 
 const AppCustomerList = Loadable(lazy(() => import('pages/apps/customer/list')));
 const AppCustomerCard = Loadable(lazy(() => import('pages/apps/customer/card')));
-
-const AppInvoiceCreate = Loadable(lazy(() => import('pages/apps/invoice/create')));
-const AppInvoiceDashboard = Loadable(lazy(() => import('pages/apps/invoice/dashboard')));
-const AppInvoiceList = Loadable(lazy(() => import('pages/apps/invoice/list')));
-const AppInvoiceDetails = Loadable(lazy(() => import('pages/apps/invoice/details')));
-const AppInvoiceEdit = Loadable(lazy(() => import('pages/apps/invoice/edit')));
 
 const UserProfile = Loadable(lazy(() => import('pages/apps/profiles/user')));
 const UserTabPersonal = Loadable(lazy(() => import('sections/apps/profiles/user/TabPersonal')));
@@ -50,11 +46,9 @@ const AccountTabPassword = Loadable(lazy(() => import('sections/apps/profiles/ac
 const AccountTabRole = Loadable(lazy(() => import('sections/apps/profiles/account/TabRole')));
 const AccountTabSettings = Loadable(lazy(() => import('sections/apps/profiles/account/TabSettings')));
 
-const AppECommProducts = Loadable(lazy(() => import('pages/apps/e-commerce/product')));
-const AppECommProductDetails = Loadable(lazy(() => import('pages/apps/e-commerce/product-details')));
-const AppECommProductList = Loadable(lazy(() => import('pages/apps/e-commerce/products-list')));
-const AppECommCheckout = Loadable(lazy(() => import('pages/apps/e-commerce/checkout')));
-const AppECommAddProduct = Loadable(lazy(() => import('pages/apps/e-commerce/add-product')));
+const AppECommEventList = Loadable(lazy(() => import('pages/apps/event/events-list')));
+
+const AppECommAddEvent = Loadable(lazy(() => import('pages/apps/event/add-event')));
 
 // render - forms & tables
 const FormsValidation = Loadable(lazy(() => import('pages/forms/validation')));
@@ -133,6 +127,20 @@ const ContactUS = Loadable(lazy(() => import('pages/contact-us')));
 const PricingPage = Loadable(lazy(() => import('pages/extra-pages/price/price1')));
 const PricingPage2 = Loadable(lazy(() => import('pages/extra-pages/price/price2')));
 
+// render - event pages
+const EventList = Loadable(lazy(() => import('pages/apps/event/events-list')));
+const AddEvent = Loadable(lazy(() => import('pages/apps/event/add-event')));
+const EventView = Loadable(lazy(() => import('sections/apps/event/event-list/EventView')));
+const EditEvent = Loadable(lazy(() => import('pages/apps/event/edit-event')));
+
+const AppAddDirectors = Loadable(lazy(() => import('pages/apps/directors/AddDirectors')));
+const AppListDirectors = Loadable(lazy(() => import('pages/apps/directors/ListDirectors')));
+const ListDirectors = Loadable(lazy(() => import('pages/apps/directors/ListDirectors')));
+const AppListDonations = Loadable(lazy(() => import('pages/apps/donations/ListDonations')));
+const AppBankInfo = Loadable(lazy(() => import('pages/apps/banking-info/BankingInformation')));
+
+const ManualPayment = Loadable(lazy(() => import('pages/apps/manual-payments/ListManualPayment')));
+
 // ==============================|| MAIN ROUTES ||============================== //
 
 const MainRoutes = {
@@ -184,20 +192,6 @@ const MainRoutes = {
               element: <AppCalendar />
             },
             {
-              path: 'kanban',
-              element: <AppKanban />,
-              children: [
-                {
-                  path: 'backlogs',
-                  element: <AppKanbanBacklogs />
-                },
-                {
-                  path: 'board',
-                  element: <AppKanbanBoard />
-                }
-              ]
-            },
-            {
               path: 'customer',
               children: [
                 {
@@ -210,31 +204,7 @@ const MainRoutes = {
                 }
               ]
             },
-            {
-              path: 'invoice',
-              children: [
-                {
-                  path: 'dashboard',
-                  element: <AppInvoiceDashboard />
-                },
-                {
-                  path: 'create',
-                  element: <AppInvoiceCreate />
-                },
-                {
-                  path: 'details/:id',
-                  element: <AppInvoiceDetails />
-                },
-                {
-                  path: 'edit/:id',
-                  element: <AppInvoiceEdit />
-                },
-                {
-                  path: 'list',
-                  element: <AppInvoiceList />
-                }
-              ]
-            },
+
             {
               path: 'profiles',
               children: [
@@ -296,30 +266,83 @@ const MainRoutes = {
               path: 'e-commerce',
               children: [
                 {
-                  path: 'products',
-                  element: <AppECommProducts />,
-                  loader: productsLoader,
-                  errorElement: <ErrorBoundary />
+                  path: 'event-list',
+                  element: <AppECommEventList />,
+                  loader: eventListLoader
                 },
                 {
-                  path: 'product-details/:id',
-                  element: <AppECommProductDetails />,
-                  loader: productLoader,
-                  errorElement: <ErrorBoundary />
+                  path: 'add-new-event',
+                  element: <AppECommAddEvent />
+                }
+              ]
+            },
+            {
+              path: 'event',
+              children: [
+                {
+                  path: 'event-list',
+                  element: <EventList />,
+                  loader: eventListLoader
                 },
                 {
-                  path: 'product-list',
-                  element: <AppECommProductList />,
-                  loader: productsLoader,
-                  errorElement: <ErrorBoundary />
+                  path: 'add-new-event',
+                  element: <AddEvent />
                 },
                 {
-                  path: 'add-new-product',
-                  element: <AppECommAddProduct />
+                  path: 'edit-event/:eventId',
+                  element: <EditEvent />
                 },
                 {
-                  path: 'checkout',
-                  element: <AppECommCheckout />
+                  path: ':id',
+                  element: <EventView />
+                }
+              ]
+            },
+            {
+              path: 'directors',
+              children: [
+                {
+                  path: 'event-list',
+                  element: <EventList />,
+                  loader: eventListLoader
+                },
+                {
+                  path: 'add-new-directors',
+                  element: <AddDirectors />
+                },
+                {
+                  path: 'list-directors',
+                  element: <ListDirectors />
+                }
+              ]
+            },
+            {
+              path: 'donations',
+              children: [
+                {
+                  path: 'donations-list',
+                  element: <AppListDonations />,
+                  loader: eventListLoader
+                }
+              ]
+            },
+            {
+              path: 'banking-info',
+              children: [
+                {
+                  path: 'banking-info',
+                  element: <AppBankInfo />,
+                  loader: eventListLoader
+                }
+              ]
+            },
+            {
+              path: 'manual-payments',
+              children: [
+                {
+                  path: 'manual-payments',
+                  element: <ManualPayment />,
+                  loader: eventListLoader
                 }
               ]
             }

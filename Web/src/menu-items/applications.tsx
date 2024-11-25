@@ -2,11 +2,10 @@
 import { FormattedMessage } from 'react-intl';
 
 // project-imports
-import { handlerCustomerDialog } from 'api/customer';
 import { NavActionType } from 'config';
 
 // assets
-import { Add, Link1, KyberNetwork, Messages2, Calendar1, Kanban, Profile2User, Bill, UserSquare, ShoppingBag } from 'iconsax-react';
+import { Add, Link1, KyberNetwork, Calendar1, ShoppingBag } from 'iconsax-react';
 
 // type
 import { NavItemType } from 'types/menu';
@@ -14,12 +13,7 @@ import { NavItemType } from 'types/menu';
 // icons
 const icons = {
   applications: KyberNetwork,
-  chat: Messages2,
   calendar: Calendar1,
-  kanban: Kanban,
-  customer: Profile2User,
-  invoice: Bill,
-  profile: UserSquare,
   ecommerce: ShoppingBag,
   add: Add,
   link: Link1
@@ -33,14 +27,6 @@ const applications: NavItemType = {
   icon: icons.applications,
   type: 'group',
   children: [
-    {
-      id: 'chat',
-      title: <FormattedMessage id="chat" />,
-      type: 'item',
-      url: '/apps/chat',
-      icon: icons.chat,
-      breadcrumbs: false
-    },
     {
       id: 'calendar',
       title: <FormattedMessage id="calendar" />,
@@ -57,22 +43,6 @@ const applications: NavItemType = {
         }
       ]
     },
-
-    {
-      id: 'customer-list',
-      title: <FormattedMessage id="Students" />,
-      type: 'item',
-      url: '/apps/customer/customer-list',
-      icon: icons.customer,
-      actions: [
-        {
-          type: NavActionType.FUNCTION,
-          label: 'Add Customer',
-          function: () => handlerCustomerDialog(true),
-          icon: icons.add
-        }
-      ]
-    },
     {
       id: 'events',
       title: <FormattedMessage id="Events" />,
@@ -80,39 +50,66 @@ const applications: NavItemType = {
       icon: icons.ecommerce,
       children: [
         {
-          id: 'products',
-          title: <FormattedMessage id="products" />,
+          id: 'event-list',
+          title: <FormattedMessage id="event-list" />,
           type: 'item',
-          url: '/apps/e-commerce/products'
+          url: '/apps/event/event-list'
         },
         {
-          id: 'product-details',
-          title: <FormattedMessage id="product-details" />,
+          id: 'add-new-event',
+          title: <FormattedMessage id="add-new-event" />,
           type: 'item',
-          link: '/apps/e-commerce/product-details/:id',
-          url: '/apps/e-commerce/product-details/1',
-          breadcrumbs: false
-        },
-        {
-          id: 'product-list',
-          title: <FormattedMessage id="product-list" />,
-          type: 'item',
-          url: '/apps/e-commerce/product-list',
-          breadcrumbs: false
-        },
-        {
-          id: 'add-new-product',
-          title: <FormattedMessage id="add-new-product" />,
-          type: 'item',
-          url: '/apps/e-commerce/add-new-product'
-        },
-        {
-          id: 'checkout',
-          title: <FormattedMessage id="checkout" />,
-          type: 'item',
-          url: '/apps/e-commerce/checkout'
+          url: '/apps/event/add-new-event'
         }
       ]
+    },
+    {
+      id: 'Directors',
+      title: <FormattedMessage id="Directors" />,
+      type: 'collapse',
+      icon: icons.add,
+      children: [
+        {
+          id: 'add-new-directors',
+          title: <FormattedMessage id="Add New Directors" />,
+          type: 'item',
+          url: '/apps/directors/add-new-directors'
+        },
+        {
+          id: 'directors-list',
+          title: <FormattedMessage id="View all Directors" />,
+          type: 'item',
+          url: '/apps/directors/list-directors'
+        }
+      ]
+    },
+    {
+      id: 'Donations',
+      title: <FormattedMessage id="Donations" />,
+      type: 'collapse',
+      icon: icons.link,
+      children: [
+        {
+          id: 'list-donatinos',
+          title: <FormattedMessage id="Donations" />,
+          type: 'item',
+          url: '/apps/donations/donations-list'
+        }
+      ]
+    },
+    {
+      id: 'banking-info',
+      title: <FormattedMessage id="Banking Information" />,
+      type: 'item',
+      url: '/apps/banking-info/banking-info',
+      icon: icons.add
+    },
+    {
+      id: 'manual-payments',
+      title: <FormattedMessage id="Manual Payment" />,
+      type: 'item',
+      url: '/apps/manual-payments/manual-payments',
+      icon: icons.add
     }
   ]
 };
