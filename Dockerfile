@@ -32,5 +32,5 @@ COPY ./Web/default.conf.template /etc/nginx/templates/default.conf.template
 # Expose the port
 EXPOSE $PORT
 
-# Start Nginx
+# Start Nginx (default CMD provided by the image)
 CMD ["nginx", "-g", "daemon off;"]
