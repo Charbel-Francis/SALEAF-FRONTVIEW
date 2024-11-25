@@ -29,9 +29,6 @@ COPY --from=build /app/dist /usr/share/nginx/html
 # Copy the Nginx template configuration
 COPY ./Web/default.conf.template /etc/nginx/templates/default.conf.template
 
-# Create a custom mime.types file
-COPY ./Web/mime.types /etc/nginx/mime.types
-
 # Expose the port
 EXPOSE $PORT
 
