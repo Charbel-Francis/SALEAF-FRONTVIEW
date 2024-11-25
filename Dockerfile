@@ -21,7 +21,7 @@ RUN yarn build
 FROM nginx:stable-alpine
 
 # Set default PORT if not provided
-ENV PORT 80
+ENV PORT 3333
 
 # Copy built files from the previous stage
 COPY --from=build /app/dist /usr/share/nginx/html
