@@ -27,23 +27,23 @@ import Avatar7 from 'assets/images/users/avatar-7.png';
 import Avatar8 from 'assets/images/users/avatar-8.png';
 import { useEffect, useState } from 'react';
 import axiosServices from 'utils/axios';
+import { S } from '@fullcalendar/core/internal-common';
 
 // ================================|| SLIDER - ITEMS ||================================ //
 
-function Item({ item }: { item: { image: string; text: string; name: string; designation: string; highlight?: boolean } }) {
+function Item({ item }: { item: { imageUrl: string; firstName: string; lastName: string; bio: string; degree: string } }) {
+  console.log(item);
   return (
     <MainCard sx={{ width: { xs: '300px', md: '420px' }, cursor: 'pointer', my: 0.2, mx: 1.5 }}>
       <Stack direction="row" alignItems="flex-start" spacing={2}>
-        <Avatar alt="Avatar" size="lg" src={item.image}></Avatar>
+        <Avatar alt="Avatar" size="lg" src={item.imageUrl}></Avatar>
         <Stack>
-          <Typography>{item.text}</Typography>
           <Typography>
-            <Typography component="span" variant="caption">
-              {item.name}
-            </Typography>
-            {' - '}
+            {item.firstName} {item.lastName} -{item.degree}
+          </Typography>
+          <Typography>
             <Typography component="span" color="text.secondary">
-              {item.designation}
+              {item.bio}
             </Typography>
           </Typography>
         </Stack>

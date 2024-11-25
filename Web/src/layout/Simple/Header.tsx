@@ -31,7 +31,8 @@ import { useIspValue } from 'hooks/useIspValue';
 import { techData } from 'data/tech-data';
 
 // assets
-import { ArrowDown2, ArrowUp2, DocumentDownload, HambergerMenu, Minus } from 'iconsax-react';
+import { ArrowDown2, ArrowUp2, DocumentDownload, HambergerMenu, Logout, Minus } from 'iconsax-react';
+import useAuth from 'hooks/useAuth';
 
 interface ElevationScrollProps {
   layout: string;
@@ -68,7 +69,7 @@ export default function Header({ layout = 'landing', ...others }: Props) {
   const [drawerToggle, setDrawerToggle] = useState<boolean>(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
-
+  const { logout, isLoggedIn } = useAuth();
   const [openDrawer, setOpenDrawer] = useState(false);
 
   const { menuMaster } = useGetMenuMaster();
@@ -125,13 +126,6 @@ export default function Header({ layout = 'landing', ...others }: Props) {
               <Typography sx={{ textAlign: 'left', display: 'inline-block' }}>
                 <Logo to="/" />
               </Typography>
-              <Chip
-                label={import.meta.env.VITE_APP_VERSION}
-                variant="outlined"
-                size="small"
-                color="secondary"
-                sx={{ mt: 0.5, ml: 1, fontSize: '0.725rem', height: 20, '& .MuiChip-label': { px: 0.5 } }}
-              />
             </Stack>
             <Stack
               direction="row"
@@ -165,7 +159,7 @@ export default function Header({ layout = 'landing', ...others }: Props) {
                 className="header-link"
                 color="secondary.main"
                 component={RouterLink}
-                to={ispValueAvailable ? '/components-overview/buttons?isp=1' : '/components-overview/buttons'}
+                to={ispValueAvailable ? '/application_form' : '/application_form'}
                 underline="none"
               >
                 Application Form
@@ -179,20 +173,21 @@ export default function Header({ layout = 'landing', ...others }: Props) {
               >
                 Contact Us
               </Link>
-              <Link href="https://github.com/phoenixcoded/able-pro-free-admin-dashboard-template" target="_blank" underline="none">
+              {isLoggedIn && (
                 <IconButton
                   size="large"
                   shape="rounded"
                   color="secondary"
+                  onClick={logout}
                   sx={{
-                    bgcolor: 'secondary.light',
+                    bgcolor: 'error.light',
                     color: 'secondary.darker',
                     '&:hover': { color: 'secondary.lighter', bgcolor: 'secondary.darker' }
                   }}
                 >
-                  <DocumentDownload />
+                  <Logout />
                 </IconButton>
-              </Link>
+              )}
             </Stack>
             <Box
               sx={{
@@ -206,18 +201,6 @@ export default function Header({ layout = 'landing', ...others }: Props) {
                 <Logo to="/" />
               </Typography>
               <Stack direction="row" spacing={2}>
-                {layout !== 'component' && (
-                  <Button
-                    variant="outlined"
-                    color="warning"
-                    component={RouterLink}
-                    to={ispValueAvailable ? '/components-overview/buttons?isp=1' : '/components-overview/buttons'}
-                    sx={{ mt: 0.25 }}
-                  >
-                    All Components
-                  </Button>
-                )}
-
                 <IconButton
                   size="large"
                   color="secondary"
@@ -260,19 +243,7 @@ export default function Header({ layout = 'landing', ...others }: Props) {
                         <ListItemText primary="Dashboard" primaryTypographyProps={{ variant: 'h6', color: 'secondary.main' }} />
                       </ListItemButton>
                     </Link>
-                    <Link
-                      style={{ textDecoration: 'none' }}
-                      component={RouterLink}
-                      to={ispValueAvailable ? '/components-overview/buttons?isp=1' : '/components-overview/buttons'}
-                      target="_blank"
-                    >
-                      <ListItemButton>
-                        <ListItemIcon>
-                          <Minus color={theme.palette.secondary.main} />
-                        </ListItemIcon>
-                        <ListItemText primary="All Components" primaryTypographyProps={{ variant: 'h6', color: 'secondary.main' }} />
-                      </ListItemButton>
-                    </Link>
+
                     <Link
                       style={{ textDecoration: 'none' }}
                       href="https://github.com/phoenixcoded/able-pro-free-admin-dashboard-template"
