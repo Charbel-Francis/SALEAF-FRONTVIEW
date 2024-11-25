@@ -5,7 +5,25 @@ server {
     root /usr/share/nginx/html;
     index index.html;
 
+    # Enable compression
+    gzip on;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+
+    # Handle static files
+    location /assets {
+        expires 1y;
+        add_header Cache-Control "public, no-transform";
+    }
+
+    # Handle SPA routing
     location / {
-        try_files $uri $uri/ /index.html;
+        try_files $uri $uri/ /index.html =404;
+        add_header Cache-Control "no-cache";
+    }
+
+    # Error pages
+    error_page 500 502 503 504 /50x.html;
+    location = /50x.html {
+        root /usr/share/nginx/html;
     }
 }
