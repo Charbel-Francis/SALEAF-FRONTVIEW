@@ -2,102 +2,103 @@
 
 # Final Year Sponsor App  
 
-This mobile application is designed to connect sponsors with students, enable event registrations, and facilitate donations. It includes essential features like authentication, event registration, donation handling, and student profiles. The app is built with **React Native** for seamless cross-platform compatibility.
+This mobile application is built with **React Native** and designed to connect sponsors with students, enabling event registrations, donations, and detailed student profiles. The app is intended to help sponsors interact with the events, support donations, and track student progress, all while offering an intuitive interface and secure payment processing.
 
 ---
 
 ## Features  
 
-### 1. **Home Page**  
-- Displays:
-  - **Login Card**: For user authentication.
-  - **Latest 3 Events**: Showcases the three most recent events.
-  - **Top 3 Students**: Highlights students in their final year.
-- **Authentication Options**:
-  - Tap the **Login button** or any feature requiring authentication.
-  - Use the **Profile button** at the top to open the Login Modal.
-  
----
+### **1. Home Page**  
+The home page is designed to provide a quick overview of essential information:  
+- **Login Card**: This appears when a user is not logged in, offering quick access to the login or profile options.
+- **Latest 3 Events**: Displays the three most recent events with brief descriptions and basic details.
+- **Top 3 Final Year Students**: Highlights three students nearing graduation, providing a glimpse of their profiles and potential.
 
-### 2. **Authentication**  
-- **Login Modal**:
-  - Prompts the user for:
-    - Email Address
-    - Password
-- **Create Account Modal**:
-  - Prompts the user for:
-    - First Name
-    - Last Name
-    - Email Address
-    - Password
-  - Options to:
-    - Create Account
-    - Navigate to Login Modal.
-- Once logged in:
-  - Users can access features based on their **role**.
+#### Authentication Options:
+- **Login Button**: When users tap this button, a login modal appears prompting them to enter their **email** and **password**.
+- **Profile Button**: Located at the top, this button opens a modal to log in or view the user profile.
+- **Create Account Option**: A "Create Account" button is available within the login modal, allowing new users to create an account by providing:
+  - First Name
+  - Last Name
+  - Email Address
+  - Password
+  - Option to either create the account or log in directly if they already have an account.
+
+Once logged in, the app will allow users to navigate to any page relevant to their assigned role.
 
 ---
 
-### 3. **Sponsor Role**  
-Sponsors can access the following sections:  
+### **2. Authentication**  
 
-#### **Events**  
-- **Events Overview**:
-  - Displays all events with:
-    - Description
-    - Basic Details
-  - Clicking an event shows a **Detailed View** with:
-    - Complete Event Details
-    - Registration Form:
-      - Required Fields:
-        - Package
-        - First Name
-        - Last Name
-        - Email
-        - Phone Number
-      - Redirects to a **Payment Gateway** after submission.
-  - **Payment Gateway**:
-    - Returns a status:
-      - Success
-      - Failure
-      - Canceled
+#### **Login Modal**  
+This modal prompts users to enter:
+- **Email Address**
+- **Password**
+
+#### **Create Account Modal**  
+This modal is used for new users to register an account and includes fields for:
+- **First Name**
+- **Last Name**
+- **Email Address**
+- **Password**
   
-#### **Donations**  
-- Donation Process:
-  - User selects or enters the **Donation Amount**.
-  - If user details are missing, prompts for:
-    - Income Tax Number
-    - First Name
-    - Last Name
-    - ID Number
-  - Continues to **Payment Options**:
-    - **Online Payment**:
-      - Redirects to a Payment Gateway.
-      - Status redirects to:
-        - Success
-        - Failure
-        - Canceled
-    - **Manual Payment**:
-      - Generates a **Reference Number**.
-      - Requires proof of payment to be:
-        - Uploaded in-app.
-        - Emailed to the provided address.
+The modal provides buttons to either create an account or navigate to the login modal if the user already has an account.
 
-#### **Students**  
-- Displays a list of **Final Year Students**:
-  - Clicking a student's profile provides:
-    - Additional details (e.g., achievements, goals, etc.).
-  - Supports job-seeking students by displaying their profiles.
+Once authenticated, users can access features based on their assigned **role** (e.g., **Sponsor**).
 
-#### **Profile**  
-- Allows users to:
-  - View all donations made.
-  - Generate **Section 18A Certificates**.
-  - Access events registered for, including **QR codes** for event check-ins.
+---
+
+### **3. Sponsor Role**  
+The **Sponsor** role has specific pages and actions. Below are the main features for sponsors:
+
+#### **Events Page**  
+Sponsors can view all events listed in a compact format that includes:
+- **Event Title**
+- **Event Description**
+- **Basic Event Details** (Date, Location, etc.)
+
+#### **Event Registration**  
+When a sponsor taps on an event:
+- A **Detailed View** opens with more in-depth information about the event.
+- Sponsors can register for the event by filling out the **Registration Form**:
+  - **Package Selection**: Sponsors choose an event package.
+  - **Personal Details**: First Name, Last Name, Email Address, and Phone Number.
+- **Payment Process**: After registration, users are redirected to a **Payment Gateway**.
+  - Depending on the payment status (success, failure, or cancellation), they will see different results.
+
+#### **Donation Page**  
+Sponsors can donate by choosing an amount or entering a custom amount. The process is as follows:
+- **Enter Amount**: Sponsors select or input the amount they wish to donate.
+- **User Details**: If the user hasn't provided personal details, the app prompts them for:
+  - **Income Tax Number**
+  - **First Name**
+  - **Last Name**
+  - **ID Number**
+- **Continue to Payment**: After entering personal details, users are directed to the **Payment Method** selection.
+  - **Online Payment**: Redirects users to a Payment Gateway. Based on the payment status, the user is shown:
+    - Success Screen
+    - Failure Screen
+    - Canceled Screen
+  - **Manual Payment**: If the user opts for manual payment, they receive a **Reference Number**.
+    - The user must upload proof of payment or email it to the appropriate address.
+
+#### **Students Page**  
+The **Students Page** is designed to help sponsors view and interact with final-year students:
+- **Final Year Students**: A list of students in their final year, looking for potential employment.
+- **Profile Access**: Sponsors can click on a student's profile to view:
+  - **Additional Data**: Achievements, job preferences, and more.
+
+#### **Profile Page**  
+The Profile page offers various functionalities:
+- **Donation History**: Sponsors can view a list of their past donations.
+- **Generate Section 18A Certificate**: For tax purposes, users can generate a Section 18A certificate for their donations.
+- **Event Registrations**: Sponsors can see a list of events they've registered for and access QR codes for event check-ins.
 
 ---
 
 ## Installation  
+
+Follow these steps to get the app up and running locally:
 
 1. **Clone the Repository**:  
    ```bash
@@ -106,11 +107,13 @@ Sponsors can access the following sections:
    ```
 
 2. **Install Dependencies**:  
+   Use npm to install the required dependencies.
    ```bash
    npm install
    ```
 
 3. **Start the Application**:  
+   Start the development server using Expo.
    ```bash
    npx expo start
    ```
@@ -119,31 +122,32 @@ Sponsors can access the following sections:
 
 ## Technologies  
 
-- **React Native**: Cross-platform mobile app development.
-- **Expo**: Simplified app development workflow.
-- **Payment Gateway**: Integrated for secure transactions.
-- **QR Code Generator**: For event check-ins.
-- **Section 18A Certificate Generator**: For donation records.
+- **React Native**: A framework for building mobile apps using JavaScript and React.
+- **Expo**: A framework and platform for universal React apps, simplifying the development process.
+- **Payment Gateway**: Integrated for secure and efficient online payments.
+- **QR Code Generator**: For generating and displaying QR codes for event check-ins.
+- **Section 18A Certificate Generator**: To generate certificates for donations for tax purposes.
 
 ---
+
 
 
 ---
 
 ## Future Enhancements  
 
-- Add push notifications for upcoming events and donation campaigns.
-- Implement a chat feature for sponsors and students.
-- Enable multi-language support.
+- Add push notifications to notify users about upcoming events or donation campaigns.
+- Enable real-time chat between sponsors and students.
+- Implement multi-language support for a broader audience.
 
 ---
 
 ## License  
 
-This project is licensed under the [MIT License](LICENSE).  
+This project is licensed under the **MIT License**. For more details, see the [LICENSE](LICENSE) file.
 
 ---
 
 ## Contact  
 
-For queries, contact [your_email@example.com](mailto:your_email@example.com).  
+For any questions or issues, feel free to reach out to [your_email@example.com](mailto:your_email@example.com).
