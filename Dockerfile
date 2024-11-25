@@ -1,35 +1,21 @@
 # Stage 1: Build the application
 FROM node:18-alpine AS build
-
-# Set the working directory
 WORKDIR /app
-
-# Enable Corepack and install Yarn
 RUN corepack enable
 RUN corepack prepare yarn@4.1.0 --activate
 
-# Copy only web directory contents
+# Update the capitalization to match your folder name
 COPY Web/ .
 
-# Install dependencies
 RUN yarn install --frozen-lockfile
-
-# Build the application
 RUN yarn build
 
 # Stage 2: Serve the application using Nginx
 FROM nginx:stable-alpine
-
-# Set default PORT if not provided
 ENV PORT 80
 
-# Copy built files from the previous stage
+# Make sure this path matches your build output directory
 COPY --from=build /app/dist /usr/share/nginx/html
-
-# Copy the Nginx template configuration from web directory
+# Update the capitalization here too
 COPY Web/default.conf.template /etc/nginx/templates/default.conf.template
-
-# Expose the port
 EXPOSE $PORT
-
-# Start Nginx (default CMD provided by the image)
