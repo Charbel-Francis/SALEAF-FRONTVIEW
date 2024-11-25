@@ -9,7 +9,7 @@ RUN corepack enable
 RUN corepack prepare yarn@4.1.0 --activate
 
 # Copy only web directory contents
-COPY web/ .
+COPY Web/ .
 
 # Install dependencies
 RUN yarn install --frozen-lockfile
@@ -27,7 +27,7 @@ ENV PORT 80
 COPY --from=build /app/dist /usr/share/nginx/html
 
 # Copy the Nginx template configuration from web directory
-COPY web/default.conf.template /etc/nginx/templates/default.conf.template
+COPY Web/default.conf.template /etc/nginx/templates/default.conf.template
 
 # Expose the port
 EXPOSE $PORT
