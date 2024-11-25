@@ -104,12 +104,11 @@ const MyEventsScreen = () => {
     console.log("Generating QR code for event:", event.id);
     try {
       const response = await axiosInstance.get(
-        `${API_URL}/EventRegistration/generate-qr-code/?eventId=${event.id.toString()}`,
+        `https://saleafapi-production.up.railway.app/EventRegistration/generate-qr-code?eventId=${event.eventId}`,
         {
           responseType: "blob",
         }
       );
-      console.log("QR code response:", response);
       if (response.status === 200) {
         return new Promise((resolve, reject) => {
           const reader = new FileReader();

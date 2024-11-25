@@ -67,7 +67,7 @@ const StepProgress = ({
   const renderContent = () => {
     switch (steps) {
       case 1:
-        return <DonatorDetails />;
+        return <DonatorDetails setSteps={setSteps} />;
       case 2:
         return (
           <DonationTypeComponent
