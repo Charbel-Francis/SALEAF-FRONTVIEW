@@ -124,43 +124,31 @@ export const JWTProvider = ({ children }: { children: React.ReactElement }) => {
 
   const login = async (email: string, password: string) => {
     const response = await axios.post('/api/account/login', { email, password });
-    const { token, user, refreshToken } = response.data;
+    const { token, refreshToken } = response.data;
     setSession(token, refreshToken);
     dispatch({
       type: LOGIN,
       payload: {
-        isLoggedIn: true,
-        user
+        isLoggedIn: true
       }
     });
   };
 
   const register = async (email: string, password: string, firstName: string, lastName: string) => {
-    // todo: this flow need to be recode as it not verified
-    const id = chance.bb_pin();
-    const response = await axios.post('/api/account/register', {
-      id,
+    const response = await axios.post('/api/Account/register', {
       email,
       password,
       firstName,
       lastName
     });
-    let users = response.data;
-
-    if (window.localStorage.getItem('users') !== undefined && window.localStorage.getItem('users') !== null) {
-      const localUsers = window.localStorage.getItem('users');
-      users = [
-        ...JSON.parse(localUsers!),
-        {
-          id,
-          email,
-          password,
-          name: `${firstName} ${lastName}`
-        }
-      ];
-    }
-
-    window.localStorage.setItem('users', JSON.stringify(users));
+    const { token, refreshToken } = response.data;
+    setSession(token, refreshToken);
+    dispatch({
+      type: LOGIN,
+      payload: {
+        isLoggedIn: true
+      }
+    });
   };
 
   const logout = () => {
@@ -182,10 +170,6 @@ export const JWTProvider = ({ children }: { children: React.ReactElement }) => {
 };
 
 export default JWTContext;
-
-
-
-
 
 // import React, { createContext, useEffect, useReducer } from 'react';
 
@@ -235,7 +219,6 @@ export default JWTContext;
 //   }
 // };
 
-
 // // ==============================|| JWT CONTEXT & PROVIDER ||============================== //
 
 // const JWTContext = createContext<JWTContextType | null>(null);
@@ -282,13 +265,12 @@ export default JWTContext;
 //       type: LOGIN,
 //       payload: {
 //         isLoggedIn: true,
-//         user: response.data.user 
+//         user: response.data.user
 //       }
 //     });
 
 //     localStorage.setItem('refreshToken', refreshToken);
 //   };
-  
 
 //  /* const register = async (email: string, password: string, firstName: string, lastName: string) => {
 //     // todo: this flow need to be recode as it not verified
@@ -349,9 +331,7 @@ export default JWTContext;
 //       {children}
 //     </JWTContext.Provider>
 //   );
-  
-  
-  
+
 // };
 
 // export default JWTContext;
