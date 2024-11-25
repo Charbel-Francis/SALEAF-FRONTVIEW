@@ -2,34 +2,25 @@
 FROM node:18-alpine AS build
 WORKDIR /app
 
-# Enable Corepack and install Yarn
 RUN corepack enable
 RUN corepack prepare yarn@4.1.0 --activate
 
-# Copy package files first
 COPY Web/package.json Web/yarn.lock ./
-
-# Install dependencies
 RUN yarn install --frozen-lockfile
 
-# Copy the rest of the application
 COPY Web/ ./
-
-# List directory to debug
-RUN ls -la
-
-# Install dependencies again to ensure everything is in place
 RUN yarn install --frozen-lockfile
-
-# Build the application
 RUN yarn build
 
 # Stage 2: Serve the application using Nginx
 FROM nginx:stable-alpine
-ENV PORT 80
+# Make sure we're using the PORT from Railway
+ENV PORT=3333
+WORKDIR /usr/share/nginx/html
 
-# Copy built files
-COPY --from=build /app/dist /usr/share/nginx/html
+COPY --from=build /app/dist .
 COPY Web/default.conf.template /etc/nginx/templates/default.conf.template
 
-EXPOSE $PORT
+# Make nginx listen on the Railway PORT
+EXPOSE ${PORT}
+CMD sed -i -e 's/$PORT/'"$PORT"'/g' /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'
