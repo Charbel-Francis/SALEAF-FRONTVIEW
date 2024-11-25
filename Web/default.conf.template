@@ -1,57 +1,20 @@
 server {
-    listen ${PORT} default_server;
-    listen [::]:${PORT} default_server;
-    
-    # Increased body size limit
-    client_max_body_size 50M;
-    
+    listen ${PORT};
+    server_name _;
+
     root /usr/share/nginx/html;
     index index.html;
 
-    # Add security headers
-    add_header X-Frame-Options "SAMEORIGIN";
-    add_header X-Content-Type-Options "nosniff";
-    add_header X-XSS-Protection "1; mode=block";
-
-    # Enable gzip compression
-    gzip on;
-    gzip_vary on;
-    gzip_min_length 10240;
-    gzip_proxied expired no-cache no-store private auth;
-    gzip_types text/plain text/css text/xml text/javascript application/x-javascript application/xml application/javascript;
-    gzip_disable "MSIE [1-6]\.";
-
     location / {
-        try_files $uri $uri/ /index.html;
-        expires -1;
-        add_header Cache-Control 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0';
+        # Serve index.html for React Router paths
+        try_files $uri /index.html;
     }
 
-    # Static file caching
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
-        expires 30d;
-        add_header Cache-Control "public, no-transform";
+    location /static/ {
+        # Serve static assets directly
+        expires 1y;
+        add_header Cache-Control "public";
     }
 
-    # For handling WebSocket connections if needed
-    location /sockjs-node {
-        proxy_pass http://localhost:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_cache_bypass $http_upgrade;
-        proxy_read_timeout 86400s;
-        proxy_send_timeout 86400s;
-    }
-
-    # Error pages
-    error_page 502 /502.html;
-    location = /502.html {
-        root /usr/share/nginx/html;
-        internal;
-    }
+    error_page 404 /index.html;
 }
