@@ -7,7 +7,7 @@ export default defineConfig(({ mode }) => {
 
   // Provide a default value of '/' if VITE_APP_BASE_NAME is undefined
   const API_URL = env.VITE_APP_BASE_NAME || '/';
-  const PORT = 3000;
+  const PORT = 3333;
 
   return {
     server: {
