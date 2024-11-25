@@ -18,7 +18,7 @@ export default function PaymentSelect({ item }: { item: PaymentOptionsProps }) {
   const theme = useTheme();
 
   return (
-    <MainCard content={false} sx={{ '&:hover': { boxShadow: theme.customShadows.primary } }}>
+    <MainCard content={false} sx={{ '&:hover': { boxShadow: theme.customShadows.z1 } }}>
       <Box sx={{ p: 2, py: 1, pr: 0 }}>
         <FormControlLabel
           value={item.value}

@@ -14,6 +14,7 @@ interface AuthState {
   token: string | null;
   authenticated: boolean | null;
   role: string | null;
+  justLoggedIn?: boolean;
 }
 
 interface AuthContextType extends AuthProps {
@@ -110,28 +111,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     token: null,
     authenticated: false,
     role: null,
+    justLoggedIn: false,
   });
-
-  const router = useRouter();
-  const segments = useSegments();
-
-  // Navigation effect
-  useEffect(() => {
-    if (isLoading) return;
-
-    const inAuthGroup = segments[0] === "(auth)";
-
-    if (authState.authenticated) {
-      if (inAuthGroup) {
-        const homeRoute = getHomeRouteByRole(authState.role);
-        router.replace(homeRoute as any);
-      }
-    } else {
-      if (!inAuthGroup) {
-        router.replace("/(root)/(tabs)/home" as any);
-      }
-    }
-  }, [authState.authenticated, authState.role, isLoading, segments]);
 
   // Axios interceptors setup
   useEffect(() => {
@@ -156,6 +137,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             token: null,
             authenticated: false,
             role: null,
+            justLoggedIn: false,
           });
         }
         return Promise.reject(error);
@@ -193,6 +175,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             token,
             authenticated: true,
             role,
+            justLoggedIn: false,
           });
         } else {
           if (token) {
@@ -205,6 +188,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             token: null,
             authenticated: false,
             role: null,
+            justLoggedIn: false,
           });
         }
       } catch (error) {
@@ -213,6 +197,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           token: null,
           authenticated: false,
           role: null,
+          justLoggedIn: false,
         });
       } finally {
         setIsLoading(false);
@@ -265,6 +250,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         token,
         authenticated: true,
         role,
+        justLoggedIn: true,
       });
 
       return results;
@@ -302,6 +288,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         token,
         authenticated: true,
         role,
+        justLoggedIn: true,
       });
 
       return response;
@@ -323,6 +310,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         token: null,
         authenticated: false,
         role: null,
+        justLoggedIn: false,
       });
     } catch (error) {
       console.error("Logout error:", error);
@@ -330,6 +318,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         token: null,
         authenticated: false,
         role: null,
+        justLoggedIn: false,
       });
     }
   };
@@ -340,6 +329,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       token: null,
       authenticated: false,
       role: null,
+      justLoggedIn: false,
     });
   };
 

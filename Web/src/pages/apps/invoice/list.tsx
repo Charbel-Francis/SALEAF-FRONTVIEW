@@ -46,8 +46,8 @@ import IconButton from 'components/@extended/IconButton';
 import Breadcrumbs from 'components/@extended/Breadcrumbs';
 import InvoiceCard from 'components/cards/invoice/InvoiceCard';
 import InvoiceChart from 'components/cards/invoice/InvoiceChart';
-import EmptyReactTable from 'pages/tables/react-table/empty';
-import AlertProductDelete from 'sections/apps/invoice/AlertProductDelete';
+// import EmptyReactTable from 'pages/tables/react-table/empty';
+// import AlertProductDelete from 'sections/apps/invoice/AlertProductDelete';
 
 import { APP_DEFAULT_PATH } from 'config';
 import { openSnackbar } from 'api/snackbar';
@@ -526,12 +526,12 @@ export default function List() {
           </Box>
         </Grid>
         <Grid item xs={12}>
-          {invoiceLoading ? <EmptyReactTable /> : <ReactTable {...{ data: list, columns }} />}
-          <AlertProductDelete
+          {/* {invoiceLoading ? <EmptyReactTable /> : <ReactTable {...{ data: list, columns }} />} */}
+          {/* <AlertProductDelete
             title={invoiceId.toString()}
             open={invoiceMaster ? invoiceMaster.alertPopup : false}
             handleClose={handleClose}
-          />
+          /> */}
         </Grid>
       </Grid>
     </>

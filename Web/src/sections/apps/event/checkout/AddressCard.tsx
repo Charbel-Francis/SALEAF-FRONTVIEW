@@ -28,7 +28,7 @@ export default function AddressCard({ address, change, handleClickOpen, billingA
 
   return (
     <MainCard
-      sx={{ '&:hover': { boxShadow: theme.customShadows.primary }, cursor: 'pointer' }}
+      sx={{ '&:hover': { boxShadow: theme.customShadows.z1 }, cursor: 'pointer' }}
       onClick={() => {
         if (billingAddressHandler && address) {
           billingAddressHandler(address);

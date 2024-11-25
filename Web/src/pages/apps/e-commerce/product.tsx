@@ -9,11 +9,7 @@ import Grid from '@mui/material/Grid';
 // project-imports
 import ProductCard from 'components/cards/e-commerce/ProductCard';
 import FloatingCart from 'components/cards/e-commerce/FloatingCart';
-
-import ProductFilterDrawer from 'sections/apps/e-commerce/products/ProductFilterDrawer';
 import SkeletonProductPlaceholder from 'components/cards/skeleton/ProductPlaceholder';
-import ProductsHeader from 'sections/apps/e-commerce/products/ProductsHeader';
-import ProductEmpty from 'sections/apps/e-commerce/products/ProductEmpty';
 
 import useConfig from 'hooks/useConfig';
 import { resetCart, useGetCart } from 'api/cart';
@@ -127,25 +123,25 @@ export default function ProductsPage() {
   } else {
     productResult = (
       <Grid item xs={12} sx={{ mt: 3 }}>
-        <ProductEmpty handelFilter={() => setFilter(initialState)} />
+        {/* <ProductEmpty handelFilter={() => setFilter(initialState)} /> */}
       </Grid>
     );
   }
 
   return (
     <Box sx={{ display: 'flex' }}>
-      <ProductFilterDrawer
+      {/* <ProductFilterDrawer
         filter={filter}
         setFilter={setFilter}
         openFilterDrawer={openFilterDrawer}
         handleDrawerOpen={handleDrawerOpen}
         setLoading={setLoading}
         initialState={initialState}
-      />
+      /> */}
       <Main theme={theme} open={openFilterDrawer} container={container}>
         <Grid container spacing={2.5}>
           <Grid item xs={12}>
-            <ProductsHeader filter={filter} handleDrawerOpen={handleDrawerOpen} setFilter={setFilter} />
+            {/* <ProductsHeader filter={filter} handleDrawerOpen={handleDrawerOpen} setFilter={setFilter} /> */}
           </Grid>
           <Grid item xs={12}>
             <Grid container spacing={3}>

@@ -8,10 +8,9 @@ export interface DonorInfo {
 }
 
 export interface BankAccountInfo {
-  bankName: string;
-  accountNumber: string;
-  accountName: string;
-  branchCode?: string;
+  branch: string;
+  branchCode: string;
+  accountNo: string;
 }
 
 export interface DonationFormValues {

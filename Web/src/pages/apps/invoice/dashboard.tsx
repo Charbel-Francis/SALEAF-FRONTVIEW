@@ -8,12 +8,6 @@ import Grid from '@mui/material/Grid';
 // project-imports
 import MainCard from 'components/MainCard';
 import Breadcrumbs from 'components/@extended/Breadcrumbs';
-import InvoiceWidgetCard from 'sections/apps/invoice/InvoiceWidgetCard';
-import InvoiceIncomeAreaChart from 'sections/apps/invoice/InvoiceIncomeAreaChart';
-import InvoiceUserList from 'sections/apps/invoice/InvoiceUserList';
-import InvoiceNotificationList from 'sections/apps/invoice/InvoiceNotificationList';
-import InvoicePieChart from 'sections/apps/invoice/InvoicePieChart';
-import InvoiceCard from 'sections/apps/invoice/InvoiceCard';
 import { APP_DEFAULT_PATH } from 'config';
 
 // ==============================|| INVOICE - DASHBOARD ||============================== //
@@ -138,7 +132,7 @@ export default function Dashboard() {
     <>
       <Breadcrumbs custom heading="My Dashboard" links={breadcrumbLinks} />
       <Grid container spacing={2.5}>
-        <Grid item xs={12} lg={9}>
+        {/* <Grid item xs={12} lg={9}>
           <MainCard>
             <Grid container spacing={2}>
               {widgetData.map((data: any, index: number) => (
@@ -173,7 +167,7 @@ export default function Dashboard() {
         </Grid>
         <Grid item sm={12} md={4} xs={12}>
           <InvoiceNotificationList />
-        </Grid>
+        </Grid> */}
       </Grid>
     </>
   );

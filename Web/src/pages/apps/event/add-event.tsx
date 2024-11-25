@@ -4,16 +4,7 @@ import axios from 'utils/axios'; // Ensure axios is configured with baseURL and 
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
-import {
-  Grid,
-  Stack,
-  Button,
-  TextField,
-  InputLabel,
-  InputAdornment,
-  FormHelperText,
-  Typography
-} from '@mui/material';
+import { Grid, Stack, Button, TextField, InputLabel, InputAdornment, FormHelperText, Typography } from '@mui/material';
 import { LocalizationProvider, MobileDateTimePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 
@@ -45,14 +36,15 @@ const AddEvent = ({ isEdit = false, eventData }: AddEventProps) => {
   const [eventName, setEventName] = useState(isEdit ? eventData?.eventName || '' : '');
   const [eventDescription, setEventDescription] = useState(isEdit ? eventData?.eventDescription || '' : '');
   const [location, setLocation] = useState(isEdit ? eventData?.location || '' : '');
-  const [startDateTime, setStartDateTime] = useState(isEdit ? `${eventData?.startDate} ${eventData?.startTime}` : '');
-  const [endDateTime, setEndDateTime] = useState(isEdit ? `${eventData?.endDate} ${eventData?.endTime}` : '');
+  const [startDateTime, setStartDateTime] = useState(isEdit ? eventData?.startDateTime || '' : '');
+  const [endDateTime, setEndDateTime] = useState(isEdit ? eventData?.endDateTime || '' : '');
   const [publish, setPublish] = useState(isEdit ? eventData?.publish || true : true);
   const [status, setStatus] = useState<Event['status']>(isEdit ? eventData?.status || 'upcoming' : 'upcoming');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [packages, setPackages] = useState<Package[]>(
-    isEdit ? eventData?.packages || [{ packageName: '', packagePrice: 1, packageDescription: null }] 
-    : [{ packageName: '', packagePrice: 1, packageDescription: null }]
+    isEdit
+      ? eventData?.packages || [{ packageName: '', packagePrice: 1, packageDescription: null }]
+      : [{ packageName: '', packagePrice: 1, packageDescription: null }]
   );
   const [capacity, setCapacity] = useState<number>(isEdit ? eventData?.capacity || 0 : 0);
 
@@ -80,7 +72,7 @@ const AddEvent = ({ isEdit = false, eventData }: AddEventProps) => {
   const handleSubmit = async () => {
     try {
       const formData = new FormData();
-      
+
       formData.append('EventName', eventName);
       formData.append('EventDescription', eventDescription);
       formData.append('Location', location);
@@ -88,7 +80,7 @@ const AddEvent = ({ isEdit = false, eventData }: AddEventProps) => {
       formData.append('EndDateTime', endDateTime);
       formData.append('Publish', publish.toString());
       formData.append('Capacity', capacity.toString());
-      
+
       if (imageFile) {
         formData.append('EventImageFile', imageFile);
       }
@@ -102,12 +94,10 @@ const AddEvent = ({ isEdit = false, eventData }: AddEventProps) => {
       let response;
       if (isEdit && eventData) {
         // Ensure eventId is a number
-        const eventId = typeof eventData.eventId === 'string' 
-          ? parseInt(eventData.eventId, 10) 
-          : eventData.eventId;
-          
+        const eventId = typeof eventData.eventId === 'string' ? parseInt(eventData.eventId, 10) : eventData.eventId;
+
         console.log('Updating event with ID:', eventId); // Debug log
-        
+
         response = await axios.put(`/api/Event/${eventId}`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
@@ -228,12 +218,7 @@ const AddEvent = ({ isEdit = false, eventData }: AddEventProps) => {
         <Grid item xs={12} sm={6}>
           <Stack spacing={1}>
             <InputLabel>Event Image</InputLabel>
-            <Button
-              variant="outlined"
-              component="label"
-              startIcon={<DocumentUpload />}
-              sx={{ textTransform: 'none' }}
-            >
+            <Button variant="outlined" component="label" startIcon={<DocumentUpload />} sx={{ textTransform: 'none' }}>
               Upload Image
               <input type="file" accept="image/*" hidden onChange={handleFileChange} />
             </Button>
@@ -267,23 +252,20 @@ const AddEvent = ({ isEdit = false, eventData }: AddEventProps) => {
                 />
               </Grid>
               <Grid item xs={12}>
-                <Button variant="outlined" style={{marginBottom: '10px'}} color="error" onClick={() => removePackage(index)}>
+                <Button variant="outlined" style={{ marginBottom: '10px' }} color="error" onClick={() => removePackage(index)}>
                   Remove Package
                 </Button>
               </Grid>
             </Grid>
           ))}
-          <Button variant="contained" style={{marginTop: '10px'}} onClick={addPackage}>
+          <Button variant="contained" style={{ marginTop: '10px' }} onClick={addPackage}>
             Add Package
           </Button>
         </Grid>
 
         <Grid item xs={12}>
           <Stack direction="row" spacing={2} justifyContent="flex-end">
-            <Button
-              color="error"
-              onClick={() => navigate('/apps/event/event-list')}
-            >
+            <Button color="error" onClick={() => navigate('/apps/event/event-list')}>
               Cancel
             </Button>
             <Button variant="contained" onClick={handleSubmit}>

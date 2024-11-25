@@ -38,11 +38,6 @@ import ScrollX from 'components/ScrollX';
 import Avatar from 'components/@extended/Avatar';
 import IconButton from 'components/@extended/IconButton';
 
-import CustomerModal from 'sections/apps/customer/CustomerModal';
-import AlertCustomerDelete from 'sections/apps/customer/AlertCustomerDelete';
-import CustomerView from 'sections/apps/customer/CustomerView';
-import EmptyReactTable from 'pages/tables/react-table/empty';
-
 import {
   CSVExport,
   DebouncedInput,
@@ -181,7 +176,7 @@ function ReactTable({ data, columns, modalToggler }: Props) {
                     {row.getIsExpanded() && (
                       <TableRow sx={{ bgcolor: backColor, '&:hover': { bgcolor: `${backColor} !important` }, overflow: 'hidden' }}>
                         <TableCell colSpan={row.getVisibleCells().length} sx={{ p: 2.5, overflow: 'hidden' }}>
-                          <CustomerView data={row.original} />
+                          {/* <CustomerView data={row.original} /> */}
                         </TableCell>
                       </TableRow>
                     )}
@@ -357,7 +352,7 @@ export default function CustomerListPage() {
     [theme]
   );
 
-  if (loading) return <EmptyReactTable />;
+  // if (loading) return <EmptyReactTable />;
 
   return (
     <>
@@ -371,8 +366,8 @@ export default function CustomerListPage() {
           }
         }}
       />
-      <AlertCustomerDelete id={Number(customerDeleteId)} title={customerDeleteId} open={open} handleClose={handleClose} />
-      <CustomerModal open={customerModal} modalToggler={setCustomerModal} customer={selectedCustomer} />
+      {/* <AlertCustomerDelete id={Number(customerDeleteId)} title={customerDeleteId} open={open} handleClose={handleClose} />
+      <CustomerModal open={customerModal} modalToggler={setCustomerModal} customer={selectedCustomer} /> */}
     </>
   );
 }

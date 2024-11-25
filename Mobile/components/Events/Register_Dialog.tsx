@@ -20,6 +20,7 @@ import axiosInstance from "@/utils/config";
 import { useRouter } from "expo-router";
 
 interface Package {
+  packageId: number;
   packageName: string;
   packagePrice: number;
 }
@@ -250,7 +251,7 @@ export default function RegistrationDialog({
                   value={selectedPackage}
                 >
                   {packages.map((pkg) => (
-                    <View key={pkg.packageName} style={styles.packageRow}>
+                    <View key={pkg.packageId} style={styles.packageRow}>
                       <RadioButton.Item
                         label={`${
                           pkg.packageName

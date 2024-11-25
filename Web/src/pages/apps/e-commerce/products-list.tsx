@@ -41,7 +41,7 @@ import MainCard from 'components/MainCard';
 import Avatar from 'components/@extended/Avatar';
 import IconButton from 'components/@extended/IconButton';
 import Breadcrumbs from 'components/@extended/Breadcrumbs';
-import ProductView from 'sections/apps/e-commerce/product-list/ProductView';
+// import ProductView from 'sections/apps/e-commerce/product-list/ProductView';
 import {
   DebouncedInput,
   HeaderSort,
@@ -197,9 +197,7 @@ function ReactTable({ data, columns }: Props) {
                     </TableRow>
                     {row.getIsExpanded() && (
                       <TableRow sx={{ '&:hover': { bgcolor: `${backColor} !important` } }}>
-                        <TableCell colSpan={row.getVisibleCells().length}>
-                          <ProductView data={row.original} />
-                        </TableCell>
+                        <TableCell colSpan={row.getVisibleCells().length}>{/* <ProductView data={row.original} /> */}</TableCell>
                       </TableRow>
                     )}
                   </Fragment>

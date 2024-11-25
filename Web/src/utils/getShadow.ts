@@ -6,28 +6,28 @@ import { Theme } from '@mui/material/styles';
 export default function getShadow(theme: Theme, shadow: string) {
   switch (shadow) {
     case 'secondary':
-      return theme.customShadows.secondary;
+      return theme.shadows[1];
     case 'error':
-      return theme.customShadows.error;
+      return theme.shadows[2];
     case 'warning':
-      return theme.customShadows.warning;
+      return theme.shadows[3];
     case 'info':
-      return theme.customShadows.info;
+      return theme.shadows[4];
     case 'success':
-      return theme.customShadows.success;
+      return theme.shadows[5];
     case 'primaryButton':
-      return theme.customShadows.primaryButton;
+      return theme.shadows[6];
     case 'secondaryButton':
-      return theme.customShadows.secondaryButton;
+      return theme.shadows[7];
     case 'errorButton':
-      return theme.customShadows.errorButton;
+      return theme.shadows[8];
     case 'warningButton':
-      return theme.customShadows.warningButton;
+      return theme.shadows[9];
     case 'infoButton':
-      return theme.customShadows.infoButton;
+      return theme.shadows[10];
     case 'successButton':
-      return theme.customShadows.successButton;
+      return theme.shadows[11];
     default:
-      return theme.customShadows.primary;
+      return theme.customShadows.z1;
   }
 }

@@ -288,9 +288,9 @@ const EventList = () => {
         header: 'Start',
         cell: ({ row }) => (
           <Stack spacing={0.5} sx={{ minWidth: 100 }}>
-            <Typography variant="caption">{row.original.startDate}</Typography>
+            <Typography variant="caption">{row.original.startDateTime}</Typography>
             <Typography variant="caption" color="text.secondary">
-              {row.original.startTime}
+              {row.original.startDateTime}
             </Typography>
           </Stack>
         )
@@ -299,9 +299,9 @@ const EventList = () => {
         header: 'End',
         cell: ({ row }) => (
           <Stack spacing={0.5} sx={{ minWidth: 100 }}>
-            <Typography variant="caption">{row.original.endDate}</Typography>
+            <Typography variant="caption">{row.original.endDateTime}</Typography>
             <Typography variant="caption" color="text.secondary">
-              {row.original.endTime}
+              {row.original.endDateTime}
             </Typography>
           </Stack>
         )

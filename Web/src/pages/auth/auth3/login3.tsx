@@ -333,7 +333,7 @@ export default function Login3() {
                           }}
                           focusStyle={{
                             outline: 'none',
-                            boxShadow: theme.customShadows.primary,
+                            boxShadow: theme.customShadows.z1,
                             border: '1px solid ',
                             borderColor: theme.palette.primary.main
                           }}
