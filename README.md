@@ -127,34 +127,6 @@ Sponsors can access the following sections:
 
 ---
 
-## Project Structure  
-
-```plaintext
-final-year-sponsor-app/
-│
-├── components/
-│   ├── HomeCard.tsx
-│   ├── EventList.tsx
-│   ├── StudentProfiles.tsx
-│   └── DonationForm.tsx
-│
-├── screens/
-│   ├── HomeScreen.tsx
-│   ├── EventsScreen.tsx
-│   ├── StudentsScreen.tsx
-│   └── ProfileScreen.tsx
-│
-├── navigation/
-│   ├── AuthNavigator.tsx
-│   ├── MainNavigator.tsx
-│   └── TabNavigator.tsx
-│
-├── assets/
-│   └── images/
-├── App.tsx
-├── package.json
-└── README.md
-```
 
 ---
 
