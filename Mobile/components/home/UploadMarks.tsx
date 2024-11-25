@@ -104,15 +104,97 @@ const StudentMarksTaskCard: React.FC = () => {
   };
 
   const handleUpload = async (): Promise<void> => {
+    if (!selectedFile) {
+      Alert.alert("Error", "Please select a file first");
+      return;
+    }
+
     setIsUploading(true);
+    setError(null);
 
-    // Simulate upload delay
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    try {
+      // Create FormData instance
+      const formData = new FormData();
 
-    setIsUploading(false);
-    setIsCompleted(true);
-    Alert.alert("Success", "File uploaded successfully!");
+      // Create the file object
+      const fileObject = {
+        uri:
+          Platform.OS === "ios"
+            ? selectedFile.uri.replace("file://", "")
+            : selectedFile.uri,
+        type: selectedFile.type || "application/octet-stream",
+        name: selectedFile.name,
+      };
+
+      // Append required fields explicitly
+      formData.append("File", fileObject as any); // The binary file
+      formData.append("Name", selectedFile.name); // Required Name field
+      formData.append("Type", selectedFile.type || "application/octet-stream"); // Required Type field
+
+      // Log the FormData contents for debugging
+      console.log("FormData content:", {
+        name: selectedFile.name,
+        type: selectedFile.type,
+        fileObject,
+      });
+
+      const response = await axiosInstance.post(
+        "/api/StudentMarksUpload",
+        formData,
+        {
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "multipart/form-data",
+          },
+          transformRequest: (data) => data,
+          onUploadProgress: (progressEvent) => {
+            const percentCompleted = progressEvent.total
+              ? Math.round((progressEvent.loaded * 100) / progressEvent.total)
+              : 0;
+            console.log(`Upload Progress: ${percentCompleted}%`);
+          },
+        }
+      );
+
+      console.log("Upload Response:", response.data);
+
+      setIsUploading(false);
+      setIsCompleted(true);
+      Alert.alert("Success", "File uploaded successfully!");
+    } catch (err) {
+      setIsUploading(false);
+
+      if (isAxiosError(err) && err.response) {
+        console.log("Error Response:", {
+          status: err.response.status,
+          data: err.response.data,
+        });
+
+        // More detailed error message based on the validation errors
+        if (err.response.data?.errors) {
+          const errorMessages = [];
+          const errors = err.response.data.errors;
+
+          if (errors.Name) {
+            errorMessages.push(`Name: ${errors.Name.join(", ")}`);
+          }
+          if (errors.Type) {
+            errorMessages.push(`Type: ${errors.Type.join(", ")}`);
+          }
+
+          Alert.alert("Validation Error", errorMessages.join("\n"));
+        } else {
+          Alert.alert(
+            "Error",
+            err.response.data?.title || "Failed to upload file"
+          );
+        }
+      } else {
+        Alert.alert("Error", "An unexpected error occurred during upload");
+      }
+    }
   };
+
   useEffect(() => {
     const fetchData = async () => {
       try {

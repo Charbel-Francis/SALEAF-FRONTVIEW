@@ -23,35 +23,49 @@ import { AppUser } from "@/constants";
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#F7F9FC",
     borderRadius: wp("4%"),
   },
   scrollView: {
     flex: 1,
   },
   contentContainer: {
-    paddingHorizontal: wp("4%"),
+    paddingHorizontal: wp("2%"),
     paddingBottom: hp("15%"),
+    gap: hp("2%"),
   },
   title: {
     fontSize: wp("6%"),
-    fontWeight: "bold",
+    fontWeight: "700",
     textAlign: "center",
     marginVertical: hp("2%"),
-    color: "#2c3e50",
+    color: "#15783D",
+    letterSpacing: 0.5,
+  },
+  subtitle: {
+    fontSize: wp("4%"),
+    fontWeight: "600",
+    textAlign: "center",
+    marginTop: 0,
+    color: "#15783D",
+    letterSpacing: 0.3,
   },
   card: {
-    marginBottom: hp("1%"),
-    borderRadius: wp("2%"),
+    width: wp("75%"),
+    alignSelf: "center",
+    marginBottom: hp("1.5%"),
+    borderRadius: wp("3%"),
     backgroundColor: "#fff",
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 1,
+      height: 2,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: "#E8EFF5",
   },
   cardContent: {
     padding: wp("3%"),
@@ -60,42 +74,87 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: hp("1.5%"),
+    paddingVertical: hp("1.8%"),
     paddingHorizontal: wp("3%"),
-    borderBottomWidth: 0.5,
-    borderBottomColor: "#e0e0e0",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E8EFF5",
+    backgroundColor: "#FAFBFD",
+    borderTopLeftRadius: wp("3%"),
+    borderTopRightRadius: wp("3%"),
   },
   cardTitle: {
-    fontSize: wp("4%"),
+    fontSize: wp("3.8%"),
     fontWeight: "600",
-    color: "#2c3e50",
+    color: "#15783D",
+    letterSpacing: 0.3,
   },
   cardHint: {
     fontSize: wp("2.8%"),
-    color: "#e74c3c",
+    color: "#94A3B8",
     fontStyle: "italic",
+    fontWeight: "500",
   },
-  inputWrapper: {
-    paddingVertical: hp("1%"),
+  iconContainer: {
+    width: wp("7%"),
+    height: wp("7%"),
+    borderRadius: wp("3.5%"),
+    backgroundColor: "#F0F7F4",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: wp("2%"),
   },
   input: {
-    height: hp("3%"),
-    borderRadius: wp("1%"),
-    marginBottom: hp("1%"),
+    height: hp("6%"),
+    borderRadius: wp("2.5%"),
+    marginBottom: hp("1.5%"),
+    backgroundColor: "#F8F9FA",
+    borderWidth: 1,
+    borderColor: "#E9ECEF",
+    paddingHorizontal: wp("3%"),
+    fontSize: wp("3.5%"),
   },
+
+  inputWrapper: {
+    paddingVertical: hp("1.5%"),
+    gap: hp("1%"),
+  },
+
+  labelText: {
+    fontSize: wp("3.2%"),
+    color: "#334155",
+    fontWeight: "600",
+    marginBottom: hp("0.8%"),
+    marginLeft: wp("1%"),
+    letterSpacing: 0.2,
+  },
+
   switchContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: hp("1%"),
+    paddingVertical: hp("2%"),
+    backgroundColor: "#F8FAFC",
+    borderRadius: wp("2.5%"),
+    paddingHorizontal: wp("3%"),
+    marginVertical: hp("1%"),
+    borderWidth: 1,
+    borderColor: "#E8EFF5",
   },
   switchLabel: {
-    fontSize: wp("4%"),
-    color: "#2c3e50",
+    fontSize: wp("3.5%"),
+    color: "#334155",
+    fontWeight: "600",
+    letterSpacing: 0.2,
+    flex: 1,
+    marginRight: wp("2%"),
   },
-  disabledInput: {
-    backgroundColor: "#e9ecef",
-    color: "#6c757d",
+  expandedCard: {
+    borderColor: "#15783D",
+    borderWidth: 1.5,
+    transform: [{ scale: 1.01 }],
+  },
+  dualInputContainer: {
+    marginBottom: hp("1.5%"),
   },
 });
 
@@ -206,36 +265,101 @@ const FamilyBackGround_Form = ({
     contentHeight: number
   ) => {
     const isExpanded = expandedField === fieldName;
+    const icon = getIconForField(fieldName);
+
+    // Ensure animations[fieldName] exists
+    if (!animations[fieldName]) {
+      animations[fieldName] = {
+        height: new Animated.Value(0),
+        opacity: new Animated.Value(0),
+      };
+    }
+
+    const cardStyle = [styles.card, isExpanded && styles.expandedCard];
+
+    const iconStyle = {
+      width: wp("7%"),
+      height: wp("7%"),
+      borderRadius: wp("3.5%"),
+      backgroundColor: isExpanded ? "#E8F5EE" : "#F0F7F4",
+      justifyContent: "center" as const,
+      alignItems: "center" as const,
+      marginRight: wp("2%"),
+    };
 
     return (
-      <Card style={styles.card}>
+      <View style={cardStyle}>
         <TouchableOpacity
           onPress={() => toggleField(fieldName)}
           activeOpacity={0.7}
+          style={{ overflow: "hidden", borderRadius: wp("3%") }}
         >
           <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>{title}</Text>
-            <Text style={styles.cardHint}>
-              {isExpanded ? "tap to close" : "tap to open"}
-            </Text>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              {icon && <View style={iconStyle}>{icon}</View>}
+              <View>
+                <Text style={styles.cardTitle}>{title}</Text>
+                <Text style={[styles.cardHint, { marginTop: hp("0.5%") }]}>
+                  {isExpanded ? "Tap to close" : "Tap to edit"}
+                </Text>
+              </View>
+            </View>
+            <Animated.View
+              style={{
+                transform: [
+                  {
+                    rotate: animations[fieldName].height.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: ["0deg", "180deg"],
+                    }),
+                  },
+                ],
+              }}
+            >
+              <Ionicons
+                name="chevron-down"
+                size={wp("4.5%")}
+                color={isExpanded ? "#15783D" : "#94A3B8"}
+              />
+            </Animated.View>
           </View>
-        </TouchableOpacity>
 
-        <Animated.View
-          style={{
-            opacity: animations[fieldName]?.opacity || 0,
-            maxHeight:
-              animations[fieldName]?.height.interpolate({
+          <Animated.View
+            style={{
+              opacity: animations[fieldName].opacity,
+              maxHeight: animations[fieldName].height.interpolate({
                 inputRange: [0, 1],
                 outputRange: [0, contentHeight],
-              }) || 0,
-            overflow: "hidden",
-          }}
-        >
-          <View style={styles.cardContent}>{content}</View>
-        </Animated.View>
-      </Card>
+              }),
+            }}
+          >
+            <View style={[styles.cardContent, { paddingTop: hp("2%") }]}>
+              {content}
+            </View>
+          </Animated.View>
+        </TouchableOpacity>
+      </View>
     );
+  };
+
+  // Add getIconForField function
+  const getIconForField = (fieldName: string) => {
+    const iconSize = wp("4%");
+    const iconColor = "#666";
+
+    const iconMap = {
+      father: <Ionicons name="person" size={iconSize} color={iconColor} />,
+      mother: <Ionicons name="person" size={iconSize} color={iconColor} />,
+      sibling: <Ionicons name="people" size={iconSize} color={iconColor} />,
+      selfApplicant: (
+        <Ionicons name="person-circle" size={iconSize} color={iconColor} />
+      ),
+      guardianPerson: (
+        <Ionicons name="person" size={iconSize} color={iconColor} />
+      ),
+    };
+
+    return iconMap[fieldName as keyof typeof iconMap];
   };
 
   const handleSameAddressChange = () =>

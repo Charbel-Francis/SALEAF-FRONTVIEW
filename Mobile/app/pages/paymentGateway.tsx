@@ -39,6 +39,19 @@ const INJECTED_JAVASCRIPT = `
   style.innerHTML = 'body { min-width: 100vw; max-width: 100vw; overflow-x: hidden; } * { max-width: 100vw; }';
   document.head.appendChild(style);
   
+  // Monitor URL changes
+  let lastUrl = window.location.href;
+  const observer = new MutationObserver(() => {
+    if (window.location.href !== lastUrl) {
+      lastUrl = window.location.href;
+      window.ReactNativeWebView.postMessage(JSON.stringify({
+        type: 'urlChange',
+        url: lastUrl
+      }));
+    }
+  });
+  
+  observer.observe(document, { subtree: true, childList: true });
   true;
 `;
 
@@ -63,10 +76,9 @@ const DonateOnline = () => {
   const scaleValue = new Animated.Value(0);
   const shakeAnimation = new Animated.Value(0);
   const fadeAnim = new Animated.Value(0);
-  const [currentUrl, setCurrentUrl] = useState("");
 
   const navigateToEvents = useCallback(() => {
-    // router.replace("/events");
+    router.replace("/events");
   }, []);
 
   useEffect(() => {
@@ -94,7 +106,10 @@ const DonateOnline = () => {
 
   const handleStatusChange = useCallback(
     (newStatus: PaymentStatusType) => {
+      if (paymentStatus !== PaymentStatus.NONE) return; // Prevent multiple status changes
+
       setPaymentStatus(newStatus);
+      console.log("Payment status changed to:", newStatus);
 
       switch (newStatus) {
         case PaymentStatus.SUCCESS:
@@ -142,37 +157,79 @@ const DonateOnline = () => {
           break;
       }
     },
-    [scaleValue, fadeAnim, shakeAnimation]
+    [paymentStatus, scaleValue, fadeAnim, shakeAnimation]
   );
+
+  const checkUrlForStatus = useCallback((url: string) => {
+    try {
+      const urlObj = new URL(url);
+      const statusParam = urlObj.searchParams.get("status")?.toLowerCase();
+      const pathSegments = urlObj.pathname.toLowerCase().split("/");
+      const urlLower = url.toLowerCase();
+
+      // Check URL parameters
+      if (statusParam === "success" || pathSegments.includes("success")) {
+        return PaymentStatus.SUCCESS;
+      } else if (
+        statusParam === "failure" ||
+        pathSegments.includes("failure") ||
+        pathSegments.includes("failed")
+      ) {
+        return PaymentStatus.FAILURE;
+      } else if (
+        statusParam === "cancel" ||
+        pathSegments.includes("cancel") ||
+        pathSegments.includes("cancelled")
+      ) {
+        return PaymentStatus.CANCELLED;
+      }
+
+      // Check for status in URL fragments
+      if (urlLower.includes("success")) {
+        return PaymentStatus.SUCCESS;
+      } else if (urlLower.includes("failure") || urlLower.includes("failed")) {
+        return PaymentStatus.FAILURE;
+      } else if (urlLower.includes("cancel")) {
+        return PaymentStatus.CANCELLED;
+      }
+
+      return null;
+    } catch (error) {
+      console.error("Error parsing URL:", error);
+      return null;
+    }
+  }, []);
 
   const handleNavigationStateChange = useCallback(
     (navState: any) => {
       const { url } = navState;
-      console.log("Navigation state changed, URL:", url);
-      //   setCurrentUrl(url);
-
       if (!url) return;
 
-      try {
-        const urlParams = new URL(url).searchParams;
-        const status = urlParams.get("status")?.toLowerCase();
-        const urlLower = url.toLowerCase();
+      console.log("Navigation state changed, URL:", url);
+      const detectedStatus = checkUrlForStatus(url);
 
-        if (status === "success" || urlLower.includes("success")) {
-          console.log("Success detected");
-          handleStatusChange(PaymentStatus.SUCCESS);
-        } else if (status === "failure" || urlLower.includes("failure")) {
-          console.log("Failure detected");
-          handleStatusChange(PaymentStatus.FAILURE);
-        } else if (status === "cancel" || urlLower.includes("cancel")) {
-          console.log("Cancel detected");
-          handleStatusChange(PaymentStatus.CANCELLED);
-        }
-      } catch (error) {
-        console.error("Error parsing URL:", error);
+      if (detectedStatus !== null) {
+        handleStatusChange(detectedStatus);
       }
     },
-    [handleStatusChange]
+    [checkUrlForStatus, handleStatusChange]
+  );
+
+  const handleMessage = useCallback(
+    (event: any) => {
+      try {
+        const data = JSON.parse(event.nativeEvent.data);
+        if (data.type === "urlChange" && data.url) {
+          const detectedStatus = checkUrlForStatus(data.url);
+          if (detectedStatus !== null) {
+            handleStatusChange(detectedStatus);
+          }
+        }
+      } catch (error) {
+        console.error("Error handling WebView message:", error);
+      }
+    },
+    [checkUrlForStatus, handleStatusChange]
   );
 
   const renderRedirectMessage = () => (
@@ -281,12 +338,7 @@ const DonateOnline = () => {
       originWhitelist={["*"]}
       style={[styles.webView, { height: webViewHeight }]}
       injectedJavaScript={INJECTED_JAVASCRIPT}
-      onMessage={(event) => {
-        const height = Number(event.nativeEvent.data);
-        if (height > 0) {
-          setWebViewHeight(height);
-        }
-      }}
+      onMessage={handleMessage}
       scalesPageToFit={Platform.OS === "android"}
       automaticallyAdjustContentInsets={false}
       mixedContentMode="compatibility"

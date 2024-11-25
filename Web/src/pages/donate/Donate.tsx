@@ -184,6 +184,8 @@ const DonationPage: React.FC = () => {
           const DonatorInformation = response.data;
           if (DonatorInformation) {
             setActiveStep((prev) => prev + 2);
+          } else {
+            setActiveStep((prev) => prev + 1);
           }
         } catch (error) {
           setUploadError('Failed to fetch donor information');

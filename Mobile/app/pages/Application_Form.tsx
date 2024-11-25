@@ -9,9 +9,10 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   ToastAndroid,
+  Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { Text } from "react-native-paper";
+import { ActivityIndicator, Text } from "react-native-paper";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -33,6 +34,9 @@ import CustomButton from "@/components/CustomButton";
 import { AppUser, initialAppUser } from "@/constants";
 import axiosInstance from "@/utils/config";
 import { useRouter } from "expo-router";
+import { isAxiosError } from "axios";
+import { MaterialIcons } from "@expo/vector-icons";
+import { TouchableOpacity } from "react-native-gesture-handler";
 
 const Application_Form = () => {
   const [stepper, setStepper] = useState(0);
@@ -47,25 +51,29 @@ const Application_Form = () => {
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: "#f5f5f5",
-    },
-    safeArea: {
-      flex: 1,
-    },
-    contentContainer: {
-      flex: 1,
-      backgroundColor: "#fff",
+      backgroundColor: "#F7F9FC", // Lighter, more modern background
     },
     header: {
-      paddingVertical: hp("5%"),
+      paddingVertical: hp("4%"),
       paddingHorizontal: wp("4%"),
-      backgroundColor: "rgba(21, 120, 61, 0.9)",
+      backgroundColor: "#15783D", // Solid color instead of rgba
+      borderBottomLeftRadius: wp("5%"),
+      borderBottomRightRadius: wp("5%"),
+      shadowColor: "#000",
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.1,
+      shadowRadius: 3,
+      elevation: 5,
     },
     headerText: {
-      fontSize: wp("5%"),
+      fontSize: wp("5.5%"),
       color: "#fff",
-      fontWeight: "bold",
+      fontWeight: "700",
       textAlign: "center",
+      letterSpacing: 0.5,
     },
     subHeaderText: {
       fontSize: wp("3.5%"),
@@ -73,86 +81,103 @@ const Application_Form = () => {
       textAlign: "center",
       marginTop: hp("1%"),
       opacity: 0.9,
+      letterSpacing: 0.25,
     },
     progressContainer: {
       backgroundColor: "#fff",
-      paddingVertical: hp("1%"),
+      paddingVertical: hp("2%"),
       paddingHorizontal: wp("4%"),
-      borderBottomWidth: 2,
-      borderBottomColor: "#e0e0e0",
+      marginTop: hp("2%"),
+      marginHorizontal: wp("4%"),
+      borderRadius: wp("3%"),
+      shadowColor: "#000",
+      shadowOffset: {
+        width: 0,
+        height: 1,
+      },
+      shadowOpacity: 0.08,
+      shadowRadius: 2,
+      elevation: 2,
     },
     progressBar: {
-      width: wp("90%"),
+      width: wp("85%"),
       alignSelf: "center",
       marginTop: hp("1%"),
     },
     progressBackground: {
-      height: hp("1%"),
-      backgroundColor: "#e0e0e0",
+      height: hp("1.2%"),
+      backgroundColor: "#E8F0E9",
       borderRadius: wp("2%"),
       overflow: "hidden",
     },
     progressFill: {
       height: "100%",
-      backgroundColor: "rgba(21, 120, 61, 1)",
+      backgroundColor: "#15783D",
       borderRadius: wp("2%"),
     },
     progressText: {
       textAlign: "center",
       marginTop: hp("1%"),
       fontSize: wp("3.5%"),
-      color: "rgba(21, 120, 61, 1)",
+      color: "#15783D",
       fontWeight: "600",
+      letterSpacing: 0.5,
     },
     stepIndicator: {
       flexDirection: "row",
       justifyContent: "center",
-      marginTop: hp("1%"),
+      marginTop: hp("0.5%"),
+      alignItems: "center",
     },
     stepText: {
-      fontSize: wp("3.5%"),
+      fontSize: wp("3.2%"),
       color: "#666",
+      fontWeight: "500",
     },
     formScrollView: {
       flex: 1,
-      backgroundColor: "#f5f5f5",
+      marginTop: hp("2%"),
     },
     formContainer: {
-      flex: 1,
       backgroundColor: "#fff",
       borderRadius: wp("4%"),
+      marginHorizontal: wp("4%"),
+      marginBottom: hp("2%"),
+      padding: wp("5%"),
       shadowColor: "#000",
       shadowOffset: {
         width: 0,
         height: 2,
       },
-      shadowOpacity: 0.1,
-      shadowRadius: 3.84,
-      elevation: 5,
-      padding: wp("4%"),
+      shadowOpacity: 0.05,
+      shadowRadius: 5,
+      elevation: 3,
     },
     sectionTitle: {
-      fontSize: wp("4.5%"),
-      fontWeight: "600",
-      color: "rgba(21, 120, 61, 1)",
-      marginBottom: hp("2%"),
+      fontSize: wp("4.8%"),
+      fontWeight: "700",
+      color: "#15783D",
+      marginBottom: hp("2.5%"),
+      letterSpacing: 0.5,
+      borderBottomWidth: 2,
+      borderBottomColor: "#E8F0E9",
     },
     buttonContainer: {
       flexDirection: "row",
-      justifyContent: "space-between",
+      justifyContent: "space-evenly",
+      alignItems: "center",
       paddingVertical: hp("2%"),
       paddingHorizontal: wp("4%"),
-      maxWidth: wp("60%"), // Add maxWidth constraint
-      alignSelf: "stretch", // Ensure container stretches to parent width
       backgroundColor: "transparent",
+      width: "100%",
     },
-
     button: {
-      width: wp("42%"), // Reduce width to account for padding
-      borderRadius: wp("2%"),
+      width: wp("15%"),
       height: hp("6%"),
+      borderRadius: wp("2%"),
       justifyContent: "center",
       alignItems: "center",
+      marginHorizontal: wp("2%"),
       shadowColor: "#000",
       shadowOffset: {
         width: 0,
@@ -162,6 +187,9 @@ const Application_Form = () => {
       shadowRadius: 1.41,
       elevation: 2,
     },
+    submitButton: {
+      width: wp("40%"),
+    },
     backButton: {
       backgroundColor: "#fff",
       borderWidth: 1,
@@ -170,21 +198,10 @@ const Application_Form = () => {
     nextButton: {
       backgroundColor: "rgba(21, 120, 61, 1)",
     },
-    buttonText: {
+    submitText: {
       fontSize: wp("4%"),
       fontWeight: "600",
-    },
-    backButtonText: {
-      color: "rgba(21, 120, 61, 1)",
-    },
-    nextButtonText: {
       color: "#fff",
-    },
-    errorText: {
-      color: "#ff3333",
-      fontSize: wp("3.5%"),
-      marginTop: hp("1%"),
-      textAlign: "center",
     },
   });
 
@@ -254,10 +271,17 @@ const Application_Form = () => {
   };
 
   const FinishApplication = async () => {
-    if (isSubmitting) return; // Prevent double submission
+    if (isSubmitting) return;
+
     const showToast = (message: string) => {
-      ToastAndroid.show(message, ToastAndroid.SHORT);
+      if (Platform.OS === "android") {
+        ToastAndroid.show(message, ToastAndroid.LONG);
+      } else {
+        // For iOS, you might want to add Alert.alert here
+        Alert.alert("Notice", message);
+      }
     };
+
     try {
       setIsSubmitting(true);
       const response = await axiosInstance.post(
@@ -270,18 +294,91 @@ const Application_Form = () => {
         }
       );
 
-      showToast("Application submitted successfully!");
-      router.replace("/(tabs)/home");
+      if (response.data) {
+        showToast("Application submitted successfully!");
+        router.replace("/(tabs)/home");
+      }
     } catch (error: any) {
-      if (error.response) {
-        console.error("Server Error:", error.response.data);
-        showToast(error.response.data.message || "Server error occurred");
-      } else if (error.request) {
-        console.error("Network Error:", error.request);
-        showToast("Network error. Please check your connection.");
+      setIsSubmitting(false);
+
+      if (isAxiosError(error)) {
+        const errorResponse = error.response?.data;
+
+        // Handle different error scenarios
+        if (error.response) {
+          switch (error.response.status) {
+            case 400:
+              // Handle validation errors
+              if (errorResponse?.errors) {
+                const errorMessages = Object.entries(errorResponse.errors)
+                  .map(
+                    ([field, messages]) =>
+                      `${field}: ${(messages as string[]).join(", ")}`
+                  )
+                  .join("\n");
+                Alert.alert("Validation Error", errorMessages);
+              } else {
+                Alert.alert(
+                  "Error",
+                  errorResponse?.message || "Invalid form data"
+                );
+              }
+              break;
+
+            case 403:
+              Alert.alert(
+                "Access Denied",
+                "You do not have permission to submit this application"
+              );
+              break;
+
+            case 413:
+              Alert.alert(
+                "Error",
+                "The application data is too large. Please reduce file sizes."
+              );
+              break;
+
+            case 422:
+              // Handle specific validation errors from server
+              const validationErrors = errorResponse?.errors || {};
+              const errorList = Object.entries(validationErrors)
+                .map(([field, message]) => `${field}: ${message}`)
+                .join("\n");
+              Alert.alert(
+                "Validation Error",
+                errorList || "Please check your form data"
+              );
+              break;
+
+            case 500:
+              Alert.alert(
+                "Server Error",
+                "An unexpected error occurred. Please try again later or contact support."
+              );
+              break;
+
+            default:
+              Alert.alert(
+                "Error",
+                errorResponse?.message ||
+                  "Failed to submit application. Please try again."
+              );
+          }
+        } else if (error.request) {
+          // Network error
+          Alert.alert(
+            "Connection Error",
+            "Unable to connect to the server. Please check your internet connection and try again."
+          );
+        }
       } else {
-        console.error("Error:", error.message);
-        showToast("An unexpected error occurred");
+        // Handle non-axios errors
+        Alert.alert(
+          "Error",
+          "An unexpected error occurred. Please try again or contact support."
+        );
+        console.error("Non-axios error:", error);
       }
     } finally {
       setIsSubmitting(false);
@@ -462,7 +559,7 @@ const Application_Form = () => {
           {renderStepContent()}
         </View>
       </ScrollView>
-      <View>
+      <View style={{ width: "100%" }}>
         <Animated.View
           style={[
             styles.buttonContainer,
@@ -472,36 +569,47 @@ const Application_Form = () => {
           ]}
         >
           {stepper === 0 ? (
-            <CustomButton
+            <TouchableOpacity
               onPress={() => router.back()}
               style={[styles.button, styles.backButton]}
-              textStyle={[styles.buttonText, styles.backButtonText]}
-              title="Cancel"
-            />
+            >
+              <MaterialIcons
+                name="close"
+                size={24}
+                color="rgba(21, 120, 61, 1)"
+              />
+            </TouchableOpacity>
           ) : (
-            <CustomButton
+            <TouchableOpacity
               onPress={NavigateToPreviousApplication}
               style={[styles.button, styles.backButton]}
-              textStyle={[styles.buttonText, styles.backButtonText]}
-              title="Back"
-            />
+            >
+              <MaterialIcons
+                name="arrow-back"
+                size={24}
+                color="rgba(21, 120, 61, 1)"
+              />
+            </TouchableOpacity>
           )}
 
           {stepper === 12 ? (
-            <CustomButton
+            <TouchableOpacity
               onPress={FinishApplication}
-              style={[styles.button, styles.nextButton]}
-              textStyle={[styles.buttonText, styles.nextButtonText]}
-              loading={isSubmitting}
-              title="Submit Application"
-            />
+              style={[styles.button, styles.nextButton, styles.submitButton]}
+            >
+              {isSubmitting ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.submitText}>Submit Application</Text>
+              )}
+            </TouchableOpacity>
           ) : (
-            <CustomButton
+            <TouchableOpacity
               onPress={NavigateToNextApplication}
               style={[styles.button, styles.nextButton]}
-              textStyle={[styles.buttonText, styles.nextButtonText]}
-              title="Continue"
-            />
+            >
+              <MaterialIcons name="arrow-forward" size={24} color="#fff" />
+            </TouchableOpacity>
           )}
         </Animated.View>
       </View>

@@ -8,6 +8,10 @@ import {
   Animated,
   TextInput,
   Pressable,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
 } from "react-native";
 import { useAuth } from "@/context/JWTContext";
 import Ionicons from "react-native-vector-icons/Ionicons";
@@ -17,7 +21,6 @@ import {
 } from "react-native-responsive-screen";
 import CustomButton from "@/components/CustomButton";
 
-// Modern Input Component (same as before)
 interface ModernInputProps extends React.ComponentProps<typeof TextInput> {
   label: string;
   icon?: React.ReactNode;
@@ -52,7 +55,7 @@ const ModernInput = ({
     } as AnimationConfig).start();
   };
 
-  const labelStyle: Animated.WithAnimatedObject<any> = {
+  const labelStyle = {
     position: "absolute" as const,
     left: wp("12%"),
     top: animatedLabelPosition.interpolate({
@@ -106,11 +109,11 @@ const ModernInput = ({
           </Pressable>
         )}
       </View>
+      {error && touched && <Text style={inputStyles.errorText}>{error}</Text>}
     </View>
   );
 };
 
-// Modern Dual Input Component for First Name and Last Name
 interface ModernDualInputProps extends React.ComponentProps<typeof TextInput> {
   label1: string;
   label2: string;
@@ -162,16 +165,8 @@ const ModernDualInput = ({
     } as AnimationConfig).start();
   };
 
-  interface LabelStyle {
-    position: "absolute";
-    left: number;
-    top: Animated.AnimatedInterpolation<number>;
-    fontSize: Animated.AnimatedInterpolation<number>;
-    color: string;
-  }
-
-  const createLabelStyle = (animation: Animated.Value): LabelStyle => ({
-    position: "absolute",
+  const createLabelStyle = (animation: Animated.Value) => ({
+    position: "absolute" as const,
     left: wp("12%"),
     top: animation.interpolate({
       inputRange: [0, 1],
@@ -216,6 +211,9 @@ const ModernDualInput = ({
             placeholderTextColor="#999"
           />
         </View>
+        {error1 && touched1 && (
+          <Text style={dualInputStyles.errorText}>{error1}</Text>
+        )}
       </View>
 
       <View style={dualInputStyles.inputWrapper}>
@@ -248,6 +246,9 @@ const ModernDualInput = ({
             placeholderTextColor="#999"
           />
         </View>
+        {error2 && touched2 && (
+          <Text style={dualInputStyles.errorText}>{error2}</Text>
+        )}
       </View>
     </View>
   );
@@ -256,7 +257,7 @@ const ModernDualInput = ({
 const inputStyles = StyleSheet.create({
   container: {
     marginBottom: hp("3%"),
-    height: hp("8%"),
+    height: hp("10%"),
   },
   inputContainer: {
     flexDirection: "row",
@@ -292,6 +293,12 @@ const inputStyles = StyleSheet.create({
   iconContainer: {
     padding: wp("2%"),
   },
+  errorText: {
+    color: "#DC3545",
+    fontSize: wp("3.5%"),
+    marginTop: hp("0.5%"),
+    marginLeft: wp("2%"),
+  },
 });
 
 const dualInputStyles = StyleSheet.create({
@@ -302,7 +309,7 @@ const dualInputStyles = StyleSheet.create({
   },
   inputWrapper: {
     width: "48%",
-    height: hp("8%"),
+    height: hp("10%"),
   },
   input: {
     flexDirection: "row",
@@ -338,6 +345,12 @@ const dualInputStyles = StyleSheet.create({
   iconContainer: {
     padding: wp("2%"),
   },
+  errorText: {
+    color: "#DC3545",
+    fontSize: wp("3.5%"),
+    marginTop: hp("0.5%"),
+    marginLeft: wp("2%"),
+  },
 });
 
 const SignUpModal = () => {
@@ -347,9 +360,23 @@ const SignUpModal = () => {
     lastName: "",
     email: "",
     password: "",
-    confirmPassword: "",
     isStudent: false,
   });
+
+  const [touched, setTouched] = useState({
+    firstName: false,
+    lastName: false,
+    email: false,
+    password: false,
+  });
+
+  const [errors, setErrors] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+  });
+
   const [loading, setLoading] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [toggleAnimation] = useState(new Animated.Value(0));
@@ -456,6 +483,38 @@ const SignUpModal = () => {
     };
   }, []);
 
+  const validateForm = () => {
+    const newErrors = {
+      firstName: "",
+      lastName: "",
+      email: "",
+      password: "",
+    };
+
+    if (!form.firstName) {
+      newErrors.firstName = "First name is required";
+    }
+
+    if (!form.lastName) {
+      newErrors.lastName = "Last name is required";
+    }
+
+    if (!form.email) {
+      newErrors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(form.email)) {
+      newErrors.email = "Invalid email address";
+    }
+
+    if (!form.password) {
+      newErrors.password = "Password is required";
+    } else if (form.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
+    }
+
+    setErrors(newErrors);
+    return Object.values(newErrors).every((error) => !error);
+  };
+
   const toggleSwitch = () => {
     const toValue = form.isStudent ? 0 : 1;
     Animated.spring(toggleAnimation, {
@@ -474,18 +533,95 @@ const SignUpModal = () => {
   });
 
   const register = async () => {
-    setLoading(true);
-    if (onRegister) {
-      const results = await onRegister(
-        form.firstName,
-        form.lastName,
-        form.email,
-        form.password,
-        form.isStudent
-      );
-      if (results) {
-        setLoading(false);
+    try {
+      // Mark all fields as touched
+      setTouched({
+        firstName: true,
+        lastName: true,
+        email: true,
+        password: true,
+      });
+
+      // Validate form before proceeding
+      if (!validateForm()) {
+        return;
       }
+
+      setLoading(true);
+      setErrors({
+        firstName: "",
+        lastName: "",
+        email: "",
+        password: "",
+      }); // Clear any previous errors
+
+      if (onRegister) {
+        const response = await onRegister(
+          form.firstName,
+          form.lastName,
+          form.email,
+          form.password,
+          form.isStudent
+        );
+
+        // Check if response indicates success
+        if (response.success) {
+          // Handle successful registration
+          // Navigation or success message will be handled by the onRegister function
+          return;
+        }
+
+        // Handle different error scenarios based on the response
+        if (response.status === 400) {
+          if (response.data?.errors) {
+            // Handle validation errors from the server
+            const serverErrors = response.data.errors;
+            setErrors((prev) => ({
+              ...prev,
+              ...Object.keys(serverErrors).reduce(
+                (acc, key) => ({
+                  ...acc,
+                  [key.toLowerCase()]: serverErrors[key][0],
+                }),
+                {}
+              ),
+            }));
+          } else {
+            // Handle general 400 error
+            setErrors((prev) => ({
+              ...prev,
+              email: response.error || "Email already exists",
+            }));
+          }
+        } else if (response.status === 422) {
+          // Handle validation errors
+          setErrors((prev) => ({
+            ...prev,
+            general: "Please check your input and try again.",
+          }));
+        } else if (response.status === 500) {
+          // Handle server errors
+          setErrors((prev) => ({
+            ...prev,
+            general: "Server error. Please try again later.",
+          }));
+        } else {
+          // Handle any other errors
+          setErrors((prev) => ({
+            ...prev,
+            general: response.error || "Registration failed. Please try again.",
+          }));
+        }
+      }
+    } catch (error) {
+      // Handle unexpected errors that weren't caught by the API function
+      console.error("Unexpected error during registration:", error);
+      setErrors((prev) => ({
+        ...prev,
+        general: "An unexpected error occurred. Please try again.",
+      }));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -511,11 +647,7 @@ const SignUpModal = () => {
             style={[
               styles.toggleCircle,
               {
-                transform: [
-                  {
-                    translateX,
-                  },
-                ],
+                transform: [{ translateX }],
               },
             ]}
           />
@@ -568,19 +700,6 @@ const SignUpModal = () => {
           autoCapitalize="none"
           autoCorrect={false}
         />
-
-        <ModernInput
-          label="Confirm Password"
-          placeholder="Confirm your password"
-          textContentType="password"
-          secureTextEntry={true}
-          value={form.confirmPassword}
-          onChangeText={(value) => setForm({ ...form, confirmPassword: value })}
-          icon={<Ionicons name="lock-closed" size={wp("5%")} color="grey" />}
-          autoCapitalize="none"
-          autoCorrect={false}
-        />
-
         {renderToggle()}
       </View>
 

@@ -5,6 +5,7 @@ import { AuthProps } from "@/utils/interface";
 import axiosInstance from "@/utils/config";
 import { useRouter, useSegments } from "expo-router";
 import { Platform } from "react-native";
+import axios from "axios";
 
 // Constants
 const Token_key = "my-jwt";
@@ -282,10 +283,42 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         justLoggedIn: true,
       });
 
-      return results;
-    } catch (e) {
-      console.error("Registration error:", e);
-      throw e;
+      return { success: true, data: results.data };
+    } catch (error) {
+      console.error("Registration error:", error);
+
+      // Handle Axios errors
+      if (axios.isAxiosError(error)) {
+        if (error.response) {
+          // Server responded with error status
+          return {
+            success: false,
+            status: error.response.status,
+            error: error.response.data?.message || "Registration failed",
+            data: error.response.data,
+          };
+        } else if (error.request) {
+          // Request was made but no response received
+          return {
+            success: false,
+            status: 500,
+            error: "No response from server",
+          };
+        } else {
+          // Error in request setup
+          return {
+            success: false,
+            status: 500,
+            error: error.message || "An unexpected error occurred",
+          };
+        }
+      } else {
+        return {
+          success: false,
+          status: 500,
+          error: "An unexpected error occurred",
+        };
+      }
     }
   };
 
