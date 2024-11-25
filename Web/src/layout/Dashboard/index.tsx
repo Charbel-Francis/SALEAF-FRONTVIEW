@@ -17,7 +17,7 @@ import Header from './Header';
 import Footer from './Footer';
 import HorizontalBar from './Drawer/HorizontalBar';
 import Loader from 'components/Loader';
-import AddCustomer from 'sections/apps/customer/AddCustomer';
+
 import Breadcrumbs from 'components/@extended/Breadcrumbs';
 import AuthGuard from 'utils/route-guard/AuthGuard';
 
@@ -37,7 +37,28 @@ const ispValueAvailable = ispValue !== null && parseInt(ispValue) === 1;
 
 const url = ispValueAvailable ? 'https://1.envato.market/OrJ5nn' : 'https://1.envato.market/zNkqj6';
 
-export default function MainLayout() {
+interface Package {
+  packageName: string;
+  packagePrice: number;
+  packageDescription: string;
+}
+
+interface Event {
+  eventId: number;
+  eventName: string;
+  eventDescription: string;
+  location: string;
+  startDate: string;
+  endDate: string;
+  startTime: string;
+  endTime: string;
+  publish: boolean;
+  eventImageUrl: string | null;
+  status: 'upcoming' | 'ongoing' | 'completed' | 'cancelled';
+  packages: Package[];
+}
+
+const MainLayout = () => {
   const theme = useTheme();
 
   const { menuMasterLoading } = useGetMenuMaster();
@@ -82,8 +103,9 @@ export default function MainLayout() {
             <Footer />
           </Container>
         </Box>
-        <AddCustomer />
       </Box>
     </AuthGuard>
   );
-}
+};
+
+export default MainLayout;

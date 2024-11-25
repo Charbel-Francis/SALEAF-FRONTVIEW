@@ -124,9 +124,9 @@ export const StepContent: React.FC<StepContentProps> = ({
               <Typography variant="h6" className="mb-2">
                 Bank Account Details
               </Typography>
-              <Typography>Bank: {bankInfo.bankName}</Typography>
-              <Typography>Account Number: {bankInfo.accountNumber}</Typography>
-              <Typography>Account Name: {bankInfo.accountName}</Typography>
+              <Typography>Bank: {bankInfo.branch}</Typography>
+              <Typography>Account Number: {bankInfo.accountNo}</Typography>
+              <Typography>Account Name: {bankInfo.branchCode}</Typography>
               {bankInfo.branchCode && <Typography>Branch Code: {bankInfo.branchCode}</Typography>}
             </Box>
           )}

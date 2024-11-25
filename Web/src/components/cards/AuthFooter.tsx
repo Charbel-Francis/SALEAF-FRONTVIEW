@@ -19,19 +19,6 @@ export default function AuthFooter() {
         spacing={2}
         textAlign={matchDownSM ? 'center' : 'inherit'}
       >
-        <Typography variant="subtitle2" color="secondary">
-          Able Pro ♥ crafted by Team{' '}
-          <Typography
-            component={Link}
-            variant="subtitle2"
-            href="https://themeforest.net/user/phoenixcoded/portfolio"
-            target="_blank"
-            underline="hover"
-          >
-            Phoenixcoded
-          </Typography>
-        </Typography>
-
         <Stack direction={matchDownSM ? 'column' : 'row'} spacing={matchDownSM ? 1 : 3} textAlign={matchDownSM ? 'center' : 'inherit'}>
           <Typography
             variant="subtitle2"

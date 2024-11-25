@@ -27,8 +27,8 @@ interface ProfileData {
   firstName: string;
   lastName: string;
   bio: string;
-  skills: string[];
-  achievements: string[];
+  skills: { skillName: string }[];
+  achievements: { achievementName: string }[];
   university: string;
   degree: string;
   graduationDate: string;
@@ -66,82 +66,81 @@ export default function ProfileScreen() {
   });
 
   useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await axiosInstance.get(
+          "/api/StudentProfile/get-logged-user-profile"
+        );
+        console.log("Profile Data:", response.data);
+
+        if (response.data) {
+          setProfileData({
+            ...response.data,
+            profileImage: response.data.imageUrl,
+          });
+          setHasProfile(true);
+        }
+        setLoading(false);
+      } catch (error: any) {
+        setLoading(false);
+        setHasProfile(false);
+
+        // Detailed error logging
+        console.error("Profile fetch error details:", {
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          data: error.response?.data,
+          headers: error.response?.headers,
+          config: {
+            url: error.config?.url,
+            method: error.config?.method,
+            headers: error.config?.headers,
+          },
+        });
+
+        // Handle specific error cases
+        if (error.response) {
+          // Server responded with error
+          switch (error.response.status) {
+            case 401:
+              console.error("Authentication error - user not authorized");
+              // You might want to trigger a logout or token refresh here
+              break;
+            case 403:
+              console.error(
+                "Permission denied - user not allowed to access profile"
+              );
+              break;
+            case 404:
+              console.error("Profile not found");
+              break;
+            case 500:
+              console.error("Server error:", error.response.data);
+              break;
+            default:
+              console.error(
+                `Unexpected error (${error.response.status}):`,
+                error.response.data
+              );
+          }
+        } else if (error.request) {
+          // Request made but no response received
+          console.error("Network error - no response received:", error.request);
+        } else {
+          // Error in setting up the request
+          console.error("Request setup error:", error.message);
+        }
+
+        // Check request headers
+        console.log("Request headers:", {
+          authorization:
+            error.config?.headers?.Authorization || "No auth header found",
+          contentType: error.config?.headers?.["Content-Type"],
+        });
+      }
+    };
     fetchProfile();
   }, []);
-
-  const fetchProfile = async () => {
-    try {
-      const response = await axiosInstance.get(
-        "/api/StudentProfile/get-logged-user-profile"
-      );
-      console.log("Profile Data:", response.data);
-
-      if (response.data) {
-        setProfileData({
-          ...response.data,
-          profileImage: response.data.imageUrl,
-        });
-        setHasProfile(true);
-      }
-      setLoading(false);
-    } catch (error: any) {
-      setLoading(false);
-      setHasProfile(false);
-
-      // Detailed error logging
-      console.error("Profile fetch error details:", {
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        data: error.response?.data,
-        headers: error.response?.headers,
-        config: {
-          url: error.config?.url,
-          method: error.config?.method,
-          headers: error.config?.headers,
-        },
-      });
-
-      // Handle specific error cases
-      if (error.response) {
-        // Server responded with error
-        switch (error.response.status) {
-          case 401:
-            console.error("Authentication error - user not authorized");
-            // You might want to trigger a logout or token refresh here
-            break;
-          case 403:
-            console.error(
-              "Permission denied - user not allowed to access profile"
-            );
-            break;
-          case 404:
-            console.error("Profile not found");
-            break;
-          case 500:
-            console.error("Server error:", error.response.data);
-            break;
-          default:
-            console.error(
-              `Unexpected error (${error.response.status}):`,
-              error.response.data
-            );
-        }
-      } else if (error.request) {
-        // Request made but no response received
-        console.error("Network error - no response received:", error.request);
-      } else {
-        // Error in setting up the request
-        console.error("Request setup error:", error.message);
-      }
-
-      // Check request headers
-      console.log("Request headers:", {
-        authorization:
-          error.config?.headers?.Authorization || "No auth header found",
-        contentType: error.config?.headers?.["Content-Type"],
-      });
-    }
-  };
 
   const updateProfile = async () => {
     try {
@@ -164,12 +163,12 @@ export default function ProfileScreen() {
       formData.append("IsFinalYear", String(Boolean(profileData.isFinalYear)));
       formData.append("OnlineProfile", profileData.onlineProfile || "");
 
-      // Add arrays as JSON strings with null checks
-      formData.append("Skills", JSON.stringify(profileData.skills || []));
-      formData.append(
-        "Achievements",
-        JSON.stringify(profileData.achievements || [])
-      );
+      profileData.skills?.forEach((skill) => {
+        formData.append("Skills", skill.skillName);
+      });
+      profileData.achievements?.forEach((achievement) => {
+        formData.append("Achievements", achievement.achievementName);
+      });
 
       // Handle profile image
       if (profileData.profileImage) {
@@ -256,7 +255,7 @@ export default function ProfileScreen() {
 
     setProfileData((prev) => ({
       ...prev,
-      skills: [...(prev.skills || []), newSkill.trim()],
+      skills: [...(prev.skills || []), { skillName: newSkill.trim() }],
     }));
     setNewSkill("");
   };
@@ -266,7 +265,10 @@ export default function ProfileScreen() {
 
     setProfileData((prev) => ({
       ...prev,
-      achievements: [...(prev.achievements || []), newAchievement.trim()],
+      achievements: [
+        ...(prev.achievements || []),
+        { achievementName: newAchievement.trim() },
+      ],
     }));
     setNewAchievement("");
   };
@@ -553,24 +555,23 @@ export default function ProfileScreen() {
               </View>
             )}
             <View style={styles.tagContainer}>
-              {Array.isArray(profileData?.skills) &&
-                profileData.skills.map((skill, index) => (
-                  <View key={index} style={styles.tag}>
-                    <Text style={styles.tagText}>{skill}</Text>
-                    {editingSections.skills && (
-                      <Pressable
-                        onPress={() => removeSkill(index)}
-                        style={styles.removeTagButton}
-                      >
-                        <Ionicons
-                          name="close-circle"
-                          size={wp("4%")}
-                          color="#3949ab"
-                        />
-                      </Pressable>
-                    )}
-                  </View>
-                ))}
+              {profileData.skills.map((skill, index) => (
+                <View key={index} style={styles.tag}>
+                  <Text style={styles.tagText}>{skill?.skillName}</Text>
+                  {editingSections.skills && (
+                    <Pressable
+                      onPress={() => removeSkill(index)}
+                      style={styles.removeTagButton}
+                    >
+                      <Ionicons
+                        name="close-circle"
+                        size={wp("4%")}
+                        color="#3949ab"
+                      />
+                    </Pressable>
+                  )}
+                </View>
+              ))}
             </View>
           </View>
 
@@ -627,7 +628,9 @@ export default function ProfileScreen() {
                       <Ionicons name="star" size={wp("4%")} color="white" />
                     </LinearGradient>
                   </View>
-                  <Text style={styles.achievementText}>{achievement}</Text>
+                  <Text style={styles.achievementText}>
+                    {achievement.achievementName}
+                  </Text>
                   {editingSections.achievements && (
                     <Pressable
                       onPress={() => removeAchievement(index)}

@@ -37,7 +37,7 @@ interface ProfileData {
   Year: string;
   IsFinalYear: boolean;
   OnlineProfile: string;
-  ProfileImage: string | null;
+  ProfileImage: { uri: string; type: string; name: string } | null;
 }
 
 const validationSchema = Yup.object().shape({
@@ -135,7 +135,7 @@ export default function CreateProfileScreen() {
       >
         {values.ProfileImage ? (
           <Image
-            source={{ uri: values.ProfileImage }}
+            source={{ uri: values.ProfileImage.uri }}
             style={styles.uploadedImage}
           />
         ) : (
@@ -441,23 +441,63 @@ export default function CreateProfileScreen() {
       validationSchema={validationSchema}
       onSubmit={async (values) => {
         try {
+          console.log("Form submitted:", values);
           setLoading(true);
-          await axiosInstance.post(
+          // Create a FormData object
+          const formData = new FormData();
+          // Append the form fields to the FormData object
+          formData.append("FirstName", values.FirstName);
+          formData.append("LastName", values.LastName);
+          formData.append("Bio", values.Bio);
+          formData.append("University", values.University);
+          formData.append("Degree", values.Degree);
+          formData.append("GraduationDate", values.GraduationDate);
+          formData.append("Year", values.Year);
+          formData.append("IsFinalYear", values.IsFinalYear.toString());
+          formData.append("OnlineProfile", values.OnlineProfile);
+          values.Skills.forEach((skill) => {
+            formData.append("Skills", skill);
+          });
+          values.Achievements.forEach((achievement) => {
+            formData.append("Achievements", achievement);
+          });
+          // If a profile image is selected, append it to the FormData
+          if (values.ProfileImage) {
+            const file = {
+              uri: values.ProfileImage.uri,
+              type: values.ProfileImage.type || "image/jpeg",
+              name: values.ProfileImage.name || "photo.jpg",
+            } as any;
+            formData.append("ProfileImage", file);
+          }
+
+          // Send the FormData to the server
+          const response = await axiosInstance.post(
             "/api/StudentProfile/create-profile",
-            values
-          );
-          Alert.alert(
-            "Success",
-            "Your profile has been created successfully!",
-            [
-              {
-                text: "OK",
-                onPress: () => navigation.goBack(),
+            formData,
+            {
+              headers: {
+                "Content-Type": "multipart/form-data",
               },
-            ]
+            }
           );
-        } catch (error) {
-          Alert.alert("Error", "Failed to create profile. Please try again.");
+
+          // Alert.alert(
+          //   "Success",
+          //   "Your profile has been created successfully!",
+          //   [
+          //     {
+          //       text: "OK",
+          //       onPress: () => navigation.goBack(),
+          //     },
+          //   ]
+          // );
+        } catch (error: any) {
+          if (error?.response?.data) {
+            Alert.alert("Error", error.response.data.data);
+          } else {
+            Alert.alert("Error", "Failed to create profile. Please try again.");
+          }
         } finally {
           setLoading(false);
         }

@@ -70,16 +70,29 @@ export interface JWTDataProps {
   userId: string;
 }
 
-export type JWTContextType = {
+// export type JWTContextType = {
+//   isLoggedIn: boolean;
+//   isInitialized?: boolean;
+//   user?: UserProfile | null | undefined;
+//   logout: () => void;
+//   login: (email: string, password: string) => Promise<void>;
+//   register: (email: string, password: string, firstName: string, lastName: string) => Promise<void>;
+//   resetPassword: (email: string) => Promise<void>;
+//   updateProfile: VoidFunction;
+// };
+
+export interface JWTContextType {
   isLoggedIn: boolean;
-  isInitialized?: boolean;
-  user?: UserProfile | null | undefined;
-  logout: () => void;
+  user?: any | null; // Mark 'user' as optional and nullable
+  token?: string | null;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, firstName: string, lastName: string) => Promise<void>;
+  logout: () => void;
+  register?: (email: string, password: string, firstName: string, lastName: string) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
-  updateProfile: VoidFunction;
-};
+  updateProfile: () => void;
+}
+
+
 
 export type Auth0ContextType = {
   isLoggedIn: boolean;
