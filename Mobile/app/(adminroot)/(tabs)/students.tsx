@@ -9,65 +9,9 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import { sharedTransition } from "@/components/transitions/sharedTransitions";
-import axios from "axios";
 import axiosInstance from "@/utils/config";
-import { EventInterface, StudentInterface } from "@/types/types";
-import { ActivityIndicator, Card } from "react-native-paper";
-
-// const events = [
-//   {
-//     id: "1",
-//     title: "Golf Championships 2024",
-//     date: "March 15, 2024",
-//     location: "Royal Golf Club",
-//     imageUrl: "https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa",
-//     price: "R2,500",
-//     starttime: "08:00",
-//     endtime: "17:00",
-//     description:
-//       "Join us for the prestigious Golf Championships 2024. Experience world-class golfing at its finest with professional players from around the globe competing for the championship title.",
-//     capacity: "150 participants",
-//   },
-//   {
-//     id: "2",
-//     title: "Tennis Open Tournament",
-//     date: "April 5, 2024",
-//     location: "Central Tennis Arena",
-//     imageUrl: "https://images.unsplash.com/photo-1622279457486-62dcc4a431d6",
-//     price: "R1,800",
-//     starttime: "09:00",
-//     endtime: "18:00",
-//     description:
-//       "Watch top tennis players compete in this exciting open tournament. Featuring both singles and doubles matches throughout the day.",
-//     capacity: "200 spectators",
-//   },
-//   {
-//     id: "3",
-//     title: "Marathon City Run",
-//     date: "May 20, 2024",
-//     location: "City Center",
-//     imageUrl: "https://images.unsplash.com/photo-1452626038306-9aae5e071dd3",
-//     price: "R350",
-//     starttime: "06:00",
-//     endtime: "12:00",
-//     description:
-//       "Join thousands of runners in this annual city marathon. Perfect for both professional athletes and enthusiastic amateurs.",
-//     capacity: "5000 runners",
-//   },
-//   {
-//     id: "4",
-//     title: "Swimming Championship",
-//     date: "June 8, 2024",
-//     location: "Olympic Pool Complex",
-//     imageUrl: "https://images.unsplash.com/photo-1519315901367-f34ff9154487",
-//     price: "R900",
-//     starttime: "10:00",
-//     endtime: "16:00",
-//     description:
-//       "National swimming championship featuring multiple categories and age groups. Come witness record-breaking performances!",
-//     capacity: "300 participants",
-//   },
-// ];
+import { StudentInterface } from "@/types/types";
+import { ActivityIndicator } from "react-native-paper";
 
 const StudentCard = ({ student }: { student: StudentInterface }) => {
   return (
@@ -180,13 +124,90 @@ const StudentCard = ({ student }: { student: StudentInterface }) => {
   );
 };
 
+export default function StudentsScreen() {
+  const [students, setStudents] = useState<StudentInterface[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const getStudents = async () => {
+    try {
+      setLoading(true);
+      const response = await axiosInstance.get(
+        "/api/StudentProfile/all-studentprofiles"
+      );
+      setStudents(response.data);
+      setError(null);
+    } catch (error) {
+      console.log(error);
+      setError("Failed to fetch students");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    getStudents();
+  }, []);
+
+  const renderEmptyState = () => (
+    <View style={styles.emptyStateContainer}>
+      <Ionicons name="people-outline" size={wp("20%")} color="#ccc" />
+      <Text style={styles.emptyStateTitle}>No Students Found</Text>
+      <Text style={styles.emptyStateText}>
+        There are currently no students available
+      </Text>
+      <Pressable style={styles.retryButton} onPress={getStudents}>
+        <Text style={styles.retryButtonText}>Try Again</Text>
+      </Pressable>
+    </View>
+  );
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator color="#3949ab" size="large" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.emptyStateContainer}>
+        <Ionicons
+          name="alert-circle-outline"
+          size={wp("20%")}
+          color="#ff6b6b"
+        />
+        <Text style={styles.emptyStateTitle}>Something went wrong</Text>
+        <Text style={styles.emptyStateText}>{error}</Text>
+        <Pressable style={styles.retryButton} onPress={getStudents}>
+          <Text style={styles.retryButtonText}>Try Again</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <FlatList
+        data={students}
+        ListHeaderComponent={() => <Text style={styles.header}>Students</Text>}
+        ListEmptyComponent={renderEmptyState}
+        renderItem={({ item }) => <StudentCard student={item} />}
+        keyExtractor={(item) => item.id}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[
+          { paddingBottom: hp("20%") },
+          students.length === 0 && { flex: 1 },
+        ]}
+        removeClippedSubviews={false}
+        initialNumToRender={students.length}
+      />
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    height: hp("80%"),
-  },
   container: {
     flex: 1,
     backgroundColor: "#f5f5f5",
@@ -277,52 +298,41 @@ const styles = StyleSheet.create({
     fontSize: wp("3.8%"),
     fontWeight: "700",
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#f5f5f5",
+  },
+  emptyStateContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: wp("4%"),
+  },
+  emptyStateTitle: {
+    fontSize: wp("5%"),
+    fontWeight: "700",
+    color: "#333",
+    marginTop: hp("2%"),
+    marginBottom: hp("1%"),
+  },
+  emptyStateText: {
+    fontSize: wp("4%"),
+    color: "#666",
+    textAlign: "center",
+    marginBottom: hp("2%"),
+  },
+  retryButton: {
+    backgroundColor: "#3949ab",
+    paddingHorizontal: wp("8%"),
+    paddingVertical: hp("1.5%"),
+    borderRadius: wp("2%"),
+    marginTop: hp("2%"),
+  },
+  retryButtonText: {
+    color: "white",
+    fontSize: wp("4%"),
+    fontWeight: "600",
+  },
 });
-
-// Updated main screen component
-export default function StudentsScreen() {
-  const [students, setStudents] = useState<StudentInterface[]>([]);
-
-  const getStudents = () => {
-    try {
-      axiosInstance
-        .get("/api/StudentProfile/all-studentprofiles")
-        .then((response) => {
-          setStudents(response.data);
-        });
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  useEffect(() => {
-    getStudents();
-  }, []);
-
-  return (
-    <View style={styles.container}>
-      {students.length !== 0 && (
-        <FlatList
-          data={students}
-          ListHeaderComponent={() => (
-            <Text style={styles.header}>Students</Text>
-          )}
-          renderItem={({ item }) => <StudentCard student={item} />}
-          keyExtractor={(item) => item.id}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: hp("20%") }}
-          removeClippedSubviews={false}
-          initialNumToRender={students.length}
-        />
-      )}
-
-      {students.length === 0 && (
-        <ActivityIndicator
-          color="green"
-          size="large"
-          style={styles.loadingContainer}
-        />
-      )}
-    </View>
-  );
-}

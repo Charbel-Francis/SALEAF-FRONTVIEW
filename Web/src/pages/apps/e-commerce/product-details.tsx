@@ -18,13 +18,6 @@ import { Products, TabsProps } from 'types/e-commerce';
 import MainCard from 'components/MainCard';
 import FloatingCart from 'components/cards/e-commerce/FloatingCart';
 
-import ProductFeatures from 'sections/apps/e-commerce/product-details/ProductFeatures';
-import ProductImages from 'sections/apps/e-commerce/product-details/ProductImages';
-import ProductInfo from 'sections/apps/e-commerce/product-details/ProductInfo';
-import ProductReview from 'sections/apps/e-commerce/product-details/ProductReview';
-import ProductSpecifications from 'sections/apps/e-commerce/product-details/ProductSpecifications';
-import RelatedProducts from 'sections/apps/e-commerce/product-details/RelatedProducts';
-
 import { resetCart, useGetCart } from 'api/cart';
 
 function TabPanel({ children, value, index, ...other }: TabsProps) {
@@ -71,8 +64,8 @@ export default function ProductDetails() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  const productImages = useMemo(() => <ProductImages product={product} />, [product]);
-  const relatedProducts = useMemo(() => <RelatedProducts id={id} />, [id]);
+  // const productImages = useMemo(() => <ProductImages product={product} />, [product]);
+  // const relatedProducts = useMemo(() => <RelatedProducts id={id} />, [id]);
 
   return (
     <>
@@ -81,12 +74,12 @@ export default function ProductDetails() {
           <Grid item xs={12}>
             <Grid container spacing={3}>
               <Grid item xs={12} sm={8} md={5} lg={4}>
-                {productImages}
+                {/* {productImages} */}
               </Grid>
 
               <Grid item xs={12} md={7} lg={8}>
                 <MainCard border={false} sx={{ height: '100%', bgcolor: 'secondary.lighter' }}>
-                  <ProductInfo product={product} />
+                  {/* <ProductInfo product={product} /> */}
                 </MainCard>
               </Grid>
             </Grid>
@@ -129,10 +122,10 @@ export default function ProductDetails() {
                   <Divider />
                 </Stack>
                 <TabPanel value={value} index={0}>
-                  <ProductFeatures />
+                  {/* <ProductFeatures /> */}
                 </TabPanel>
                 <TabPanel value={value} index={1}>
-                  <ProductSpecifications />
+                  {/* <ProductSpecifications /> */}
                 </TabPanel>
                 <TabPanel value={value} index={2}>
                   <Stack spacing={2.5}>
@@ -154,7 +147,7 @@ export default function ProductDetails() {
                   </Stack>
                 </TabPanel>
                 <TabPanel value={value} index={3}>
-                  <ProductReview product={product} />
+                  {/* <ProductReview product={product} /> */}
                 </TabPanel>
               </Stack>
             </MainCard>
@@ -171,7 +164,7 @@ export default function ProductDetails() {
               }}
               content={false}
             >
-              {relatedProducts}
+              {/* {relatedProducts} */}
             </MainCard>
           </Grid>
         </Grid>

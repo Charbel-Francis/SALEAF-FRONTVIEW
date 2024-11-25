@@ -17,8 +17,6 @@ import Select, { SelectChangeEvent } from '@mui/material/Select';
 // project-imports
 import EmptyUserCard from 'components/cards/skeleton/EmptyUserCard';
 import { DebouncedInput } from 'components/third-party/react-table';
-import CustomerCard from 'sections/apps/customer/CustomerCard';
-import CustomerModal from 'sections/apps/customer/CustomerModal';
 
 import usePagination from 'hooks/usePagination';
 import { useGetCustomer } from 'api/customer';
@@ -166,19 +164,7 @@ export default function CustomerCardPage() {
           </Stack>
         </Stack>
       </Box>
-      <Grid container spacing={3}>
-        {!customerLoading && userCard.length > 0 ? (
-          _DATA.currentData().map((user: CustomerList, index: number) => (
-            <Slide key={index} direction="up" in={true} timeout={50}>
-              <Grid item xs={12} sm={6} lg={4}>
-                <CustomerCard customer={user} />
-              </Grid>
-            </Slide>
-          ))
-        ) : (
-          <EmptyUserCard title={customerLoading ? 'Loading...' : 'You have not created any customer yet.'} />
-        )}
-      </Grid>
+
       <Stack spacing={2} sx={{ p: 2.5 }} alignItems="flex-end">
         <Pagination
           sx={{ '& .MuiPaginationItem-root': { my: 0.5 } }}
@@ -192,7 +178,6 @@ export default function CustomerCardPage() {
           onChange={handleChangePage}
         />
       </Stack>
-      <CustomerModal open={customerModal} modalToggler={setCustomerModal} />
     </>
   );
 }

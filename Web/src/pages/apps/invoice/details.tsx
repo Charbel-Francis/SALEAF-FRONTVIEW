@@ -31,7 +31,6 @@ import LoadingButton from 'components/@extended/LoadingButton';
 
 import { APP_DEFAULT_PATH, ThemeMode } from 'config';
 import { useGetInvoice, useGetInvoiceMaster } from 'api/invoice';
-import ExportPDFView from 'sections/apps/invoice/export-pdf';
 
 // types
 import { InvoiceList } from 'types/invoice';
@@ -42,11 +41,12 @@ import { DocumentDownload, Edit, Printer, Share } from 'iconsax-react';
 function PDFIconButton({ list }: { list: InvoiceList }) {
   const theme = useTheme();
   return (
-    <PDFDownloadLink document={<ExportPDFView list={list} />} fileName={`${list.invoice_id}-${list.customer_name}.pdf`}>
-      <IconButton>
-        <DocumentDownload color={theme.palette.mode === ThemeMode.DARK ? theme.palette.background.paper : theme.palette.text.secondary} />
-      </IconButton>
-    </PDFDownloadLink>
+    // <PDFDownloadLink document={<ExportPDFView list={list} />} fileName={`${list.invoice_id}-${list.customer_name}.pdf`}>
+    //   <IconButton>
+    //     <DocumentDownload color={theme.palette.mode === ThemeMode.DARK ? theme.palette.background.paper : theme.palette.text.secondary} />
+    //   </IconButton>
+    // </PDFDownloadLink>
+    null
   );
 }
 
@@ -294,7 +294,7 @@ export default function Details() {
               </Grid>
             </Grid>
           </Box>
-          <Stack direction="row" justifyContent="flex-end" spacing={2} sx={{ p: 2.5, a: { textDecoration: 'none', color: 'inherit' } }}>
+          {/* <Stack direction="row" justifyContent="flex-end" spacing={2} sx={{ p: 2.5, a: { textDecoration: 'none', color: 'inherit' } }}>
             <PDFDownloadLink document={<ExportPDFView list={list} />} fileName={`${list?.invoice_id}-${list?.customer_name}.pdf`}>
               <LoadingButton
                 loading={isLoader}
@@ -306,7 +306,7 @@ export default function Details() {
                 Download
               </LoadingButton>
             </PDFDownloadLink>
-          </Stack>
+          </Stack> */}
         </Stack>
       </MainCard>
     </>

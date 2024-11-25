@@ -65,7 +65,7 @@ export default function ThemeFont() {
                   content={false}
                   sx={{ bgcolor: fontFamily === item.value ? 'primary.lighter' : 'secondary.lighter', p: 1 }}
                   border={false}
-                  {...(fontFamily === item.value && { boxShadow: true, shadow: theme.customShadows.primary })}
+                  {...(fontFamily === item.value && { boxShadow: true, shadow: theme.customShadows.z1 })}
                 >
                   <Box sx={{ minWidth: HEADER_HEIGHT, bgcolor: 'background.paper', p: 1, '&:hover': { bgcolor: 'background.paper' } }}>
                     <Stack spacing={0.5} alignItems="center">

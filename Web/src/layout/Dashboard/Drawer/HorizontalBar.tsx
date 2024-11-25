@@ -32,7 +32,7 @@ function ElevationScroll({ children, window }: ElevationScrollProps) {
   });
 
   theme.shadows[4] = theme.customShadows.z1;
-  theme.shadows[1] = theme.customShadows.z2;
+  theme.shadows[1] = theme.customShadows.z1;
 
   return cloneElement(children, {
     elevation: trigger ? 4 : 1

@@ -4,7 +4,7 @@
     "slug": "SALEAF",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icons/favicon.ico",
+    "icon": "./assets/icons/SALEAF-LOGO.png",
     "scheme": "saleaf",
     "platforms": [
       "ios",
@@ -25,11 +25,12 @@
         "NSCameraUsageDescription": "This app uses the camera to scan QR codes.",
         "NSPhotoLibraryUsageDescription": "This app uses the photo library to upload images.",
         "NSPhotoLibraryAddUsageDescription": "This app uses the photo library to upload images."
-      }
+      },
+      "bundleIdentifier": "com.charbelfrancis.SALEAF"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/icons/favicon.ico",
+        "foregroundImage": "./assets/icons/SALEAF-LOGO.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.charbelfrancis.SALEAF"

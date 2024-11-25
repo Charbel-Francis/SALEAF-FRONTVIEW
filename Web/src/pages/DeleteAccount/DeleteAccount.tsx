@@ -75,7 +75,7 @@ const DeleteAccountPage = () => {
 
         {/* Header */}
         <Box sx={{ textAlign: 'center', mb: 2 }}>
-          <Warning2 color="error" sx={{ fontSize: 48, mb: 2 }} />
+          <Warning2 color="error" style={{ fontSize: 48, marginBottom: 16 }} />
           <Typography variant="h4" component="h1" color="error" gutterBottom>
             Delete Account
           </Typography>

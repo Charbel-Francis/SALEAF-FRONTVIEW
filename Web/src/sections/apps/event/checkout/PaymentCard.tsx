@@ -32,7 +32,7 @@ export default function PaymentCard({ type, paymentType, cardHandler }: PaymentC
         bgcolor: theme.palette.secondary.lighter,
         maxWidth: 380,
         '&:hover': {
-          boxShadow: paymentType === 'cod' ? 'none' : theme.customShadows.primary,
+          boxShadow: paymentType === 'cod' ? 'none' : theme.customShadows.z1,
           cursor: paymentType === 'cod' ? 'text' : 'pointer'
         }
       }}

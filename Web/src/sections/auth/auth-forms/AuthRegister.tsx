@@ -79,7 +79,9 @@ export default function AuthRegister() {
         })}
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
           try {
-            await register(values.email, values.password, values.firstname, values.lastname);
+            if (register) {
+              await register(values.email, values.password, values.firstname, values.lastname);
+            }
             if (scriptedRef.current) {
               setStatus({ success: true });
               setSubmitting(false);

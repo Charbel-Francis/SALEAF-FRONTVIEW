@@ -35,10 +35,10 @@ import * as yup from 'yup';
 // project-imports
 import MainCard from 'components/MainCard';
 import CircularLoader from 'components/CircularLoader';
-import Breadcrumbs from 'components/@extended/Breadcrumbs';
-import InvoiceItem from 'sections/apps/invoice/InvoiceItem';
-import InvoiceModal from 'sections/apps/invoice/InvoiceModal';
-import AddressModal from 'sections/apps/invoice/AddressModal';
+// import Breadcrumbs from 'components/@extended/Breadcrumbs';
+// import InvoiceItem from 'sections/apps/invoice/InvoiceItem';
+// import InvoiceModal from 'sections/apps/invoice/InvoiceModal';
+// import AddressModal from 'sections/apps/invoice/AddressModal';
 
 import {
   handlerCustomerTo,
@@ -270,11 +270,11 @@ function EditForm({ list, invoiceMaster }: FormProps) {
                         >
                           Change
                         </Button>
-                        <AddressModal
+                        {/* <AddressModal
                           open={invoiceMaster.open}
                           setOpen={(value) => handlerCustomerFrom(value as boolean)}
                           handlerAddress={(address) => setFieldValue('cashierInfo', address)}
-                        />
+                        /> */}
                       </Box>
                     </Grid>
                   </Grid>
@@ -305,11 +305,11 @@ function EditForm({ list, invoiceMaster }: FormProps) {
                         >
                           Add
                         </Button>
-                        <AddressModal
+                        {/* <AddressModal
                           open={invoiceMaster.isCustomerOpen}
                           setOpen={(value) => handlerCustomerTo(value as boolean)}
                           handlerAddress={(value) => setFieldValue('customerInfo', value)}
-                        />
+                        /> */}
                       </Box>
                     </Grid>
                   </Grid>
@@ -345,7 +345,7 @@ function EditForm({ list, invoiceMaster }: FormProps) {
                               {values?.invoice_detail?.map((item: any, index: number) => (
                                 <TableRow key={item.id}>
                                   <TableCell>{values?.invoice_detail.indexOf(item) + 1}</TableCell>
-                                  <InvoiceItem
+                                  {/* <InvoiceItem
                                     key={item.id}
                                     id={item.id}
                                     index={index}
@@ -358,7 +358,7 @@ function EditForm({ list, invoiceMaster }: FormProps) {
                                     Blur={handleBlur}
                                     errors={errors}
                                     touched={touched}
-                                  />
+                                  /> */}
                                 </TableRow>
                               ))}
                             </TableBody>
@@ -557,7 +557,7 @@ function EditForm({ list, invoiceMaster }: FormProps) {
                   <Button color="primary" variant="contained" type="submit">
                     Update & Send
                   </Button>
-                  <InvoiceModal
+                  {/* <InvoiceModal
                     isOpen={invoiceMaster.isOpen}
                     setIsOpen={(value: any) => handlerPreview(value)}
                     key={values.invoice_id}
@@ -570,7 +570,7 @@ function EditForm({ list, invoiceMaster }: FormProps) {
                     }}
                     items={values?.invoice_detail}
                     onAddNextInvoice={() => handlerPreview(false)}
-                  />
+                  /> */}
                 </Stack>
               </Grid>
             </Grid>
@@ -608,7 +608,7 @@ export default function EditInvoice() {
 
   return (
     <>
-      <Breadcrumbs custom heading="Edit Invoice" links={breadcrumbLinks} />
+      {/* <Breadcrumbs custom heading="Edit Invoice" links={breadcrumbLinks} /> */}
       <MainCard>{isLoader ? loader : <EditForm {...{ list: list!, invoiceMaster }} />}</MainCard>
     </>
   );

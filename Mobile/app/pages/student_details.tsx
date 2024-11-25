@@ -14,8 +14,8 @@ interface StudentParams {
   studentId: string;
   firstName: string;
   lastName: string;
-  skills: string[];
-  achievements: string[];
+  skills: string; // Changed from string[] to string since it comes as JSON string
+  achievements: string; // Changed from string[] to string since it comes as JSON string
   year: string;
   isFinalYear: string;
   bio: string;
@@ -26,18 +26,37 @@ interface StudentParams {
   studentImageUrl: string;
 }
 
+interface Skill {
+  id: string;
+  skillName: string;
+  studentProfileId: string;
+  studentProfile?: any;
+}
+interface Achievement {
+  id: string;
+  achievementName: string;
+  studentProfileId: string;
+  studentProfile?: any;
+}
 export default function StudentDetailsScreen() {
-  const params = useLocalSearchParams();
+  const params = useLocalSearchParams() as unknown as StudentParams;
   const router = useRouter();
 
-  const skills = JSON.parse(
+  // Parse skills and achievements, ensuring we handle both array and string cases
+  const parsedSkills = JSON.parse(
     Array.isArray(params.skills) ? params.skills[0] : params.skills || "[]"
-  );
-  const achievements = JSON.parse(
+  ) as Skill[];
+
+  const parsedAchievements = JSON.parse(
     Array.isArray(params.achievements)
       ? params.achievements[0]
       : params.achievements || "[]"
-  );
+  ) as Achievement[];
+
+  // Extract skill names from the skill objects
+  const skills = parsedSkills.map((skill) => skill.skillName);
+  const achievements = parsedAchievements;
+
   const {
     studentId,
     firstName,
@@ -123,7 +142,7 @@ export default function StudentDetailsScreen() {
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
               <Text style={styles.statNumber}>
-                {new Date(graduationDate as string).getFullYear()}
+                {new Date(graduationDate).getFullYear()}
               </Text>
               <Text style={styles.statLabel}>Year</Text>
             </View>
@@ -174,13 +193,10 @@ export default function StudentDetailsScreen() {
                   <Ionicons name="time-outline" size={wp("4%")} color="#666" />
                   <Text style={styles.educationMetaText}>
                     Graduating:{" "}
-                    {new Date(graduationDate as string).toLocaleDateString(
-                      "en-US",
-                      {
-                        month: "long",
-                        year: "numeric",
-                      }
-                    )}
+                    {new Date(graduationDate).toLocaleDateString("en-US", {
+                      month: "long",
+                      year: "numeric",
+                    })}
                   </Text>
                 </View>
               </View>
@@ -188,7 +204,7 @@ export default function StudentDetailsScreen() {
           </View>
 
           {/* Skills */}
-          {Array.isArray(skills) && skills.length > 0 && (
+          {skills.length > 0 && (
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <View style={styles.sectionIconContainer}>
@@ -211,8 +227,7 @@ export default function StudentDetailsScreen() {
           )}
 
           {/* Achievements */}
-
-          {Array.isArray(achievements) && achievements.length > 0 && (
+          {achievements.length > 0 && (
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <View style={styles.sectionIconContainer}>
@@ -234,7 +249,9 @@ export default function StudentDetailsScreen() {
                       <Ionicons name="star" size={wp("4%")} color="white" />
                     </LinearGradient>
                   </View>
-                  <Text style={styles.achievementText}>{achievement}</Text>
+                  <Text style={styles.achievementText}>
+                    {achievement.achievementName}
+                  </Text>
                 </View>
               ))}
             </View>
@@ -448,6 +465,7 @@ const styles = StyleSheet.create({
     fontSize: wp("3.8%"),
     fontWeight: "500",
   },
+  // Continuing the styles object...
   achievementItem: {
     flexDirection: "row",
     alignItems: "center",
