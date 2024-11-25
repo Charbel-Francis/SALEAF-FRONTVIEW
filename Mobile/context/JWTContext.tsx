@@ -114,6 +114,35 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     justLoggedIn: false,
   });
 
+  const router = useRouter();
+  const segments = useSegments();
+
+  // Simplified navigation effect
+  useEffect(() => {
+    if (isLoading) return;
+
+    const firstSegment = segments[0];
+    const currentRoute = segments[2];
+
+    // Protected routes that require authentication
+    const protectedRoutes = ["donate", "profile", "students"];
+
+    if (authState.authenticated && authState.justLoggedIn) {
+      // Only redirect right after login
+      const homeRoute = getHomeRouteByRole(authState.role);
+      router.replace(homeRoute as any);
+      // Reset the justLoggedIn flag
+      setAuthState((prev) => ({ ...prev, justLoggedIn: false }));
+    } else if (
+      !authState.authenticated &&
+      currentRoute &&
+      protectedRoutes.includes(currentRoute)
+    ) {
+      // Only redirect from protected routes when not authenticated
+      router.replace("/(root)/(tabs)/home" as any);
+    }
+  }, [authState.authenticated, authState.role, isLoading, segments]);
+
   // Axios interceptors setup
   useEffect(() => {
     const requestInterceptor = axiosInstance.interceptors.request.use(
@@ -321,6 +350,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         justLoggedIn: false,
       });
     }
+
+    router.replace("/(root)/(tabs)/home" as any);
   };
 
   const anonymousLogin = async () => {

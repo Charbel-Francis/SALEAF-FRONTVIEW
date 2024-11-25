@@ -6,7 +6,11 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import { styled } from "nativewind";
 import axiosInstance from "@/utils/config";
 
-const DonatorDetails = () => {
+const DonatorDetails = ({
+  setSteps,
+}: {
+  setSteps: (steps: number) => void;
+}) => {
   const [form, setForm] = useState({
     identityNoOrCompanyRegNo: "",
     incomeTaxNumber: "",
@@ -24,6 +28,7 @@ const DonatorDetails = () => {
         `/api/DonorCertificateInfo/create-donor-certificate-info`,
         form
       );
+      setSteps(2);
     } catch (error) {
       setLoading(false);
       console.error("Error during handleContinue:", error);
@@ -43,7 +48,9 @@ const DonatorDetails = () => {
       {/* Disclaimer */}
       <View className="p-3 mb-4 rounded-md">
         <Text className="text-mainColor text-sm">
-          These details are required for verification and processing of your donation certificate. We take privacy seriously and ensure that your information is securely stored.
+          These details are required for verification and processing of your
+          donation certificate. We take privacy seriously and ensure that your
+          information is securely stored.
         </Text>
       </View>
 
