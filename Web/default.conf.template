@@ -1,11 +1,17 @@
 server {
-    listen 3333;
-    server_name _;
+    listen       3333;
+    server_name  _;
 
     root /usr/share/nginx/html;
     index index.html;
 
     location / {
-        try_files $uri $uri/ /index.html;
+        try_files $uri /index.html;
+    }
+
+    location ~* \.(js|css|png|ico|html|json|woff2?|ttf|svg|eot)$ {
+        try_files $uri =404;
+        access_log off;
+        expires max;
     }
 }
