@@ -110,7 +110,7 @@
   },
   "scripts": {
     "start": "vite",
-    "build": "tsc && env-cmd -f .env vite build",
+    "build": "tsc && vite build",
     "build-stage": "env-cmd -f .env.qa vite build",
     "preview": "vite preview",
     "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\"",
