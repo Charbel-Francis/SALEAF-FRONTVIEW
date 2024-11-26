@@ -64,8 +64,8 @@ const PaymentSuccessComponent = ({
       marginVertical: hp("2%"),
     },
     lottie: {
-      width: "100%",
-      height: "100%",
+      width: "80%",
+      height: "80%",
     },
     textContainer: {
       alignItems: "center",

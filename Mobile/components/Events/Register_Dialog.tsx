@@ -251,7 +251,10 @@ export default function RegistrationDialog({
                   value={selectedPackage}
                 >
                   {packages.map((pkg) => (
-                    <View key={pkg.packageId} style={styles.packageRow}>
+                    <View
+                      key={`${Date.now()}-${pkg.packageName}`}
+                      style={styles.packageRow}
+                    >
                       <RadioButton.Item
                         label={`${
                           pkg.packageName

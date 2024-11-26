@@ -14,7 +14,11 @@ import {
   SafeAreaView,
   StatusBar,
 } from "react-native";
-import { WebView } from "react-native-webview";
+import {
+  WebView,
+  WebViewNavigation,
+  WebViewMessageEvent,
+} from "react-native-webview";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -25,54 +29,120 @@ import { BlurView } from "expo-blur";
 
 const { width, height } = Dimensions.get("window");
 
-const INJECTED_JAVASCRIPT = `
-  const meta = document.createElement('meta');
-  meta.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no');
-  meta.setAttribute('name', 'viewport');
-  document.getElementsByTagName('head')[0].appendChild(meta);
-  
-  // Force body to full width
-  document.body.style.width = '100%';
-  
-  // Add CSS to ensure proper scaling
-  const style = document.createElement('style');
-  style.innerHTML = 'body { min-width: 100vw; max-width: 100vw; overflow-x: hidden; } * { max-width: 100vw; }';
-  document.head.appendChild(style);
-  
-  // Monitor URL changes
-  let lastUrl = window.location.href;
-  const observer = new MutationObserver(() => {
-    if (window.location.href !== lastUrl) {
-      lastUrl = window.location.href;
-      window.ReactNativeWebView.postMessage(JSON.stringify({
-        type: 'urlChange',
-        url: lastUrl
-      }));
-    }
-  });
-  
-  observer.observe(document, { subtree: true, childList: true });
-  true;
-`;
-
-const PaymentStatus = {
+// Payment status constants
+const PAYMENT_STATUS = {
   NONE: 0,
   SUCCESS: 1,
   FAILURE: 2,
   CANCELLED: 3,
 } as const;
 
-type PaymentStatusType = (typeof PaymentStatus)[keyof typeof PaymentStatus];
+type PaymentStatusType = (typeof PAYMENT_STATUS)[keyof typeof PAYMENT_STATUS];
+
+type StepType = {
+  id: number;
+  title: string;
+  description: string;
+};
+
+const STEPS: StepType[] = [
+  {
+    id: 1,
+    title: "Payment",
+    description: "Complete your payment",
+  },
+  {
+    id: 2,
+    title: "Confirmation",
+    description: "Registration status",
+  },
+];
+
+const INJECTED_JAVASCRIPT = `
+  const meta = document.createElement('meta');
+  meta.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no');
+  meta.setAttribute('name', 'viewport');
+  document.getElementsByTagName('head')[0].appendChild(meta);
+  
+  document.body.style.width = '100%';
+  
+  const style = document.createElement('style');
+  style.innerHTML = 'body { min-width: 100vw; max-width: 100vw; overflow-x: hidden; } * { max-width: 100vw; }';
+  document.head.appendChild(style);
+  
+  function checkUrl() {
+    const currentUrl = window.location.href;
+    window.ReactNativeWebView.postMessage(JSON.stringify({
+      type: 'urlChange',
+      url: currentUrl
+    }));
+  }
+
+  setInterval(checkUrl, 500);
+  
+  const observer = new MutationObserver(checkUrl);
+  observer.observe(document, { subtree: true, childList: true });
+  
+  true;
+`;
+
+const StepIndicator = ({
+  currentStep,
+  steps,
+}: {
+  currentStep: number;
+  steps: StepType[];
+}) => {
+  return (
+    <View style={styles.stepContainer}>
+      {steps.map((step, index) => (
+        <React.Fragment key={step.id}>
+          <View style={styles.stepWrapper}>
+            <View
+              style={[
+                styles.stepCircle,
+                currentStep >= step.id && styles.activeStep,
+              ]}
+            >
+              {currentStep > step.id ? (
+                <MaterialIcons name="check" size={16} color="#FFFFFF" />
+              ) : (
+                <Text
+                  style={[
+                    styles.stepNumber,
+                    currentStep >= step.id && styles.activeStepNumber,
+                  ]}
+                >
+                  {step.id}
+                </Text>
+              )}
+            </View>
+            <View style={styles.stepTextContainer}>
+              <Text style={styles.stepTitle}>{step.title}</Text>
+              <Text style={styles.stepDescription}>{step.description}</Text>
+            </View>
+          </View>
+          {index < steps.length - 1 && (
+            <View
+              style={[
+                styles.stepConnector,
+                currentStep > step.id && styles.activeConnector,
+              ]}
+            />
+          )}
+        </React.Fragment>
+      ))}
+    </View>
+  );
+};
 
 const DonateOnline = () => {
-  const { authState } = useAuth();
-  const webviewRef = React.useRef<WebView>(null);
   const { donationLink } = useLocalSearchParams();
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatusType>(
-    PaymentStatus.NONE
+    PAYMENT_STATUS.NONE
   );
+  const [currentStep, setCurrentStep] = useState(2);
   const [countdown, setCountdown] = useState(10);
-  const [webViewHeight, setWebViewHeight] = useState(height);
   const scaleValue = new Animated.Value(0);
   const shakeAnimation = new Animated.Value(0);
   const fadeAnim = new Animated.Value(0);
@@ -81,38 +151,10 @@ const DonateOnline = () => {
     router.replace("/events");
   }, []);
 
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-
-    if (paymentStatus !== PaymentStatus.NONE) {
-      timer = setInterval(() => {
-        setCountdown((prev) => {
-          if (prev <= 1) {
-            clearInterval(timer);
-            navigateToEvents();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-
-    return () => {
-      if (timer) {
-        clearInterval(timer);
-      }
-    };
-  }, [paymentStatus, navigateToEvents]);
-
-  const handleStatusChange = useCallback(
-    (newStatus: PaymentStatusType) => {
-      if (paymentStatus !== PaymentStatus.NONE) return; // Prevent multiple status changes
-
-      setPaymentStatus(newStatus);
-      console.log("Payment status changed to:", newStatus);
-
-      switch (newStatus) {
-        case PaymentStatus.SUCCESS:
+  const handleAnimation = useCallback(
+    (status: PaymentStatusType) => {
+      switch (status) {
+        case PAYMENT_STATUS.SUCCESS:
           Animated.parallel([
             Animated.timing(scaleValue, {
               toValue: 1,
@@ -128,7 +170,7 @@ const DonateOnline = () => {
           ]).start();
           break;
 
-        case PaymentStatus.FAILURE:
+        case PAYMENT_STATUS.FAILURE:
           Animated.sequence([
             Animated.timing(shakeAnimation, {
               toValue: 10,
@@ -148,7 +190,7 @@ const DonateOnline = () => {
           ]).start();
           break;
 
-        case PaymentStatus.CANCELLED:
+        case PAYMENT_STATUS.CANCELLED:
           Animated.timing(fadeAnim, {
             toValue: 1,
             duration: 1000,
@@ -157,210 +199,156 @@ const DonateOnline = () => {
           break;
       }
     },
-    [paymentStatus, scaleValue, fadeAnim, shakeAnimation]
+    [scaleValue, fadeAnim, shakeAnimation]
   );
 
-  const checkUrlForStatus = useCallback((url: string) => {
-    try {
-      const urlObj = new URL(url);
-      const statusParam = urlObj.searchParams.get("status")?.toLowerCase();
-      const pathSegments = urlObj.pathname.toLowerCase().split("/");
+  const checkUrlForStatus = useCallback(
+    (url: string) => {
+      console.log("Checking URL:", url);
       const urlLower = url.toLowerCase();
 
-      // Check URL parameters
-      if (statusParam === "success" || pathSegments.includes("success")) {
-        return PaymentStatus.SUCCESS;
-      } else if (
-        statusParam === "failure" ||
-        pathSegments.includes("failure") ||
-        pathSegments.includes("failed")
-      ) {
-        return PaymentStatus.FAILURE;
-      } else if (
-        statusParam === "cancel" ||
-        pathSegments.includes("cancel") ||
-        pathSegments.includes("cancelled")
-      ) {
-        return PaymentStatus.CANCELLED;
-      }
-
-      // Check for status in URL fragments
       if (urlLower.includes("success")) {
-        return PaymentStatus.SUCCESS;
+        console.log("Success detected");
+        setPaymentStatus(PAYMENT_STATUS.SUCCESS);
+        setCurrentStep(2);
+        handleAnimation(PAYMENT_STATUS.SUCCESS);
       } else if (urlLower.includes("failure") || urlLower.includes("failed")) {
-        return PaymentStatus.FAILURE;
+        console.log("Failure detected");
+        setPaymentStatus(PAYMENT_STATUS.FAILURE);
+        setCurrentStep(2);
+        handleAnimation(PAYMENT_STATUS.FAILURE);
       } else if (urlLower.includes("cancel")) {
-        return PaymentStatus.CANCELLED;
-      }
-
-      return null;
-    } catch (error) {
-      console.error("Error parsing URL:", error);
-      return null;
-    }
-  }, []);
-
-  const handleNavigationStateChange = useCallback(
-    (navState: any) => {
-      const { url } = navState;
-      if (!url) return;
-
-      console.log("Navigation state changed, URL:", url);
-      const detectedStatus = checkUrlForStatus(url);
-
-      if (detectedStatus !== null) {
-        handleStatusChange(detectedStatus);
+        console.log("Cancellation detected");
+        setPaymentStatus(PAYMENT_STATUS.CANCELLED);
+        setCurrentStep(2);
+        handleAnimation(PAYMENT_STATUS.CANCELLED);
       }
     },
-    [checkUrlForStatus, handleStatusChange]
+    [handleAnimation]
   );
 
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    // if (paymentStatus !== PAYMENT_STATUS.NONE) {
+    //   timer = setInterval(() => {
+    //     setCountdown((prev) => {
+    //       if (prev <= 1) {
+    //         clearInterval(timer);
+    //         navigateToEvents();
+    //         return 0;
+    //       }
+    //       return prev - 1;
+    //     });
+    //   }, 1000);
+    // }
+    // return () => timer && clearInterval(timer);
+  }, [paymentStatus, navigateToEvents]);
+
   const handleMessage = useCallback(
-    (event: any) => {
+    (event: WebViewMessageEvent) => {
       try {
         const data = JSON.parse(event.nativeEvent.data);
         if (data.type === "urlChange" && data.url) {
-          const detectedStatus = checkUrlForStatus(data.url);
-          if (detectedStatus !== null) {
-            handleStatusChange(detectedStatus);
-          }
+          checkUrlForStatus(data.url);
         }
       } catch (error) {
         console.error("Error handling WebView message:", error);
       }
     },
-    [checkUrlForStatus, handleStatusChange]
+    [checkUrlForStatus]
   );
 
-  const renderRedirectMessage = () => (
-    <Animated.View style={[styles.redirectContainer, { opacity: fadeAnim }]}>
-      <Text style={styles.redirectText}>
-        Redirecting to events in {countdown} seconds...
-      </Text>
-      <TouchableOpacity
-        style={styles.redirectButton}
-        onPress={navigateToEvents}
-      >
-        <Text style={styles.redirectButtonText}>Go to Events Now</Text>
-      </TouchableOpacity>
-    </Animated.View>
+  const renderRedirectMessage = useCallback(
+    () => (
+      <Animated.View style={[styles.redirectContainer, { opacity: fadeAnim }]}>
+        <Text style={styles.redirectText}>
+          Redirecting to events in {countdown} seconds...
+        </Text>
+        <TouchableOpacity
+          style={styles.redirectButton}
+          onPress={navigateToEvents}
+        >
+          <Text style={styles.redirectButtonText}>Go to Events Now</Text>
+        </TouchableOpacity>
+      </Animated.View>
+    ),
+    [countdown, fadeAnim, navigateToEvents]
   );
 
-  const renderPaymentStatus = () => {
-    const StatusComponents = {
-      [PaymentStatus.SUCCESS]: (
+  const renderStatus = useCallback(() => {
+    const statusComponents = {
+      [PAYMENT_STATUS.SUCCESS]: (
         <BlurView intensity={100} style={styles.container}>
-          <Animated.View
-            style={[styles.successCard, { transform: [{ scale: scaleValue }] }]}
-          >
-            <View style={styles.iconWrapper}>
-              <LottieView
-                source={require("@/assets/icons/paymentsucess.json")}
-                autoPlay
-                loop={false}
-                style={styles.lottie}
-              />
-            </View>
-            <Text style={[styles.title, styles.successText]}>
-              Event Registration Successful! 🎉
-            </Text>
-            <Text style={styles.message}>
-              We're excited to have you join us! Check your email for event
-              details and confirmation.
-            </Text>
-            {renderRedirectMessage()}
-          </Animated.View>
+          <View style={styles.iconWrapper}>
+            <LottieView
+              source={require("@/assets/icons/paymentsucess.json")}
+              autoPlay
+              loop={true}
+              style={styles.lottie}
+            />
+          </View>
+          <Text style={[styles.title, styles.successText]}>
+            Event Registration Successful! 🎉
+          </Text>
+          <Text style={styles.message}>
+            We're excited to have you join us! Check your email for event
+            details and confirmation.
+          </Text>
+          {renderRedirectMessage()}
         </BlurView>
       ),
-      [PaymentStatus.FAILURE]: (
+      [PAYMENT_STATUS.FAILURE]: (
         <BlurView intensity={100} style={styles.container}>
-          <Animated.View
-            style={[
-              styles.failureCard,
-              { transform: [{ translateX: shakeAnimation }] },
-            ]}
-          >
-            <View style={styles.iconWrapper}>
-              <MaterialIcons
-                name="error-outline"
-                size={hp("12%")}
-                color="#FF4444"
-              />
-            </View>
-            <Text style={[styles.title, styles.failureText]}>
-              Registration Failed
-            </Text>
-            <Text style={styles.message}>
-              We encountered an issue processing your registration. Please try
-              again or contact our support team.
-            </Text>
-            {renderRedirectMessage()}
-          </Animated.View>
+          <View style={styles.iconWrapper}>
+            <LottieView
+              source={require("@/assets/icons/paymentfailure.json")}
+              autoPlay
+              loop={true}
+              style={styles.lottie}
+            />
+          </View>
+          <Text style={[styles.title, styles.failureText]}>
+            Registration Failed
+          </Text>
+          <Text style={styles.message}>
+            We encountered an issue processing your registration. Please try
+            again or contact support.
+          </Text>
+          {renderRedirectMessage()}
         </BlurView>
       ),
-      [PaymentStatus.CANCELLED]: (
+      [PAYMENT_STATUS.CANCELLED]: (
         <BlurView intensity={100} style={styles.container}>
-          <Animated.View style={[styles.cancelledCard, { opacity: fadeAnim }]}>
-            <View style={styles.iconWrapper}>
-              <MaterialIcons
-                name="cancel-presentation"
-                size={hp("12%")}
-                color="#FFB74D"
-              />
-            </View>
-            <Text style={[styles.title, styles.cancelledText]}>
-              Registration Cancelled
-            </Text>
-            <Text style={styles.message}>
-              Your registration request was cancelled. Feel free to try again
-              when you're ready.
-            </Text>
-            {renderRedirectMessage()}
-          </Animated.View>
+          <View style={styles.iconWrapper}>
+            <LottieView
+              source={require("@/assets/icons/paymentfailure.json")}
+              autoPlay
+              loop={true}
+              style={styles.lottie}
+            />
+          </View>
+          <Text style={[styles.title, styles.cancelledText]}>
+            Registration Cancelled
+          </Text>
+          <Text style={styles.message}>
+            Your registration request was cancelled. Feel free to try again when
+            you're ready.
+          </Text>
+          {renderRedirectMessage()}
         </BlurView>
       ),
-      [PaymentStatus.NONE]: null,
     };
 
-    return StatusComponents[paymentStatus] || null;
-  };
-
-  const renderWebView = () => (
-    <WebView
-      ref={webviewRef}
-      source={{
-        uri: donationLink as string,
-        headers: {
-          "Content-Type": "text/html; charset=utf-8",
-          "Cache-Control": "no-cache",
-        },
-      }}
-      originWhitelist={["*"]}
-      style={[styles.webView, { height: webViewHeight }]}
-      injectedJavaScript={INJECTED_JAVASCRIPT}
-      onMessage={handleMessage}
-      scalesPageToFit={Platform.OS === "android"}
-      automaticallyAdjustContentInsets={false}
-      mixedContentMode="compatibility"
-      thirdPartyCookiesEnabled={true}
-      domStorageEnabled={true}
-      javaScriptEnabled={true}
-      allowsInlineMediaPlayback={true}
-      mediaPlaybackRequiresUserAction={false}
-      startInLoadingState={true}
-      renderLoading={() => (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#FF0000" />
-        </View>
-      )}
-      onError={(syntheticEvent) => {
-        const { nativeEvent } = syntheticEvent;
-        console.warn("WebView error: ", nativeEvent);
-      }}
-      onNavigationStateChange={handleNavigationStateChange}
-    />
-  );
-
+    return (
+      statusComponents[paymentStatus as keyof typeof statusComponents] || null
+    );
+  }, [
+    paymentStatus,
+    scaleValue,
+    shakeAnimation,
+    fadeAnim,
+    renderRedirectMessage,
+  ]);
   if (!donationLink) {
     console.log("No donation link provided");
     return null;
@@ -369,9 +357,43 @@ const DonateOnline = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.mainContainer}>
-        {paymentStatus === PaymentStatus.NONE
-          ? renderWebView()
-          : renderPaymentStatus()}
+        <StepIndicator currentStep={currentStep} steps={STEPS} />
+        <View style={styles.contentContainer}>
+          {paymentStatus !== PAYMENT_STATUS.NONE ? (
+            renderStatus()
+          ) : (
+            <WebView
+              source={{
+                uri: donationLink as string,
+                headers: {
+                  "Content-Type": "text/html; charset=utf-8",
+                  "Cache-Control": "no-cache",
+                },
+              }}
+              style={styles.webView}
+              injectedJavaScript={INJECTED_JAVASCRIPT}
+              onMessage={handleMessage}
+              onNavigationStateChange={({ url }) => checkUrlForStatus(url)}
+              scalesPageToFit={Platform.OS === "android"}
+              automaticallyAdjustContentInsets={false}
+              mixedContentMode="compatibility"
+              thirdPartyCookiesEnabled={true}
+              domStorageEnabled={true}
+              javaScriptEnabled={true}
+              allowsInlineMediaPlayback={true}
+              mediaPlaybackRequiresUserAction={false}
+              startInLoadingState={true}
+              renderLoading={() => (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="large" color="#007AFF" />
+                </View>
+              )}
+              onError={(syntheticEvent) => {
+                console.warn("WebView error: ", syntheticEvent.nativeEvent);
+              }}
+            />
+          )}
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -385,7 +407,74 @@ const styles = StyleSheet.create({
   },
   mainContainer: {
     flex: 1,
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
+    backgroundColor: "#FFFFFF",
+  },
+  contentContainer: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+  },
+  stepContainer: {
+    paddingHorizontal: wp("5%"),
+    paddingVertical: hp("2%"),
+    backgroundColor: "#FFFFFF",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderBottomWidth: 1,
+    borderBottomColor: "#EEEEEE",
+  },
+  stepWrapper: {
+    flex: 1,
+    alignItems: "center",
+  },
+  stepCircle: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: "#EEEEEE",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 8,
+    borderWidth: 2,
+    borderColor: "#DDDDDD",
+  },
+  activeStep: {
+    backgroundColor: "#007AFF",
+    borderColor: "#0056B3",
+  },
+  stepNumber: {
+    color: "#666666",
+    fontSize: 14,
+    fontWeight: "bold",
+  },
+  activeStepNumber: {
+    color: "#FFFFFF",
+  },
+  stepTextContainer: {
+    alignItems: "center",
+    paddingHorizontal: 4,
+  },
+  stepTitle: {
+    fontSize: 12,
+    fontWeight: "bold",
+    color: "#333333",
+    marginBottom: 2,
+    textAlign: "center",
+  },
+  stepDescription: {
+    fontSize: 10,
+    color: "#666666",
+    textAlign: "center",
+  },
+  stepConnector: {
+    width: wp("10%"),
+    height: 2,
+    backgroundColor: "#EEEEEE",
+    alignSelf: "center",
+    marginTop: -hp("2%"),
+  },
+  activeConnector: {
+    backgroundColor: "#007AFF",
   },
   webView: {
     flex: 1,
