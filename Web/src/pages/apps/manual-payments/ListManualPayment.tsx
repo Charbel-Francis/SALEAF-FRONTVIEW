@@ -24,7 +24,8 @@ import {
   Card,
   alpha,
   Avatar,
-  useTheme
+  useTheme,
+  TextField
 } from '@mui/material';
 import { Calendar, CloseCircle, DollarCircle, Eye, Key, Receipt, DocumentText, TickCircle, CloseSquare, InfoCircle } from 'iconsax-react';
 
@@ -99,11 +100,21 @@ const ListManualPayment: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedDonation, setSelectedDonation] = useState<Donation | null>(null);
   const [donationDialogOpen, setDonationDialogOpen] = useState<boolean>(false);
-  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: 'success' | 'error';
+  }>({
     open: false,
     message: '',
     severity: 'success'
   });
+
+  // New State Variables for Rejection
+  const [rejectDialogOpen, setRejectDialogOpen] = useState<boolean>(false);
+  const [currentRejectReferenceNo, setCurrentRejectReferenceNo] = useState<number | null>(null);
+  const [rejectReason, setRejectReason] = useState<string>('');
+  const [isProcessing, setIsProcessing] = useState<boolean>(false); // For handling loading state in dialogs
 
   const fetchManualPayments = async () => {
     setLoading(true);
@@ -135,6 +146,7 @@ const ListManualPayment: React.FC = () => {
       const response = await axios.get<Donation>(`/api/Donation/get-donation-by-id/${id}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
+      console.log(response);
       setSelectedDonation(response.data);
     } catch (error) {
       console.error('Error fetching donation details:', error);
@@ -149,30 +161,80 @@ const ListManualPayment: React.FC = () => {
   };
 
   const handleAction = async (referenceNumber: number, statusCode: number) => {
+    if (statusCode === 1) {
+      // Accept the payment directly
+      try {
+        setIsProcessing(true);
+        await axios.post(
+          `/api/ManualPaymentDoc/accept-reject-manual-payment`,
+          {},
+          {
+            params: { referenceNo: referenceNumber, statusCode },
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+          }
+        );
+        setSnackbar({
+          open: true,
+          message: `Payment accepted successfully.`,
+          severity: 'success'
+        });
+        fetchManualPayments();
+      } catch (error) {
+        setSnackbar({
+          open: true,
+          message: `Failed to accept payment.`,
+          severity: 'error'
+        });
+        console.error('Error accepting payment:', error);
+      } finally {
+        setIsProcessing(false);
+      }
+    } else if (statusCode === 0) {
+      // Open the rejection dialog
+      setRejectDialogOpen(true);
+      setCurrentRejectReferenceNo(referenceNumber);
+    }
+  };
+
+  const handleRejectConfirm = async () => {
+    if (currentRejectReferenceNo === null) return;
+
+    setIsProcessing(true);
+
     try {
       await axios.post(
         `/api/ManualPaymentDoc/accept-reject-manual-payment`,
         {},
         {
-          params: { referenceNo: referenceNumber, statusCode },
+          params: {
+            referenceNo: currentRejectReferenceNo,
+            statusCode: 0,
+            reason: rejectReason.trim()
+          },
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         }
       );
       setSnackbar({
         open: true,
-        message: `Payment ${statusCode === 1 ? 'accepted' : 'rejected'} successfully.`,
+        message: `Payment rejected successfully.`,
         severity: 'success'
       });
       fetchManualPayments();
+      setRejectDialogOpen(false);
+      setRejectReason('');
+      setCurrentRejectReferenceNo(null);
     } catch (error) {
       setSnackbar({
         open: true,
-        message: `Failed to ${statusCode === 1 ? 'accept' : 'reject'} payment.`,
+        message: `Failed to reject payment.`,
         severity: 'error'
       });
-      console.error(`Error during payment ${statusCode === 1 ? 'accept' : 'reject'}:`, error);
+      console.error('Error rejecting payment:', error);
+    } finally {
+      setIsProcessing(false);
     }
   };
+
   const formatAmount = (amount: number) => {
     // If number is >= 1 million, use scientific notation
     if (Math.abs(amount) >= 1000000) {
@@ -204,7 +266,10 @@ const ListManualPayment: React.FC = () => {
         sx={{
           mb: 4,
           p: 3,
-          background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.1)} 0%, ${alpha(theme.palette.primary.light, 0.1)} 100%)`,
+          background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.1)} 0%, ${alpha(
+            theme.palette.primary.light,
+            0.1
+          )} 100%)`,
           borderRadius: 3,
           border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`
         }}
@@ -343,6 +408,7 @@ const ListManualPayment: React.FC = () => {
                           color="success"
                           startIcon={<TickCircle size={16} />}
                           onClick={() => handleAction(payment.referenceNumber, 1)}
+                          disabled={isProcessing}
                           sx={{
                             borderRadius: 1,
                             textTransform: 'none',
@@ -357,6 +423,7 @@ const ListManualPayment: React.FC = () => {
                           color="error"
                           startIcon={<CloseSquare size={16} />}
                           onClick={() => handleAction(payment.referenceNumber, 0)}
+                          disabled={isProcessing}
                           sx={{
                             borderRadius: 1,
                             textTransform: 'none',
@@ -542,6 +609,109 @@ const ListManualPayment: React.FC = () => {
             }}
           >
             {isLoadingDetails ? 'Please wait...' : 'Close'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Rejection Reason Dialog */}
+      <Dialog
+        open={rejectDialogOpen}
+        onClose={() => {
+          if (!isProcessing) {
+            setRejectDialogOpen(false);
+            setRejectReason('');
+            setCurrentRejectReferenceNo(null);
+          }
+        }}
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            minWidth: { xs: '90%', sm: 400, md: 500 },
+            maxWidth: 600
+          }
+        }}
+      >
+        <DialogTitle
+          sx={{
+            borderBottom: '1px solid',
+            borderColor: 'divider',
+            pb: 2,
+            px: 3
+          }}
+        >
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <Box
+              sx={{
+                width: 40,
+                height: 40,
+                borderRadius: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                bgcolor: alpha(theme.palette.error.main, 0.1),
+                color: 'error.main'
+              }}
+            >
+              <CloseCircle variant="Bold" size={24} />
+            </Box>
+            <Typography variant="h5">Reject Payment</Typography>
+          </Stack>
+        </DialogTitle>
+
+        <DialogContent sx={{ px: 3, py: 3 }}>
+          <Typography variant="body1" gutterBottom>
+            Please provide a reason for rejecting this manual payment.
+          </Typography>
+          <TextField
+            label="Rejection Reason"
+            variant="outlined"
+            fullWidth
+            multiline
+            rows={4}
+            value={rejectReason}
+            onChange={(e) => setRejectReason(e.target.value)}
+            required
+            disabled={isProcessing}
+          />
+        </DialogContent>
+
+        <DialogActions
+          sx={{
+            px: 3,
+            py: 2,
+            borderTop: '1px solid',
+            borderColor: 'divider'
+          }}
+        >
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleRejectConfirm}
+            disabled={isProcessing || rejectReason.trim() === ''}
+            startIcon={<CloseCircle />}
+            sx={{
+              borderRadius: 1,
+              textTransform: 'none'
+            }}
+          >
+            {isProcessing ? 'Rejecting...' : 'Reject'}
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={() => {
+              if (!isProcessing) {
+                setRejectDialogOpen(false);
+                setRejectReason('');
+                setCurrentRejectReferenceNo(null);
+              }
+            }}
+            disabled={isProcessing}
+            sx={{
+              borderRadius: 1,
+              textTransform: 'none'
+            }}
+          >
+            Cancel
           </Button>
         </DialogActions>
       </Dialog>

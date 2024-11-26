@@ -11,14 +11,8 @@ export default function Footer() {
   return (
     <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ p: '24px 16px 0px', mt: 'auto' }}>
       <Stack spacing={1.5} direction="row" justifyContent="space-between" alignItems="center">
-        <Link component={RouterLink} to="https://ableproadmin.com" target="_blank" variant="caption" color="text.primary">
+        <Link component={RouterLink} to="/" target="_blank" variant="caption" color="text.primary">
           Home
-        </Link>
-        <Link component={RouterLink} to="https://phoenixcoded.gitbook.io/able-pro" target="_blank" variant="caption" color="text.primary">
-          Documentation
-        </Link>
-        <Link component={RouterLink} to="https://phoenixcoded.authordesk.app/" target="_blank" variant="caption" color="text.primary">
-          Support
         </Link>
       </Stack>
     </Stack>

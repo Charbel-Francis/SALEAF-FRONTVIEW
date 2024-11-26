@@ -125,7 +125,7 @@ export default function WidgetChart() {
       <Grid item xs={12} md={8} lg={9}>
         <Grid container spacing={3}>
           <Grid item xs={12}>
-            <RepeatCustomerRate />
+            {/* <RepeatCustomerRate /> */}
           </Grid>
           <Grid item xs={12}>
             <ProjectOverview />
@@ -159,7 +159,7 @@ export default function WidgetChart() {
         <ProductOverview />
       </Grid>
       <Grid item xs={12} md={6}>
-        <TotalIncome />
+        {/* <TotalIncome /> */}
       </Grid>
 
       {/* row 5 */}

@@ -27,6 +27,17 @@ interface AddEventProps {
   eventData?: Event;
 }
 
+const formatDateForInput = (dateString: string) => {
+  if (!dateString) return null;
+  const date = new Date(dateString);
+  return isNaN(date.getTime()) ? null : date;
+};
+
+const formatDateForSubmit = (date: Date | null) => {
+  if (!date) return '';
+  return date.toISOString();
+};
+
 const AddEvent = ({ isEdit = false, eventData }: AddEventProps) => {
   const theme = useTheme();
   const { token } = useAuth();
@@ -36,8 +47,8 @@ const AddEvent = ({ isEdit = false, eventData }: AddEventProps) => {
   const [eventName, setEventName] = useState(isEdit ? eventData?.eventName || '' : '');
   const [eventDescription, setEventDescription] = useState(isEdit ? eventData?.eventDescription || '' : '');
   const [location, setLocation] = useState(isEdit ? eventData?.location || '' : '');
-  const [startDateTime, setStartDateTime] = useState(isEdit ? eventData?.startDateTime || '' : '');
-  const [endDateTime, setEndDateTime] = useState(isEdit ? eventData?.endDateTime || '' : '');
+  const [startDateTime, setStartDateTime] = useState<Date | null>(isEdit && eventData?.startDate ? new Date(eventData.startDate) : null);
+  const [endDateTime, setEndDateTime] = useState<Date | null>(isEdit && eventData?.endDate ? new Date(eventData.endDate) : null);
   const [publish, setPublish] = useState(isEdit ? eventData?.publish || true : true);
   const [status, setStatus] = useState<Event['status']>(isEdit ? eventData?.status || 'upcoming' : 'upcoming');
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -76,8 +87,8 @@ const AddEvent = ({ isEdit = false, eventData }: AddEventProps) => {
       formData.append('EventName', eventName);
       formData.append('EventDescription', eventDescription);
       formData.append('Location', location);
-      formData.append('StartDateTime', startDateTime);
-      formData.append('EndDateTime', endDateTime);
+      formData.append('StartDateTime', startDateTime?.toISOString() || '');
+      formData.append('EndDateTime', endDateTime?.toISOString() || '');
       formData.append('Publish', publish.toString());
       formData.append('Capacity', capacity.toString());
 
@@ -85,19 +96,18 @@ const AddEvent = ({ isEdit = false, eventData }: AddEventProps) => {
         formData.append('EventImageFile', imageFile);
       }
 
+      formData.delete('Packages');
+
       packages.forEach((pkg, index) => {
-        formData.append(`Packages[${index}].packageName`, pkg.packageName);
-        formData.append(`Packages[${index}].packagePrice`, pkg.packagePrice.toString());
-        formData.append(`Packages[${index}].packageDescription`, pkg.packageDescription || '');
+        if (pkg.packageName && pkg.packagePrice) {
+          formData.append(`Packages[${index}].packageName`, pkg.packageName);
+          formData.append(`Packages[${index}].packagePrice`, pkg.packagePrice.toString());
+        }
       });
 
       let response;
       if (isEdit && eventData) {
-        // Ensure eventId is a number
         const eventId = typeof eventData.eventId === 'string' ? parseInt(eventData.eventId, 10) : eventData.eventId;
-
-        console.log('Updating event with ID:', eventId); // Debug log
-
         response = await axios.put(`/api/Event/${eventId}`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
@@ -161,11 +171,11 @@ const AddEvent = ({ isEdit = false, eventData }: AddEventProps) => {
           </Stack>
 
           <Stack spacing={1} sx={{ mt: 2 }}>
-            <InputLabel htmlFor="start-date">Start Date/Time</InputLabel>
+            <InputLabel htmlFor="start-date">Start Date & Time</InputLabel>
             <MobileDateTimePicker
-              value={startDateTime ? new Date(startDateTime) : null}
-              format="dd/MM/yyyy hh:mm a"
-              onChange={(date) => setStartDateTime(date ? date.toISOString() : '')}
+              value={startDateTime}
+              onChange={(newDate) => setStartDateTime(newDate)}
+              format="dd/MM/yyyy HH:mm"
               slotProps={{
                 textField: {
                   fullWidth: true,
@@ -182,11 +192,11 @@ const AddEvent = ({ isEdit = false, eventData }: AddEventProps) => {
           </Stack>
 
           <Stack spacing={1} sx={{ mt: 2 }}>
-            <InputLabel htmlFor="end-date">End Date/Time</InputLabel>
+            <InputLabel htmlFor="end-date">End Date & Time</InputLabel>
             <MobileDateTimePicker
-              value={endDateTime ? new Date(endDateTime) : null}
-              format="dd/MM/yyyy hh:mm a"
-              onChange={(date) => setEndDateTime(date ? date.toISOString() : '')}
+              value={endDateTime}
+              onChange={(newDate) => setEndDateTime(newDate)}
+              format="dd/MM/yyyy HH:mm"
               slotProps={{
                 textField: {
                   fullWidth: true,

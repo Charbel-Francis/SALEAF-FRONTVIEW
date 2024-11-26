@@ -13,6 +13,7 @@ import AddDirectors from 'pages/apps/directors/AddDirectors';
 // import ListDirectors from 'pages/apps/directors/ListDirectors';
 import ListDonations from 'pages/apps/donations/ListDonations';
 import { Path } from '@react-pdf/renderer';
+import AuthGuard from 'utils/route-guard/AuthGuard';
 
 // render - dashboard
 const DashboardDefault = Loadable(lazy(() => import('pages/dashboard/default')));
@@ -28,7 +29,13 @@ const AppListDonations = Loadable(lazy(() => import('pages/apps/donations/ListDo
 const AppBankInfo = Loadable(lazy(() => import('pages/apps/banking-info/BankingInformation')));
 
 const ManualPayment = Loadable(lazy(() => import('pages/apps/manual-payments/ListManualPayment')));
-const Calendar = Loadable(lazy(() => import('pages/apps/calendar')));
+// const Calendar = Loadable(lazy(() => import('pages/apps/calendar')));
+const CreateAdmin = Loadable(lazy(() => import('pages/apps/createAdmin/CreateAdmin')));
+const ListBursaryApplication = Loadable(lazy(() => import('pages/apps/bursayapplicaiton/BursaryApplicationList')));
+const EventRegistrationList = Loadable(lazy(() => import('pages/apps/eventRegistration/EventRegistration')));
+const StudentMarkList = Loadable(lazy(() => import('pages/apps/studentMarkList/StudentMarkList')));
+const ListAllAdmins = Loadable(lazy(() => import('pages/apps/createAdmin/ListAdmin')));
+
 // ==============================|| MAIN ROUTES ||============================== //
 
 const MainRoutes = {
@@ -36,7 +43,11 @@ const MainRoutes = {
   children: [
     {
       path: '/',
-      element: <DashboardLayout />,
+      element: (
+        <AuthGuard>
+          <DashboardLayout />
+        </AuthGuard>
+      ),
       children: [
         {
           path: 'dashboard',
@@ -73,7 +84,6 @@ const MainRoutes = {
                 }
               ]
             },
-            { path: 'calendar', element: <Calendar />, loader: eventListLoader },
             {
               path: 'directors',
               children: [
@@ -118,6 +128,56 @@ const MainRoutes = {
                 {
                   path: 'manual-payments',
                   element: <ManualPayment />,
+                  loader: eventListLoader
+                }
+              ]
+            },
+            {
+              path: 'create-admin',
+              children: [
+                {
+                  path: 'create-admin',
+                  element: <CreateAdmin />,
+                  loader: eventListLoader
+                }
+              ]
+            },
+            {
+              path: 'BursaryApplicationList',
+              children: [
+                {
+                  path: 'BursaryApplicationList',
+                  element: <ListBursaryApplication />,
+                  loader: eventListLoader
+                }
+              ]
+            },
+            {
+              path: 'EventRegistrationList',
+              children: [
+                {
+                  path: 'EventRegistrationList',
+                  element: <EventRegistrationList />,
+                  loader: eventListLoader
+                }
+              ]
+            },
+            {
+              path: 'studentMarkList',
+              children: [
+                {
+                  path: 'studentMarkList',
+                  element: <StudentMarkList />,
+                  loader: eventListLoader
+                }
+              ]
+            },
+            {
+              path: 'list-admin',
+              children: [
+                {
+                  path: 'list-admin',
+                  element: <ListAllAdmins />,
                   loader: eventListLoader
                 }
               ]

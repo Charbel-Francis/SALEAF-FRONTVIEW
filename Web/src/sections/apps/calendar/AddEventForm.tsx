@@ -32,7 +32,6 @@ import IconButton from 'components/@extended/IconButton';
 
 import { ThemeMode } from 'config';
 import { openSnackbar } from 'api/snackbar';
-import { createEvent, updateEvent, deleteEvent } from 'api/calender';
 
 // assets
 import { Calendar, Trash } from 'iconsax-react';
@@ -184,7 +183,6 @@ export default function AddEventFrom({ event, range, onCancel, modalCallback }: 
   });
 
   const deleteHandler = async () => {
-    await deleteEvent(event?.id);
     openSnackbar({
       open: true,
       message: 'Event deleted successfully.',
@@ -198,47 +196,7 @@ export default function AddEventFrom({ event, range, onCancel, modalCallback }: 
   const formik = useFormik({
     initialValues: getInitialValues(event!, range),
     validationSchema: EventSchema,
-    onSubmit: async (values, { setSubmitting }) => {
-      try {
-        const newEvent = {
-          title: values.title,
-          description: values.description,
-          color: values.color,
-          textColor: values.textColor,
-          allDay: values.allDay,
-          start: values.start,
-          end: values.end
-        };
-
-        if (event) {
-          await updateEvent(event.id, newEvent);
-          openSnackbar({
-            open: true,
-            message: 'Event update successfully.',
-            variant: 'alert',
-            alert: {
-              color: 'success'
-            }
-          } as SnackbarProps);
-          modalCallback(false);
-        } else {
-          await createEvent(newEvent);
-          openSnackbar({
-            open: true,
-            message: 'Event added successfully.',
-            variant: 'alert',
-            alert: {
-              color: 'success'
-            }
-          } as SnackbarProps);
-          modalCallback(false);
-        }
-
-        setSubmitting(false);
-      } catch (error) {
-        console.error(error);
-      }
-    }
+    onSubmit: async (values, { setSubmitting }) => {}
   });
 
   const { values, errors, touched, handleSubmit, isSubmitting, getFieldProps, setFieldValue } = formik;

@@ -29,6 +29,8 @@ import axiosServices from 'utils/axios';
 import { set } from 'lodash';
 import { a } from 'react-spring';
 import { s } from '@fullcalendar/core/internal-common';
+import Notistack from 'components/third-party/Notistack';
+import { enqueueSnackbar } from 'notistack';
 
 const StyledCard = styled(Card)(({ theme }) => ({
   maxWidth: 600,
@@ -74,7 +76,7 @@ const DonationPage: React.FC = () => {
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
   const [countdown, setCountdown] = useState<number>(10);
   const [shouldStartCountdown, setShouldStartCountdown] = useState(false);
-
+  const [skipStep, setSkipStep] = useState(false);
   // Add this useEffect for countdown handling
   useEffect(() => {
     if (shouldStartCountdown && countdown > 0) {
@@ -180,9 +182,10 @@ const DonationPage: React.FC = () => {
         setIsDonorInfoLoading(true);
         try {
           const response = await axiosServices.get('/api/DonorCertificateInfo/donor-certificate-info-exist');
-          console.log(response);
+
           const DonatorInformation = response.data;
           if (DonatorInformation) {
+            setSkipStep(true);
             setActiveStep((prev) => prev + 2);
           } else {
             setActiveStep((prev) => prev + 1);
@@ -201,9 +204,27 @@ const DonationPage: React.FC = () => {
           formik.values.donorInfo.incomeTaxNumber === '' ||
           formik.values.donorInfo.address === ''
         ) {
-          return;
+          enqueueSnackbar('Please fill in all the fields', { variant: 'warning' });
+        } else {
+          try {
+            setIsLoading(true);
+            const response = await axiosServices.post('/api/DonorCertificateInfo/create-donor-certificate-info', {
+              identityNoOrCompanyRegNo: formik.values.donorInfo.identityNoOrCompanyRegNo,
+              incomeTaxNumber: formik.values.donorInfo.incomeTaxNumber,
+              address: formik.values.donorInfo.address,
+              phoneNumber: formik.values.donorInfo.phone
+            });
+            console.log(response);
+            if (response.status === 200) {
+              setIsLoading(false);
+              setActiveStep((prev) => prev + 1);
+            }
+          } catch (error) {
+            console.log(error);
+            setIsLoading(false);
+            enqueueSnackbar('Failed to upload donor details', { variant: 'error' });
+          }
         }
-        setActiveStep((prev) => prev + 1);
       } else if (activeStep === 2) {
         if (formik.values.paymentType === '') {
           return;
@@ -722,7 +743,14 @@ const DonationPage: React.FC = () => {
                 {activeStep > 0 && (
                   <Button
                     variant="outlined"
-                    onClick={() => setActiveStep((prev) => prev - 1)}
+                    onClick={() =>
+                      setActiveStep((prev) => {
+                        if (skipStep && prev === 2) {
+                          return prev - 2;
+                        }
+                        return prev - 1;
+                      })
+                    }
                     disabled={isLoading || isDonorInfoLoading || isBankInfoLoading}
                     sx={{
                       color: '#14783D',
@@ -804,7 +832,7 @@ const DonationPage: React.FC = () => {
             }}
           >
             <CircularProgress size={40} sx={{ color: '#14783D' }} />
-            <Typography>Processing your donation...</Typography>
+            <Typography>{activeStep === 2 ? 'Uploading your Details' : 'Processing your donation...'}</Typography>
           </Box>
         </Box>
       )}

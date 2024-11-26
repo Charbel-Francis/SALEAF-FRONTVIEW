@@ -1,6 +1,7 @@
 import axios, { AxiosRequestConfig } from 'axios';
 
 const axiosServices = axios.create({ baseURL: import.meta.env.VITE_APP_API_URL || 'https://saleafapi-production.up.railway.app/' });
+//const axiosServices = axios.create({ baseURL: 'http://localhost:5167/' || 'http://localhost:5167/' });
 
 // ==============================|| AXIOS - FOR MOCK SERVICES ||============================== //
 

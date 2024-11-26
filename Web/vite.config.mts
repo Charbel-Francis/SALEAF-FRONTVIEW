@@ -5,9 +5,9 @@ import viteTsconfigPaths from 'vite-tsconfig-paths';
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
 
-  // Provide a default value of '/' if VITE_APP_BASE_NAME is undefine
+  // Provide a default value of '/' if VITE_APP_BASE_NAME is undefined
   const API_URL = env.VITE_APP_BASE_NAME || '/';
-  const PORT = 3333;
+  const PORT = 3000;
 
   return {
     server: {
@@ -25,7 +25,7 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: []
     },
-    base: '/',
+    base: API_URL,
     plugins: [react(), viteTsconfigPaths()]
   };
 });

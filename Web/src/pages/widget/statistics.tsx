@@ -9,9 +9,6 @@ import RoundIconCard from 'components/cards/statistics/RoundIconCard';
 import AnalyticEcommerce from 'components/cards/statistics/AnalyticEcommerce';
 import EcommerceMetrix from 'components/cards/statistics/EcommerceMetrix';
 
-import WalletProfile from 'sections/widget/statistics/WalletProfile';
-import AssignUsers from 'sections/widget/statistics/AssignUsers';
-import PermissionBlock from 'sections/widget/statistics/PermissionBlock';
 import DropboxStorage from 'sections/widget/statistics/DropboxStorage';
 import SwitchBalanace from 'sections/widget/statistics/SwitchBalanace';
 import { ThemeMode } from 'config';
@@ -85,19 +82,6 @@ export default function WidgetStatistics() {
         <AnalyticEcommerce title="Total Sales" count="$35,078" percentage={27.4} isLoss color="error" extra="$20,395" />
       </Grid>
 
-      <Grid item xs={12} sm={6} md={4}>
-        <WalletProfile />
-      </Grid>
-      <Grid item xs={12} sm={6} md={4}>
-        <Grid container spacing={3}>
-          <Grid item xs={12}>
-            <AssignUsers />
-          </Grid>
-          <Grid item xs={12}>
-            <PermissionBlock />
-          </Grid>
-        </Grid>
-      </Grid>
       <Grid item xs={12} sm={6} md={4}>
         <Grid container spacing={3}>
           <Grid item xs={12}>

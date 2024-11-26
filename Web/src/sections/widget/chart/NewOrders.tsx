@@ -46,7 +46,7 @@ export default function NewOrders() {
           </Stack>
         </Grid>
         <Grid item xs={12}>
-          <EcommerceDataChart color={theme.palette.primary.main} height={80} />
+          <EcommerceDataChart color={theme.palette.primary.main} />
         </Grid>
         <Grid item xs={12}>
           <Stack direction="row" alignItems="center" justifyContent="center" spacing={1}>

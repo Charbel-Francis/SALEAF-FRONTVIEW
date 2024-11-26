@@ -6,9 +6,6 @@ import axios from 'utils/axios';
 import MainCard from 'components/MainCard';
 import { format } from 'date-fns';
 
-// types
-
-
 interface EventViewProps {
   id: number;
 }
@@ -29,7 +26,7 @@ const EventView = ({ id }: EventViewProps) => {
         console.error('Error fetching event:', error);
       }
     };
-    
+
     if (id) fetchEvent();
   }, [id]);
 
@@ -41,12 +38,16 @@ const EventView = ({ id }: EventViewProps) => {
         <Grid item xs={12}>
           <Stack spacing={2}>
             <Typography variant="h3">{event.eventName}</Typography>
-            <Chip 
-              label={event.status} 
+            <Chip
+              label={event.status}
               color={
-                event.status === 'upcoming' ? 'primary' : 
-                event.status === 'ongoing' ? 'success' :
-                event.status === 'completed' ? 'default' : 'error'
+                event.status === 'upcoming'
+                  ? 'primary'
+                  : event.status === 'ongoing'
+                    ? 'success'
+                    : event.status === 'completed'
+                      ? 'default'
+                      : 'error'
               }
             />
           </Stack>
@@ -57,13 +58,13 @@ const EventView = ({ id }: EventViewProps) => {
         <Grid item xs={12} md={6}>
           <Stack spacing={1}>
             <Typography variant="subtitle1">Start Date</Typography>
-            <Typography>{format(new Date(event.startDateTime), 'PPP')}</Typography>
+            <Typography>{format(new Date(event.startDate), 'PPP')}</Typography>
           </Stack>
         </Grid>
         <Grid item xs={12} md={6}>
           <Stack spacing={1}>
             <Typography variant="subtitle1">End Date</Typography>
-            <Typography>{format(new Date(event.endDateTime), 'PPP')}</Typography>
+            <Typography>{format(new Date(event.endDate), 'PPP')}</Typography>
           </Stack>
         </Grid>
         <Grid item xs={12}>
@@ -74,11 +75,7 @@ const EventView = ({ id }: EventViewProps) => {
         </Grid>
         {event.eventImageUrl && (
           <Grid item xs={12}>
-            <img 
-              src={event.eventImageUrl} 
-              alt={event.eventName}
-              style={{ maxWidth: '100%', height: 'auto' }}
-            />
+            <img src={event.eventImageUrl} alt={event.eventName} style={{ maxWidth: '100%', height: 'auto' }} />
           </Grid>
         )}
       </Grid>
@@ -86,4 +83,4 @@ const EventView = ({ id }: EventViewProps) => {
   );
 };
 
-export default EventView; 
+export default EventView;

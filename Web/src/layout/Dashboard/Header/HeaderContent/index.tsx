@@ -35,8 +35,6 @@ export default function HeaderContent() {
     <>
       {menuOrientation === MenuOrientation.HORIZONTAL && !downLG && <DrawerHeader open={true} />}
       {!downLG && <Search />}
-
-      <Notification />
       {!downLG && <Profile />}
       {downLG && <MobileSection />}
     </>

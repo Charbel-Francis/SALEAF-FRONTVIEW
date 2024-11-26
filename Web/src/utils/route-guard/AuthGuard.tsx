@@ -10,7 +10,7 @@ import { GuardProps } from 'types/auth';
 // ==============================|| AUTH GUARD ||============================== //
 
 export default function AuthGuard({ children }: GuardProps) {
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -22,8 +22,23 @@ export default function AuthGuard({ children }: GuardProps) {
         },
         replace: true
       });
+      return;
     }
-  }, [isLoggedIn, navigate, location]);
+
+    // Check if user has the Admin role
+    const userRole = user?.['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
+    if (userRole !== 'Admin') {
+      // If user is not an Admin (whether they're Student or Sponsor), redirect to home
+      navigate('/', {
+        replace: true
+      });
+    }
+  }, [isLoggedIn, navigate, location, user]);
+
+  // Only render children for Admin users
+  if (!isLoggedIn || user?.['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] !== 'Admin') {
+    return null;
+  }
 
   return children;
 }

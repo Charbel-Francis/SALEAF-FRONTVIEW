@@ -9,11 +9,13 @@ export interface Event {
   eventName: string;
   eventDescription: string;
   location: string;
-  startDateTime: string;
-  endDateTime: string;
+  startDate: string;
+  endDate: string;
+  startTime: string;
+  endTime: string;
   publish: boolean;
   eventImageUrl: string | null;
-  status: 'upcoming' | 'ongoing' | 'completed' | 'cancelled';
+  status: string;
   packages: Package[];
   capacity: number;
-} 
+}

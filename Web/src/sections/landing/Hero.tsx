@@ -16,7 +16,11 @@ export default function HeroPage() {
   const open = Boolean(anchorEl);
 
   const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget);
+    window.location.href = 'https://saleaffrontend-production.up.railway.app/donate';
+  };
+
+  const handleClickApplyFunding = (event: MouseEvent<HTMLButtonElement>) => {
+    window.location.href = 'https://saleaffrontend-production.up.railway.app/application_form';
   };
 
   const handleClose = () => {
@@ -148,6 +152,7 @@ export default function HeroPage() {
                     <Button
                       size="large"
                       variant="outlined"
+                      onClick={handleClickApplyFunding}
                       sx={{
                         borderColor: '#14783D',
                         color: '#14783D',

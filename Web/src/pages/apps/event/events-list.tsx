@@ -288,9 +288,9 @@ const EventList = () => {
         header: 'Start',
         cell: ({ row }) => (
           <Stack spacing={0.5} sx={{ minWidth: 100 }}>
-            <Typography variant="caption">{row.original.startDateTime}</Typography>
+            <Typography variant="caption">{row.original.startDate}</Typography>
             <Typography variant="caption" color="text.secondary">
-              {row.original.startDateTime}
+              {row.original.startTime}
             </Typography>
           </Stack>
         )
@@ -299,9 +299,9 @@ const EventList = () => {
         header: 'End',
         cell: ({ row }) => (
           <Stack spacing={0.5} sx={{ minWidth: 100 }}>
-            <Typography variant="caption">{row.original.endDateTime}</Typography>
+            <Typography variant="caption">{row.original.endDate}</Typography>
             <Typography variant="caption" color="text.secondary">
-              {row.original.endDateTime}
+              {row.original.endTime}
             </Typography>
           </Stack>
         )
@@ -325,16 +325,16 @@ const EventList = () => {
         accessorKey: 'status',
         cell: ({ row }) => {
           const statusColors = {
-            upcoming: 'default',
-            ongoing: 'warning',
-            completed: 'success',
-            cancelled: 'error'
+            Upcoming: 'default',
+            Ongoing: 'warning',
+            Completed: 'success',
+            Cancelled: 'error'
           } as const;
 
           return (
             <Stack alignItems="center" sx={{ minWidth: 100 }}>
               <Chip
-                label={capitalize(row.original.status)}
+                label={row.original.status}
                 color={statusColors[row.original.status as keyof typeof statusColors]}
                 variant="outlined"
                 size="small"
@@ -347,11 +347,6 @@ const EventList = () => {
         header: 'Actions',
         cell: ({ row }) => (
           <Stack direction="row" alignItems="center" justifyContent="center" spacing={1} sx={{ minWidth: 100 }}>
-            <Tooltip title="View">
-              <IconButton color="secondary" onClick={row.getToggleExpandedHandler()}>
-                <Eye />
-              </IconButton>
-            </Tooltip>
             <Tooltip title="Edit">
               <IconButton
                 color="primary"
@@ -370,7 +365,6 @@ const EventList = () => {
     ],
     [navigate]
   );
-  let breadcrumbLinks = [{ title: 'Home', to: APP_DEFAULT_PATH }, { title: 'Event List' }];
 
   return (
     <>

@@ -62,51 +62,7 @@ export default function TestimonialPage() {
     });
   }, []);
   const theme = useTheme();
-  const items = [
-    { image: Avatar1, text: '“Amazing template for fast develop.💎“', name: 'devbar', designation: 'Customizability' },
-    {
-      image: Avatar2,
-      text: '“Code quality is amazing. Design is astonishing. very easy to customize..😍“',
-      name: 'shahabblouch',
-      designation: 'Code Quality'
-    },
-    {
-      image: Avatar3,
-      text: '“This has been one of my favorite admin dashboards to use. 😍“',
-      name: 'htmhell',
-      designation: 'Design Quality'
-    },
-    {
-      image: Avatar4,
-      text: '“Excellent support, if we need any modification, they are doing immediately“',
-      name: 'hemchandkodali',
-      designation: 'Customer Support'
-    },
-    {
-      image: Avatar5,
-      text: '“For developers like me, this is the total package! 😍 “',
-      name: 'sumaranjum',
-      designation: 'Feature Availability'
-    },
-    {
-      image: Avatar6,
-      text: '“I love the looks of Able Pro 7.0. I really like the colors you guys have chosen for this theme. It looks really nice.. 💎“',
-      name: 'ritelogic',
-      designation: 'Other'
-    },
-    {
-      image: Avatar7,
-      text: '“The author is very nice and solved my problem inmediately 😍 “',
-      name: 'richitela',
-      designation: 'Customer Support'
-    },
-    {
-      image: Avatar8,
-      text: '“Perfect for my need. Elegant look n feel with blazing fast code. 💎“',
-      name: 'Genstiade',
-      designation: 'Feature Availability'
-    }
-  ];
+
   return (
     <>
       <Box sx={{ mt: { md: 15, xs: 2.5 } }}>
