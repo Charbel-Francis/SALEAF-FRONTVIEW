@@ -8,6 +8,7 @@ import {
   TextInput,
   Pressable,
   Animated,
+  Linking,
 } from "react-native";
 import { Formik } from "formik";
 import * as Yup from "yup";
@@ -18,7 +19,6 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
-
 // Enhanced Input Component
 interface ModernInputProps extends React.ComponentProps<typeof TextInput> {
   label: string;
@@ -205,6 +205,21 @@ const SignInModal = () => {
     };
   }, []);
 
+  const handleForgotPassword = async () => {
+    const forgotPasswordUrl =
+      "https://saleaffrontend-production.up.railway.app/forgot-password"; // Replace with your actual forgot password URL
+    try {
+      const supported = await Linking.canOpenURL(forgotPasswordUrl);
+      if (supported) {
+        await Linking.openURL(forgotPasswordUrl);
+      } else {
+        console.log("Cannot open URL: " + forgotPasswordUrl);
+      }
+    } catch (error) {
+      console.error("An error occurred while opening the URL:", error);
+    }
+  };
+
   const handleSubmit = async (
     values: FormValues,
     { setSubmitting, setFieldError }: FormikHelpers
@@ -293,6 +308,13 @@ const SignInModal = () => {
               />
             </View>
 
+            <Pressable
+              onPress={handleForgotPassword}
+              style={styles.forgotPasswordContainer}
+            >
+              <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+            </Pressable>
+
             {errors.general && (
               <Text style={[styles.errorText, styles.generalError]}>
                 {errors.general}
@@ -344,7 +366,17 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     width: "100%",
-    marginBottom: hp("3%"),
+    marginBottom: hp("1%"), // Reduced to make space for forgot password
+  },
+  forgotPasswordContainer: {
+    width: "100%",
+    alignItems: "flex-end",
+    marginBottom: hp("2%"),
+  },
+  forgotPasswordText: {
+    color: "#15783D",
+    fontSize: wp("3.5%"),
+    textDecorationLine: "underline",
   },
   buttonContainer: {
     width: "100%",

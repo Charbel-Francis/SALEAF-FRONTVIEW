@@ -1,18 +1,11 @@
 import { lazy } from 'react';
 
 // project-imports
-import ErrorBoundary from './ErrorBoundary';
 import Loadable from 'components/Loadable';
 import DashboardLayout from 'layout/Dashboard';
-import PagesLayout from 'layout/Pages';
-import SimpleLayout from 'layout/Simple';
-
-import { SimpleLayoutType } from 'config';
 import { loader as eventListLoader } from 'pages/apps/event/events-list';
 import AddDirectors from 'pages/apps/directors/AddDirectors';
 // import ListDirectors from 'pages/apps/directors/ListDirectors';
-import ListDonations from 'pages/apps/donations/ListDonations';
-import { Path } from '@react-pdf/renderer';
 import AuthGuard from 'utils/route-guard/AuthGuard';
 
 // render - dashboard

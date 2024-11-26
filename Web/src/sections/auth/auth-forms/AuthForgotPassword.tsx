@@ -21,6 +21,7 @@ import { openSnackbar } from 'api/snackbar';
 
 // types
 import { SnackbarProps } from 'types/snackbar';
+import axiosServices from 'utils/axios';
 
 // ============================|| FIREBASE - FORGOT PASSWORD ||============================ //
 
@@ -42,26 +43,23 @@ export default function AuthForgotPassword() {
         })}
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
           try {
-            await resetPassword(values.email).then(
+            await axiosServices.post('/api/Account/forgot-password', { email: values.email }).then(
               () => {
                 setStatus({ success: true });
                 setSubmitting(false);
                 openSnackbar({
                   open: true,
-                  message: 'Check mail for reset password link',
+                  message: 'Check mail for reset code',
                   variant: 'alert',
                   alert: {
                     color: 'success'
                   }
                 } as SnackbarProps);
                 setTimeout(() => {
-                  navigate(isLoggedIn ? '/auth/check-mail' : '/check-mail', { replace: true });
+                  navigate(isLoggedIn ? `/auth/code-verification?email=${values.email}` : `/code-verification?email=${values.email}`, {
+                    replace: true
+                  });
                 }, 1500);
-
-                // WARNING: do not set any formik state here as formik might be already destroyed here. You may get following error by doing so.
-                // Warning: Can't perform a React state update on an unmounted component. This is a no-op, but it indicates a memory leak in your application.
-                // To fix, cancel all subscriptions and asynchronous tasks in a useEffect cleanup function.
-                // github issue: https://github.com/formium/formik/issues/2430
               },
               (err: any) => {
                 setStatus({ success: false });

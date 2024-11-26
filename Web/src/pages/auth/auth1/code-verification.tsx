@@ -10,9 +10,9 @@ import AuthCodeVerification from 'sections/auth/auth-forms/AuthCodeVerification'
 // ================================|| CODE VERIFICATION ||================================ //
 
 export default function CodeVerification() {
-  let email = window.localStorage.getItem('email');
   let finalArr: string[] = [];
-
+  const params = new URLSearchParams(window.location.search);
+  const email = params.get('email');
   if (email) {
     let emailSplit = email.split('');
     let len = emailSplit.indexOf('@');

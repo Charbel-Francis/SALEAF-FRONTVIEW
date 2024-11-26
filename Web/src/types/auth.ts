@@ -42,7 +42,7 @@ export type FirebaseContextType = {
   firebaseGoogleSignIn: () => Promise<firebase.auth.UserCredential>;
   firebaseTwitterSignIn: () => Promise<firebase.auth.UserCredential>;
   firebaseFacebookSignIn: () => Promise<firebase.auth.UserCredential>;
-  resetPassword: (email: string) => Promise<void>;
+  resetPassword: (email: string, newPassword: string, otp: string) => Promise<void>;
   updateProfile: VoidFunction;
 };
 
@@ -88,11 +88,9 @@ export interface JWTContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   register?: (email: string, password: string, firstName: string, lastName: string) => Promise<void>;
-  resetPassword: (email: string) => Promise<void>;
+  resetPassword: (email: string, newPassword: string, otp: string) => Promise<void>;
   updateProfile: () => void;
 }
-
-
 
 export type Auth0ContextType = {
   isLoggedIn: boolean;
