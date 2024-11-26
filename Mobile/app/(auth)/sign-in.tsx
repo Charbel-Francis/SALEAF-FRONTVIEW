@@ -108,6 +108,7 @@ const ModernInput = ({
           </Pressable>
         )}
       </View>
+      {error && touched && <Text style={inputStyles.errorText}>{error}</Text>}
     </View>
   );
 };
@@ -151,9 +152,13 @@ const inputStyles = StyleSheet.create({
   iconContainer: {
     padding: wp("2%"),
   },
-});
-
-// Form validation schema
+  errorText: {
+    color: "#DC3545",
+    fontSize: wp("3.5%"),
+    marginTop: hp("0.5%"),
+    marginLeft: wp("2%"),
+  },
+}); // Form validation schema
 const SignInSchema = Yup.object().shape({
   email: Yup.string()
     .email("Invalid email address")
@@ -180,51 +185,6 @@ const SignInModal = () => {
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const styles = StyleSheet.create({
-    contentContainer: {
-      position: "absolute",
-      top: hp("20%"),
-      left: 0,
-      right: 0,
-      height: hp("65%"),
-      alignItems: "center",
-      paddingHorizontal: wp("4%"),
-    },
-    titleContainer: {
-      alignItems: "center",
-      marginBottom: hp("4%"),
-    },
-    title: {
-      fontSize: wp("12%"),
-      fontWeight: "bold",
-      color: "#15783D",
-      marginBottom: hp("1%"),
-    },
-    subtitle: {
-      fontSize: wp("4.5%"),
-      color: "#666",
-    },
-    inputContainer: {
-      width: "100%",
-      marginBottom: hp("3%"),
-    },
-    buttonContainer: {
-      width: "100%",
-      marginTop: hp("2%"),
-    },
-    signInButton: {
-      height: hp("6%"),
-      backgroundColor: "#15783D",
-      borderRadius: wp("3%"),
-    },
-    errorText: {
-      color: "#DC3545",
-      fontSize: wp("3.5%"),
-      marginTop: hp("0.5%"),
-      marginLeft: wp("1%"),
-    },
-  });
-
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener(
       "keyboardDidShow",
@@ -248,28 +208,25 @@ const SignInModal = () => {
   const handleSubmit = async (
     values: FormValues,
     { setSubmitting, setFieldError }: FormikHelpers
-  ): Promise<boolean> => {
+  ): Promise<void> => {
     setLoading(true);
     try {
       if (onLogin) {
         const results = await onLogin(values.email, values.password);
         if (!results) {
           setFieldError(
-            "general",
+            "email",
             "Login failed. Please check your credentials."
           );
-          return false;
+          return;
         }
         if (results.error) {
-          setFieldError("general", "Email or Password incorrect");
-          return false;
+          setFieldError("email", "Email or Password incorrect");
+          return;
         }
-        return true;
       }
-      return false;
     } catch (error) {
-      setFieldError("general", "An error occurred during sign in.");
-      return false;
+      setFieldError("email", "An error occurred during sign in.");
     } finally {
       setLoading(false);
       setSubmitting(false);
@@ -283,8 +240,12 @@ const SignInModal = () => {
         <Text style={styles.subtitle}>Sign in to your account</Text>
       </View>
 
-      <Formik
-        initialValues={{ email: "", password: "", general: "" }}
+      <Formik<FormValues>
+        initialValues={{
+          email: "",
+          password: "",
+          general: undefined,
+        }}
         validationSchema={SignInSchema}
         onSubmit={handleSubmit}
       >
@@ -297,7 +258,7 @@ const SignInModal = () => {
           touched,
           isSubmitting,
         }) => (
-          <>
+          <View style={styles.formContainer}>
             <View style={styles.inputContainer}>
               <ModernInput
                 label="Email"
@@ -307,15 +268,12 @@ const SignInModal = () => {
                 onChangeText={handleChange("email")}
                 onBlur={handleBlur("email")}
                 icon={<Ionicons name="mail" size={wp("5%")} color="grey" />}
-                error={errors.email}
+                error={touched.email ? errors.email : undefined}
                 touched={touched.email}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
               />
-              {touched.email && errors.email && (
-                <Text style={styles.errorText}>{errors.email}</Text>
-              )}
 
               <ModernInput
                 label="Password"
@@ -328,18 +286,18 @@ const SignInModal = () => {
                 icon={
                   <Ionicons name="lock-closed" size={wp("5%")} color="grey" />
                 }
-                error={errors.password}
+                error={touched.password ? errors.password : undefined}
                 touched={touched.password}
                 autoCapitalize="none"
                 autoCorrect={false}
               />
-              {touched.password && errors.password && (
-                <Text style={styles.errorText}>{errors.password}</Text>
-              )}
-              {errors.general && (
-                <Text style={styles.errorText}>{errors.general}</Text>
-              )}
             </View>
+
+            {errors.general && (
+              <Text style={[styles.errorText, styles.generalError]}>
+                {errors.general}
+              </Text>
+            )}
 
             <View style={styles.buttonContainer}>
               <CustomButton
@@ -349,11 +307,64 @@ const SignInModal = () => {
                 style={styles.signInButton}
               />
             </View>
-          </>
+          </View>
         )}
       </Formik>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  contentContainer: {
+    position: "absolute",
+    top: hp("20%"),
+    left: 0,
+    right: 0,
+    height: hp("65%"),
+    alignItems: "center",
+    paddingHorizontal: wp("4%"),
+  },
+  formContainer: {
+    width: "100%",
+    alignItems: "center",
+  },
+  titleContainer: {
+    alignItems: "center",
+    marginBottom: hp("4%"),
+  },
+  title: {
+    fontSize: wp("12%"),
+    fontWeight: "bold",
+    color: "#15783D",
+    marginBottom: hp("1%"),
+  },
+  subtitle: {
+    fontSize: wp("4.5%"),
+    color: "#666",
+  },
+  inputContainer: {
+    width: "100%",
+    marginBottom: hp("3%"),
+  },
+  buttonContainer: {
+    width: "100%",
+    marginTop: hp("2%"),
+  },
+  signInButton: {
+    height: hp("6%"),
+    backgroundColor: "#15783D",
+    borderRadius: wp("3%"),
+  },
+  errorText: {
+    color: "#DC3545",
+    fontSize: wp("3.5%"),
+    marginTop: hp("0.5%"),
+    marginLeft: wp("1%"),
+  },
+  generalError: {
+    textAlign: "center",
+    marginBottom: hp("2%"),
+  },
+});
 
 export default SignInModal;

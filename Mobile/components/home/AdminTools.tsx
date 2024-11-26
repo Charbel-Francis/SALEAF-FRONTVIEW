@@ -5,6 +5,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import { useRouter } from "expo-router";
 
 interface ToolCardProps {
   icon: keyof typeof MaterialIcons.glyphMap;
@@ -20,6 +21,7 @@ const ToolCard: React.FC<ToolCardProps> = ({ icon, title, onPress }) => (
 );
 
 export const AdminTools: React.FC = () => {
+  const router = useRouter();
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>Admin Tools</Text>
@@ -27,22 +29,38 @@ export const AdminTools: React.FC = () => {
         <ToolCard
           icon="people"
           title="Student Management"
-          onPress={() => console.log("Navigate to Student Management")}
+          onPress={() =>
+            router.navigate(
+              "/pages/AdminWebView?url=https://saleaffrontend-production.up.railway.app/apps/studentMarkList/studentMarkList"
+            )
+          }
         />
         <ToolCard
           icon="event"
           title="Event Management"
-          onPress={() => console.log("Navigate to Event Management")}
+          onPress={() =>
+            router.navigate(
+              "/pages/AdminWebView?url=https://saleaffrontend-production.up.railway.app/apps/event/event-list"
+            )
+          }
         />
         <ToolCard
           icon="assessment"
           title="Reports"
-          onPress={() => console.log("Navigate to Reports")}
+          onPress={() =>
+            router.navigate(
+              "/pages/AdminWebView?url=https://saleaffrontend-production.up.railway.app/dashboard/default"
+            )
+          }
         />
         <ToolCard
-          icon="settings"
-          title="Settings"
-          onPress={() => console.log("Navigate to Settings")}
+          icon="money"
+          title="Bank Details"
+          onPress={() =>
+            router.navigate(
+              "/pages/AdminWebView?url=https://saleaffrontend-production.up.railway.app/apps/banking-info/banking-info"
+            )
+          }
         />
       </View>
     </View>

@@ -1,6 +1,13 @@
 import { useLocalSearchParams, Stack, useRouter } from "expo-router";
 import Animated from "react-native-reanimated";
-import { View, StyleSheet, Pressable, Text, ScrollView } from "react-native";
+import {
+  View,
+  StyleSheet,
+  Pressable,
+  Text,
+  ScrollView,
+  Linking,
+} from "react-native";
 import { BlurView } from "expo-blur";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import {
@@ -52,11 +59,35 @@ export default function StudentDetailsScreen() {
       ? params.achievements[0]
       : params.achievements || "[]"
   ) as Achievement[];
+  const formatUrl = (url: string) => {
+    // Remove protocol and www
+    let formatted = url.replace(/(https?:\/\/)?(www\.)?/, "");
+    // Truncate if too long
+    if (formatted.length > 30) {
+      formatted = formatted.substring(0, 27) + "...";
+    }
+    return formatted;
+  };
 
   // Extract skill names from the skill objects
   const skills = parsedSkills.map((skill) => skill.skillName);
   const achievements = parsedAchievements;
+  const handlePress = async () => {
+    try {
+      // Check if the URL can be opened
+      const supported = await Linking.canOpenURL(onlineProfile);
 
+      if (supported) {
+        // Open the URL in default browser
+        await Linking.openURL(onlineProfile);
+      } else {
+        console.log("Cannot open URL: " + onlineProfile);
+        // Optionally show an alert or toast here
+      }
+    } catch (error) {
+      console.error("Error opening URL:", error);
+    }
+  };
   const {
     studentId,
     firstName,
@@ -259,8 +290,8 @@ export default function StudentDetailsScreen() {
 
           {/* Online Profile */}
           {onlineProfile && (
-            <Pressable>
-              <View style={[styles.section, styles.profileSection]}>
+            <Pressable onPress={handlePress}>
+              <View style={styles.section}>
                 <LinearGradient
                   colors={["#3949ab", "#5c6bc0"]}
                   style={styles.profileGradient}
@@ -269,15 +300,22 @@ export default function StudentDetailsScreen() {
                 >
                   <View style={styles.profileContent}>
                     <View style={styles.profileLeft}>
-                      <Ionicons
-                        name="globe-outline"
-                        size={wp("6%")}
-                        color="white"
-                      />
-                      <Text style={styles.profileText}>{onlineProfile}</Text>
+                      <View style={styles.iconContainer}>
+                        <Ionicons
+                          name="globe-outline"
+                          size={wp("6%")}
+                          color="white"
+                        />
+                      </View>
+                      <View style={styles.textContainer}>
+                        <Text style={styles.profileLabel}>Online Profile</Text>
+                        <Text style={styles.profileText} numberOfLines={1}>
+                          {formatUrl(onlineProfile)}
+                        </Text>
+                      </View>
                     </View>
                     <View style={styles.profileButton}>
-                      <Text style={styles.profileButtonText}>View Profile</Text>
+                      <Text style={styles.profileButtonText}>View</Text>
                       <Ionicons
                         name="arrow-forward"
                         size={wp("5%")}
@@ -495,37 +533,60 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   profileGradient: {
-    padding: wp("4%"),
+    borderRadius: wp("3%"),
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
   profileContent: {
+    padding: wp("4%"),
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "space-between",
+    alignItems: "center",
   },
   profileLeft: {
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
+    marginRight: wp("2%"),
+  },
+  iconContainer: {
+    width: wp("12%"),
+    height: wp("12%"),
+    borderRadius: wp("6%"),
+    backgroundColor: "rgba(255,255,255,0.2)",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: wp("3%"),
+  },
+  profileLabel: {
+    color: "rgba(255,255,255,0.8)",
+    fontSize: wp("3%"),
+    marginBottom: 2,
   },
   profileText: {
     color: "white",
-    fontSize: wp("4%"),
-    fontWeight: "500",
-    marginLeft: wp("3%"),
+    fontSize: wp("3.8%"),
+    fontWeight: "600",
   },
   profileButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    backgroundColor: "rgba(255,255,255,0.15)",
+    paddingVertical: wp("2%"),
     paddingHorizontal: wp("4%"),
-    paddingVertical: hp("1%"),
-    borderRadius: wp("5%"),
+    borderRadius: wp("4%"),
+    gap: wp("1%"),
   },
   profileButtonText: {
     color: "white",
-    fontSize: wp("3.8%"),
-    fontWeight: "500",
-    marginRight: wp("2%"),
+    fontSize: wp("3.5%"),
+    fontWeight: "600",
   },
   backButton: {
     position: "absolute",
@@ -612,5 +673,8 @@ const styles = StyleSheet.create({
     color: "#666",
     lineHeight: wp("5.5%"),
     marginTop: hp("1%"),
+  },
+  textContainer: {
+    flex: 1,
   },
 });

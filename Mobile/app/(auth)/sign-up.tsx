@@ -20,6 +20,8 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import CustomButton from "@/components/CustomButton";
+import { Formik } from "formik";
+import * as Yup from "yup";
 
 interface ModernInputProps extends React.ComponentProps<typeof TextInput> {
   label: string;
@@ -144,6 +146,8 @@ const ModernDualInput = ({
   error2,
   touched1,
   touched2,
+  placeholder1,
+  placeholder2,
   ...props
 }: ModernDualInputProps) => {
   const [isFocused1, setIsFocused1] = useState(false);
@@ -165,7 +169,7 @@ const ModernDualInput = ({
     } as AnimationConfig).start();
   };
 
-  const createLabelStyle = (animation: Animated.Value) => ({
+  const createLabelStyle = (animation: Animated.Value, isFocused: boolean) => ({
     position: "absolute" as const,
     left: wp("12%"),
     top: animation.interpolate({
@@ -176,13 +180,15 @@ const ModernDualInput = ({
       inputRange: [0, 1],
       outputRange: [wp("4%"), wp("3%")],
     }),
-    color: "#666",
+    color: isFocused ? "#15783D" : "#666",
   });
 
   return (
     <View style={dualInputStyles.container}>
       <View style={dualInputStyles.inputWrapper}>
-        <Animated.Text style={createLabelStyle(animatedLabelPosition1)}>
+        <Animated.Text
+          style={createLabelStyle(animatedLabelPosition1, isFocused1)}
+        >
           {label1}
         </Animated.Text>
         <View
@@ -208,6 +214,7 @@ const ModernDualInput = ({
                 animateLabel(animatedLabelPosition1, 0);
               }
             }}
+            placeholder={placeholder1}
             placeholderTextColor="#999"
           />
         </View>
@@ -217,7 +224,9 @@ const ModernDualInput = ({
       </View>
 
       <View style={dualInputStyles.inputWrapper}>
-        <Animated.Text style={createLabelStyle(animatedLabelPosition2)}>
+        <Animated.Text
+          style={createLabelStyle(animatedLabelPosition2, isFocused2)}
+        >
           {label2}
         </Animated.Text>
         <View
@@ -243,6 +252,7 @@ const ModernDualInput = ({
                 animateLabel(animatedLabelPosition2, 0);
               }
             }}
+            placeholder={placeholder2}
             placeholderTextColor="#999"
           />
         </View>
@@ -253,6 +263,358 @@ const ModernDualInput = ({
     </View>
   );
 };
+
+interface SignUpFormValues {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  isStudent: boolean;
+  general?: string;
+}
+
+const SignUpSchema = Yup.object().shape({
+  firstName: Yup.string()
+    .min(2, "Too Short!")
+    .max(50, "Too Long!")
+    .required("First name is required"),
+  lastName: Yup.string()
+    .min(2, "Too Short!")
+    .max(50, "Too Long!")
+    .required("Last name is required"),
+  email: Yup.string().email("Invalid email").required("Email is required"),
+  password: Yup.string()
+    .min(6, "Password must be at least 6 characters")
+    .required("Password is required"),
+  isStudent: Yup.boolean(),
+});
+
+const SignUpModal = () => {
+  const { onRegister } = useAuth();
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [toggleAnimation] = useState(new Animated.Value(0));
+
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      "keyboardDidShow",
+      () => {
+        setKeyboardVisible(true);
+      }
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      "keyboardDidHide",
+      () => {
+        setKeyboardVisible(false);
+      }
+    );
+
+    return () => {
+      keyboardDidHideListener.remove();
+      keyboardDidShowListener.remove();
+    };
+  }, []);
+
+  const toggleSwitch = (
+    setFieldValue: (field: string, value: any) => void,
+    isStudent: boolean
+  ) => {
+    const toValue = isStudent ? 0 : 1;
+    Animated.spring(toggleAnimation, {
+      toValue,
+      useNativeDriver: true,
+      speed: 20,
+      bounciness: 8,
+    }).start();
+
+    setFieldValue("isStudent", !isStudent);
+  };
+
+  const translateX = toggleAnimation.interpolate({
+    inputRange: [0, 1],
+    outputRange: [2, wp("7%")],
+  });
+
+  const renderToggle = (
+    setFieldValue: (field: string, value: any) => void,
+    isStudent: boolean
+  ) => (
+    <View style={styles.toggleContainer}>
+      <View style={styles.toggleLabelContainer}>
+        <Ionicons
+          name="school"
+          size={wp("5%")}
+          color="grey"
+          style={styles.studentIcon}
+        />
+        <Text style={styles.toggleLabel}>Register as Student</Text>
+      </View>
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={() => toggleSwitch(setFieldValue, isStudent)}
+      >
+        <View
+          style={[
+            styles.toggleWrapper,
+            isStudent && styles.toggleWrapperActive,
+          ]}
+        >
+          <Animated.View
+            style={[styles.toggleCircle, { transform: [{ translateX }] }]}
+          />
+        </View>
+      </TouchableOpacity>
+    </View>
+  );
+
+  return (
+    <SafeAreaView style={styles.contentContainer}>
+      <ScrollView keyboardShouldPersistTaps="handled">
+        <View style={styles.titleContainer}>
+          <Text style={styles.title}>Welcome</Text>
+          <Text style={styles.subtitle}>Create your account</Text>
+        </View>
+
+        <Formik
+          initialValues={{
+            firstName: "",
+            lastName: "",
+            email: "",
+            password: "",
+            isStudent: false,
+            general: undefined,
+          }}
+          validationSchema={SignUpSchema}
+          onSubmit={async (values, { setSubmitting, setErrors }) => {
+            try {
+              if (onRegister) {
+                const response = await onRegister(
+                  values.firstName,
+                  values.lastName,
+                  values.email,
+                  values.password,
+                  values.isStudent
+                );
+
+                if (response.success) {
+                  return;
+                }
+
+                if (response.status === 400) {
+                  if (response.data?.errors) {
+                    const serverErrors = response.data.errors;
+                    setErrors(
+                      Object.keys(serverErrors).reduce(
+                        (acc, key) => ({
+                          ...acc,
+                          [key.toLowerCase()]: serverErrors[key][0],
+                        }),
+                        {}
+                      )
+                    );
+                  } else {
+                    setErrors({
+                      email: response.error || "Email already exists",
+                    });
+                  }
+                } else if (response.status === 422) {
+                  setErrors({
+                    general: "Please check your input and try again.",
+                  });
+                } else if (response.status === 500) {
+                  setErrors({
+                    general: "Server error. Please try again later.",
+                  });
+                } else {
+                  setErrors({
+                    general:
+                      response.error ||
+                      "Registration failed. Please try again.",
+                  });
+                }
+              }
+            } catch (error) {
+              console.error("Unexpected error during registration:", error);
+              setErrors({
+                general: "An unexpected error occurred. Please try again.",
+              });
+            } finally {
+              setSubmitting(false);
+            }
+          }}
+        >
+          {({
+            handleChange,
+            handleBlur,
+            handleSubmit,
+            values,
+            errors,
+            touched,
+            isSubmitting,
+            setFieldValue,
+          }) => (
+            <View style={styles.formContainer}>
+              <View style={styles.inputContainer}>
+                <ModernDualInput
+                  label1="First Name"
+                  label2="Last Name"
+                  value1={values.firstName}
+                  value2={values.lastName}
+                  onChange1={handleChange("firstName")}
+                  onChange2={handleChange("lastName")}
+                  icon1={
+                    <Ionicons name="person" size={wp("5%")} color="grey" />
+                  }
+                  icon2={
+                    <Ionicons name="person" size={wp("5%")} color="grey" />
+                  }
+                  placeholder1="Enter first name"
+                  placeholder2="Enter last name"
+                  error1={touched.firstName ? errors.firstName : ""}
+                  error2={touched.lastName ? errors.lastName : ""}
+                  touched1={touched.firstName}
+                  touched2={touched.lastName}
+                />
+
+                <ModernInput
+                  label="Email"
+                  placeholder="Enter your email"
+                  textContentType="emailAddress"
+                  value={values.email}
+                  onChangeText={handleChange("email")}
+                  onBlur={handleBlur("email")}
+                  icon={<Ionicons name="mail" size={wp("5%")} color="grey" />}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  error={touched.email ? errors.email : ""}
+                  touched={touched.email}
+                />
+
+                <ModernInput
+                  label="Password"
+                  placeholder="Enter your password"
+                  textContentType="password"
+                  secureTextEntry={true}
+                  value={values.password}
+                  onChangeText={handleChange("password")}
+                  onBlur={handleBlur("password")}
+                  icon={
+                    <Ionicons name="lock-closed" size={wp("5%")} color="grey" />
+                  }
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  error={touched.password ? errors.password : ""}
+                  touched={touched.password}
+                />
+
+                {renderToggle(setFieldValue, values.isStudent)}
+              </View>
+
+              <View style={styles.buttonContainer}>
+                <CustomButton
+                  onPress={handleSubmit}
+                  loading={isSubmitting}
+                  title="Sign Up"
+                  style={styles.signUpButton}
+                />
+              </View>
+            </View>
+          )}
+        </Formik>
+      </ScrollView>
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  contentContainer: {
+    flex: 1,
+    position: "absolute",
+    top: hp("8%"),
+    left: 0,
+    right: 0,
+    height: hp("75%"),
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: wp("4%"),
+  },
+  titleContainer: {
+    alignItems: "center",
+    marginTop: hp("4%"),
+    marginBottom: hp("3%"),
+  },
+  title: {
+    fontSize: wp("12%"),
+    fontWeight: "bold",
+    color: "#15783D",
+    marginBottom: hp("1%"),
+  },
+  subtitle: {
+    fontSize: wp("4.5%"),
+    color: "#666",
+  },
+  formContainer: {
+    paddingHorizontal: wp("5%"),
+  },
+  inputContainer: {
+    width: "100%",
+    marginBottom: hp("2%"),
+  },
+  buttonContainer: {
+    width: "100%",
+    marginTop: hp("2%"),
+  },
+  signUpButton: {
+    height: hp("6%"),
+    backgroundColor: "#15783D",
+    borderRadius: wp("3%"),
+  },
+  toggleContainer: {
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: hp("2%"),
+    marginTop: hp("1%"),
+  },
+  toggleLabelContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  toggleLabel: {
+    fontSize: wp("4%"),
+    color: "#374151",
+    fontWeight: "500",
+  },
+  studentIcon: {
+    marginRight: wp("2%"),
+  },
+  toggleWrapper: {
+    width: wp("12%"),
+    height: hp("3%"),
+    borderRadius: hp("1.5%"),
+    backgroundColor: "#D1D5DB",
+    padding: 2,
+  },
+  toggleWrapperActive: {
+    backgroundColor: "#15783D",
+  },
+  toggleCircle: {
+    width: hp("2.6%"),
+    height: hp("2.6%"),
+    backgroundColor: "white",
+    borderRadius: hp("1.3%"),
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+});
 
 const inputStyles = StyleSheet.create({
   container: {
@@ -352,367 +714,5 @@ const dualInputStyles = StyleSheet.create({
     marginLeft: wp("2%"),
   },
 });
-
-const SignUpModal = () => {
-  const { onRegister } = useAuth();
-  const [form, setForm] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    password: "",
-    isStudent: false,
-  });
-
-  const [touched, setTouched] = useState({
-    firstName: false,
-    lastName: false,
-    email: false,
-    password: false,
-  });
-
-  const [errors, setErrors] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    password: "",
-  });
-
-  const [loading, setLoading] = useState(false);
-  const [keyboardVisible, setKeyboardVisible] = useState(false);
-  const [toggleAnimation] = useState(new Animated.Value(0));
-
-  const styles = StyleSheet.create({
-    contentContainer: {
-      position: "absolute",
-      top: hp("8%"),
-      left: 0,
-      right: 0,
-      height: hp("75%"),
-      alignItems: "center",
-      paddingHorizontal: wp("4%"),
-    },
-    titleContainer: {
-      alignItems: "center",
-      marginBottom: hp("3%"),
-    },
-    title: {
-      fontSize: wp("12%"),
-      fontWeight: "bold",
-      color: "#15783D",
-      marginBottom: hp("1%"),
-    },
-    subtitle: {
-      fontSize: wp("4.5%"),
-      color: "#666",
-    },
-    inputContainer: {
-      width: "100%",
-      marginBottom: hp("2%"),
-    },
-    buttonContainer: {
-      width: "100%",
-    },
-    signUpButton: {
-      height: hp("6%"),
-      backgroundColor: "#15783D",
-      borderRadius: wp("3%"),
-    },
-    toggleContainer: {
-      width: "100%",
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      paddingVertical: hp("2%"),
-      marginBottom: hp("2%"),
-    },
-    toggleLabel: {
-      fontSize: wp("4%"),
-      color: "#374151",
-      fontWeight: "500",
-    },
-    toggleWrapper: {
-      width: wp("12%"),
-      height: hp("3%"),
-      borderRadius: hp("1.5%"),
-      backgroundColor: "#D1D5DB",
-      padding: 2,
-    },
-    toggleWrapperActive: {
-      backgroundColor: "#15783D",
-    },
-    toggleCircle: {
-      width: hp("2.6%"),
-      height: hp("2.6%"),
-      backgroundColor: "white",
-      borderRadius: hp("1.3%"),
-      shadowColor: "#000",
-      shadowOffset: {
-        width: 0,
-        height: 2,
-      },
-      shadowOpacity: 0.25,
-      shadowRadius: 3.84,
-      elevation: 5,
-    },
-    studentIcon: {
-      marginRight: wp("2%"),
-    },
-    toggleLabelContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-    },
-  });
-
-  useEffect(() => {
-    const keyboardDidShowListener = Keyboard.addListener(
-      "keyboardDidShow",
-      () => {
-        setKeyboardVisible(true);
-      }
-    );
-    const keyboardDidHideListener = Keyboard.addListener(
-      "keyboardDidHide",
-      () => {
-        setKeyboardVisible(false);
-      }
-    );
-
-    return () => {
-      keyboardDidHideListener.remove();
-      keyboardDidShowListener.remove();
-    };
-  }, []);
-
-  const validateForm = () => {
-    const newErrors = {
-      firstName: "",
-      lastName: "",
-      email: "",
-      password: "",
-    };
-
-    if (!form.firstName) {
-      newErrors.firstName = "First name is required";
-    }
-
-    if (!form.lastName) {
-      newErrors.lastName = "Last name is required";
-    }
-
-    if (!form.email) {
-      newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(form.email)) {
-      newErrors.email = "Invalid email address";
-    }
-
-    if (!form.password) {
-      newErrors.password = "Password is required";
-    } else if (form.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
-    }
-
-    setErrors(newErrors);
-    return Object.values(newErrors).every((error) => !error);
-  };
-
-  const toggleSwitch = () => {
-    const toValue = form.isStudent ? 0 : 1;
-    Animated.spring(toggleAnimation, {
-      toValue,
-      useNativeDriver: true,
-      speed: 20,
-      bounciness: 8,
-    }).start();
-
-    setForm((prev) => ({ ...prev, isStudent: !prev.isStudent }));
-  };
-
-  const translateX = toggleAnimation.interpolate({
-    inputRange: [0, 1],
-    outputRange: [2, wp("7%")],
-  });
-
-  const register = async () => {
-    try {
-      // Mark all fields as touched
-      setTouched({
-        firstName: true,
-        lastName: true,
-        email: true,
-        password: true,
-      });
-
-      // Validate form before proceeding
-      if (!validateForm()) {
-        return;
-      }
-
-      setLoading(true);
-      setErrors({
-        firstName: "",
-        lastName: "",
-        email: "",
-        password: "",
-      }); // Clear any previous errors
-
-      if (onRegister) {
-        const response = await onRegister(
-          form.firstName,
-          form.lastName,
-          form.email,
-          form.password,
-          form.isStudent
-        );
-
-        // Check if response indicates success
-        if (response.success) {
-          // Handle successful registration
-          // Navigation or success message will be handled by the onRegister function
-          return;
-        }
-
-        // Handle different error scenarios based on the response
-        if (response.status === 400) {
-          if (response.data?.errors) {
-            // Handle validation errors from the server
-            const serverErrors = response.data.errors;
-            setErrors((prev) => ({
-              ...prev,
-              ...Object.keys(serverErrors).reduce(
-                (acc, key) => ({
-                  ...acc,
-                  [key.toLowerCase()]: serverErrors[key][0],
-                }),
-                {}
-              ),
-            }));
-          } else {
-            // Handle general 400 error
-            setErrors((prev) => ({
-              ...prev,
-              email: response.error || "Email already exists",
-            }));
-          }
-        } else if (response.status === 422) {
-          // Handle validation errors
-          setErrors((prev) => ({
-            ...prev,
-            general: "Please check your input and try again.",
-          }));
-        } else if (response.status === 500) {
-          // Handle server errors
-          setErrors((prev) => ({
-            ...prev,
-            general: "Server error. Please try again later.",
-          }));
-        } else {
-          // Handle any other errors
-          setErrors((prev) => ({
-            ...prev,
-            general: response.error || "Registration failed. Please try again.",
-          }));
-        }
-      }
-    } catch (error) {
-      // Handle unexpected errors that weren't caught by the API function
-      console.error("Unexpected error during registration:", error);
-      setErrors((prev) => ({
-        ...prev,
-        general: "An unexpected error occurred. Please try again.",
-      }));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const renderToggle = () => (
-    <View style={styles.toggleContainer}>
-      <View style={styles.toggleLabelContainer}>
-        <Ionicons
-          name="school"
-          size={wp("5%")}
-          color="grey"
-          style={styles.studentIcon}
-        />
-        <Text style={styles.toggleLabel}>Register as Student</Text>
-      </View>
-      <TouchableOpacity activeOpacity={0.8} onPress={toggleSwitch}>
-        <View
-          style={[
-            styles.toggleWrapper,
-            form.isStudent && styles.toggleWrapperActive,
-          ]}
-        >
-          <Animated.View
-            style={[
-              styles.toggleCircle,
-              {
-                transform: [{ translateX }],
-              },
-            ]}
-          />
-        </View>
-      </TouchableOpacity>
-    </View>
-  );
-
-  return (
-    <View style={styles.contentContainer}>
-      <View style={styles.titleContainer}>
-        <Text style={styles.title}>Welcome</Text>
-        <Text style={styles.subtitle}>Create your account</Text>
-      </View>
-
-      <View style={styles.inputContainer}>
-        <ModernDualInput
-          label1="First Name"
-          label2="Last Name"
-          value1={form.firstName}
-          value2={form.lastName}
-          onChange1={(value) => setForm({ ...form, firstName: value })}
-          onChange2={(value) => setForm({ ...form, lastName: value })}
-          icon1={<Ionicons name="person" size={wp("5%")} color="grey" />}
-          icon2={<Ionicons name="person" size={wp("5%")} color="grey" />}
-          placeholder1="Enter first name"
-          placeholder2="Enter last name"
-        />
-
-        <ModernInput
-          label="Email"
-          placeholder="Enter your email"
-          textContentType="emailAddress"
-          value={form.email}
-          onChangeText={(value) => setForm({ ...form, email: value })}
-          icon={<Ionicons name="mail" size={wp("5%")} color="grey" />}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          autoCorrect={false}
-        />
-
-        <ModernInput
-          label="Password"
-          placeholder="Enter your password"
-          textContentType="password"
-          secureTextEntry={true}
-          value={form.password}
-          onChangeText={(value) => setForm({ ...form, password: value })}
-          icon={<Ionicons name="lock-closed" size={wp("5%")} color="grey" />}
-          autoCapitalize="none"
-          autoCorrect={false}
-        />
-        {renderToggle()}
-      </View>
-
-      <View style={styles.buttonContainer}>
-        <CustomButton
-          onPress={register}
-          loading={loading}
-          title="Sign Up"
-          style={styles.signUpButton}
-        />
-      </View>
-    </View>
-  );
-};
 
 export default SignUpModal;

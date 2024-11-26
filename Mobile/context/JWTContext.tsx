@@ -185,11 +185,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const loadToken = async () => {
       try {
         const token = await SecureStore.getItemAsync(Token_key);
-        console.log(
-          "Loading token from storage:",
-          token ? "Token exists" : "No token"
-        );
-
         if (token && !isTokenExpired(token)) {
           const decodedPayload = decodeJWTPayload(token);
           const role =
@@ -261,7 +256,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         isStudent,
       });
 
-      const { token } = results.data;
+      const { token, refreshToken } = results.data;
 
       if (!token) {
         throw new Error("No token received from server");
@@ -272,6 +267,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
 
       await SecureStore.setItemAsync(Token_key, token);
+      await SecureStore.setItemAsync("refreshToken", refreshToken);
       axiosInstance.defaults.headers.common[
         "Authorization"
       ] = `Bearer ${token}`;
@@ -330,7 +326,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         password,
       });
       console.log("Login response:", response.data);
-      const { token } = response.data;
+      const { token, refreshToken } = response.data;
 
       if (!token) {
         throw new Error("No token received from server");
@@ -342,6 +338,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
 
       await SecureStore.setItemAsync(Token_key, token);
+      await SecureStore.setItemAsync("refreshToken", refreshToken);
       axiosInstance.defaults.headers.common[
         "Authorization"
       ] = `Bearer ${token}`;
